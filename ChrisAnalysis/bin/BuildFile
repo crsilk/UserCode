@@ -1,0 +1,8 @@
+<environment>
+   <use name=boost>
+   <use name=root>
+</environment>
+
+<bin file=chrisAnalysis.cc>
+   <use name=PFAnalyses/ChrisAnalysis>
+</bin>
