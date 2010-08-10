@@ -1,0 +1,62 @@
+{
+
+#include "TLatex.h"
+  
+
+  TFile f("PFAnalysis_SingleGamma.root");
+
+  TCanvas* c1 = new TCanvas("c1", "c1", 900, 500);
+  c1->SetFillColor(0);
+
+  pad1 = new TPad("pad1","", 0.02, 0.02, 0.48, 0.98, 4);
+  pad2 = new TPad("pad2","", 0.52, 0.02, 0.98, 0.98, 4);
+  
+  pad1->SetFillColor(0);
+  pad2->SetFillColor(0);
+
+  pad1->Draw();
+  pad2->Draw();
+
+  pad1->cd();
+  
+  TH1D* pf = (TH1D*)f.Get("ChrisAnalyzer/Photons/inConeTotPFParticlePt");
+  pf->SetLineColor(2);
+  pf->SetLineWidth(2);
+  pf->SetTitle("Total In Cone Reco Photon p_{t} vs PF Photon p_{t}");
+  pf->GetXaxis()->SetTitle("Total in Cone p_{t}");
+  pf->Draw("histo");
+  
+  
+  TH1D* reco = (TH1D*)f.Get("ChrisAnalyzer/Photons/inConeTotRecoPhotonPt");
+  reco->SetLineWidth(2);
+  reco->SetLineColor(4);
+  reco->Draw("histo SAME");
+
+  TLegend* legend = new TLegend(0.65, 0.8, 0.89, 0.89);
+  legend->AddEntry(pf, "Particle flow photonns");
+  legend->AddEntry(reco, "Reco photons");
+  legend->Draw();
+
+  pad2->cd();
+  pad2->SetLogy();
+
+  
+  pf->SetLineColor(2);
+  pf->SetLineWidth(2);
+  pf->SetTitle("Total In Cone Reco Photon p_{t} vs PF Photon p_{t}");
+  pf->GetXaxis()->SetTitle("Total in Cone p_{t}");
+  pf->Draw("histo");
+ 
+  
+  reco->SetLineColor(4);
+  reco->SetMarkerStyle(7);
+  reco->SetMarkerColor(4);
+  reco->SetMarkerSize(5);
+  reco->Draw("histo SAME");
+
+  TLegend* legendL = new TLegend(0.65, 0.8, 0.89, 0.89);
+  legendL->AddEntry(pf, "Particle flow photons");
+  legendL->AddEntry(reco, "Reco photons");
+  legendL->Draw();
+
+}
