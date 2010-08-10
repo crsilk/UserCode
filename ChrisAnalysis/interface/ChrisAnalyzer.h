@@ -26,7 +26,6 @@
 #include "DataFormats/EgammaCandidates/interface/PhotonFwd.h"
 #include "DataFormats/Common/interface/Handle.h"
 
-
 #include "FWCore/Utilities/interface/InputTag.h"
 
 
@@ -54,13 +53,26 @@ class ChrisAnalyzer:public FWLiteAnalyzer{
 			 const reco::Candidate::LorentzVector& met) const;
 
   bool isMatched(const reco::PFCandidateCollection::const_iterator&  pfcand,
-		 const reco::GenParticleCollection::const_iterator& gencand, double& dr, double& dp);
-  double getPhotonEfficiency();
+		 const reco::GenParticleCollection::const_iterator& gencand, 
+		 double& dr, double& dp);
+
+  bool isMatched(const reco::PhotonCollection::const_iterator&  recopho,
+		 const reco::GenParticleCollection::const_iterator& gencand, 
+		 double& dr, double& dp);
+  bool isMatched(const reco::PFCandidateCollection::const_iterator& pfcand,
+		 const reco::GenParticleCollection::const_iterator& gencand, 
+		 double& deta, double& dphi, double& dp);
+  bool isMatched(const reco::PhotonCollection::const_iterator&  recopho,
+		 const reco::GenParticleCollection::const_iterator& gencand, 
+		 double& deta, double& dphi, double& dp);
+
+  
 
 
  private:
   
   double pt_;    
+  int nTruePhotons_;
   void registerCuts();
   void clear();
 
@@ -76,5 +88,5 @@ class ChrisAnalyzer:public FWLiteAnalyzer{
 
    
 };
-
 #endif
+
