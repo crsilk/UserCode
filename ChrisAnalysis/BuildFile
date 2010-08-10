@@ -1,0 +1,18 @@
+<use name=FWCore/Framework>
+<use name=FWCore/ParameterSet>
+<use name=FWCore/FWLite>
+<lib name=ProofPlayer>
+<use name=boost>                                                               
+<use name=rootcore>                                                            
+<use name=rootrflx>
+
+<use name=PFAnalyses/CommonTools>
+
+<use name=DataFormats/FWLite>
+<use name=DataFormats/PatCandidates>
+
+<use name=CommonTools/UtilAlgos>
+
+<export>
+   <lib name=PFAnalysesChrisAnalysis>
+</export>
