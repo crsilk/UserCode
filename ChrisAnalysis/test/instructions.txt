@@ -1,44 +1,38 @@
-When looking through my code you will notice that there are large blocks of commented code. This
-is the code that I used to make the plots of the different delta R and delta Pt criteria that 
-defined a 'matched' photon, I left it in there in case you wanted to see how I got the plots 
-that are in the directory
-/uscms_data/d2/csilkw2/CMSSW_3_7_0_patch2/src/PFAnalyses/ChrisAnalysis/test. I will first tell
-you where all the code that I wrote is.
 
+Installation: Set up a CMSSW area check out the necessary packages and compile
 
-All of my code that I have written for chrisAnalysis is contained in 4 different files:
+   cmsrel CMMSW_3_7_0_patch2
+   cd CMMSW_3_7_0_patch2/src/
+   cvs co UserCode/crsilk/ChrisAnalysis/
+   cvs co -r  Matt_dxyTempFix_290710 -d   AnalysisDataFormats/PFAnalyses UserCode/PFAnalyses/AnalysisDataFormats/PFAnalyses      
+   cvs co -r  Florian_5Aug2010-2 -d   PFAnalyses/CommonTools   UserCode/PFAnalyses/CommonTools   
+   cvs co -r  Colin_37X_June18 -d   PFAnalyses/RootTools  UserCode/PFAnalyses/RootTools                          
+   mv UserCode/crsilk/ChrisAnalysis/ PFAnalyses/
+   rm -r UserCode/
+   scram b -j 4
 
-/uscms_data/d2/csilkw2/CMSSW_3_7_0_patch2/src/PFAnalyses/ChrisAnalysis/bin/chrisAnalysis.cc
-This contains the main of the program. Most of the code was not actually written by me but was
-taken from TemplateAnalysis which is in the directory below ChrisAnalysis. When I made the 
-plots in my test directory I used this to write the original histograms.
+How to run: Go into the ChriAnalysis/test directory alter Chris_cfg.py and run
 
-/uscms_data/d2/csilkw2/CMSSW_3_7_0_patch2/src/PFAnalyses/ChrisAnalysis/src/ChrisHistograms.cc
-This contains the declarations of all the histograms that appear in the outputted root file.
+   cd PFAnalyses/ChrisAnalysis/test/
+   cmsenv
 
-/uscms_data/d2/csilkw2/CMSSW_3_7_0_patch2/src/PFAnalyses/ChrisAnalysis/src/ChrisAnalysis.cc
-Contains the bulk of the code. Almost all of it is located in the function analyze, where is
-goes through all the pfParticles in the event picks picks out which are what kind of particles
-and how pt is due to them. Then it fills the histograms that are then in the root file
+   Now you have to edit the Chris_cfg.py file so that it takes as a source file one that actually exists. Go down to the file
+  'file:$CMSSW_BASE/src/Configuration/Generator/test/SingleGammaPt35_cfi_py_GEN_SIM_DIGI_L1_DIGI2RAW_RAW2DIGI_RECO.root
+   and change it to your favorite SingleGammaPt gun. Right now that is all that will work and although Pt = 35 isn't hard
+   coded in there I haven't tested it for anything else so it might give strange results. Now run it:
+  
+   chrisAnalysis Chris_cfg.py
 
-/uscms_data/d2/csilkw2/CMSSW_3_7_0_patch2/src/PFAnalyses/CommonTools/interface/FWLiteAnalyzer.h
-I did not want to have to modify the file but if I didn't I would have had to rewrite a lot of
-the existing code. All it really contains is class variables and a few class functions.
+   This will create an output .root file PFAnalysis_SingleGamma.root, which contains a bunch of histograms.
 
+Looking at the results:
 
-How to Run:
-This is CMSSW_3_7_0_patch2,  and the analyzer is based off of TemplateAnalysis which is located
-a directory below in /uscms_data/d2/csilkw2/CMSSW_3_7_0_patch2/src/PFAnalyses/TemplateAnalysis
+   root -l PFAnalysis_SingleGamma.root
+   [root] TBrowser b
 
-Obviously to compile you must do:
-scram b -j 4
-but this must be done with the altered FWLiteAnalyzer.h code mentioned above.
+   And then look at the use the browser to just click on the histograms. Or to get much nicer plots with the various macros
+   located in the folder ChrisAnalysis/test/macros/. Move the macro you want to you use into the test area and run
 
-to run the program go to the directory 
-/uscms_data/d2/csilkw2/CMSSW_3_7_0_patch2/src/PFAnalyses/ChrisAnalysis/test
-and type:
-chrisAnalysis Chris_cfg.py
-This will create an output file PFAnalysis_SingleGammaPt.root, which contains all the histograms 
-that are created by the program. Chris_cfg.py takes a data file located in
-/uscms_data/d2/csilkw2/CMSSW_3_7_0_patch2/src/Configuration/Generator/test. However if you want it
-to take a different file it is pretty straight forward to change.
+   root -l
+   [root] .x (macro name)
+
