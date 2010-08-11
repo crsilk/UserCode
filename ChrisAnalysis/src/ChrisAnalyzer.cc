@@ -1,8 +1,6 @@
 #include "PFAnalyses/CommonTools/interface/FWLiteTreeAnalyzer.h"
 #include "PFAnalyses/ChrisAnalysis/interface/ChrisAnalyzer.h"
 #include "PFAnalyses/ChrisAnalysis/interface/ChrisHistograms.h"
-#include "PFAnalyses/ChrisAnalysis/interface/ElectronHistograms.h"
-#include "PFAnalyses/ChrisAnalysis/interface/IsolationHistograms.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/Math/interface/deltaR.h"
