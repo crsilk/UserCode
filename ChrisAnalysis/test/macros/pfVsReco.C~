@@ -22,7 +22,7 @@
   TH1D* pf = (TH1D*)f.Get("ChrisAnalyzer/Photons/inConeTotPFParticlePt");
   pf->SetLineColor(2);
   pf->SetLineWidth(2);
-  pf->SetTitle("Total In Cone Reco Photon p_{t} vs PF Photon p_{t}");
+  pf->SetTitle("Total In Cone Reco Photon p_{t} vs PF Particle p_{t} with 0.3 > |#eta| ");
   pf->GetXaxis()->SetTitle("Total in Cone p_{t}");
   pf->Draw("histo");
   
@@ -43,7 +43,7 @@
   
   pf->SetLineColor(2);
   pf->SetLineWidth(2);
-  pf->SetTitle("Total In Cone Reco Photon p_{t} vs PF Photon p_{t}");
+
   pf->GetXaxis()->SetTitle("Total in Cone p_{t}");
   pf->Draw("histo");
  
@@ -58,5 +58,7 @@
   legendL->AddEntry(pf, "Particle flow photons");
   legendL->AddEntry(reco, "Reco photons");
   legendL->Draw();
+
+  c1->SaveAs("PFParticleVsRecoPhotonPtAbsEtaLessDot3.gif");
 
 }
