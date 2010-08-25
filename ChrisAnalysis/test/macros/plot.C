@@ -35,49 +35,49 @@
 
   cpad2->cd();
 
-  TH1F* nh1 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inConePhotons");
+  TH1F* nh1 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inBoxPhotons");
   nh1->SetLineWidth(2);
-  nh1->SetTitle("Number of Photons in the Cone");
+  nh1->SetTitle("Number of Photons in the Box");
   nh1->GetXaxis()->SetTitle("Number");
   nh1->Draw("histo");
   c->Update();
 
   cpad5->cd();
   
-  TH1F* nh2 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inConeElectrons");
+  TH1F* nh2 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inBoxElectrons");
   nh2->SetLineWidth(2);
-  nh2->SetTitle("Number of Electrons in the Cone");
+  nh2->SetTitle("Number of Electrons in the Box");
   nh2->GetXaxis()->SetTitle("Number");
   nh2->Draw("histo");
   c->Update();
 
   cpad3->cd();
   
-  TH1F* nh3 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inConePions");
+  TH1F* nh3 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inBoxPions");
   nh3->SetLineWidth(2);
-  nh3->SetTitle("Number of Pions in the Cone");
+  nh3->SetTitle("Number of Pions in the Box");
   nh3->GetXaxis()->SetTitle("Number");
   nh3->Draw("histo");
   c->Update();
   
   cpad4->cd();
 
-  TH1F* nh4 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inConeKL0s");
+  TH1F* nh4 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inBoxKL0s");
   nh4->SetLineWidth(2);
-  nh4->SetTitle("Number of KL0s in the Cone");
+  nh4->SetTitle("Number of KL0s in the Box");
   nh4->GetXaxis()->SetTitle("Number");
   nh4->Draw("histo");
   c->Update();
 
   cpad1->cd();
   
-  TH1F* nh5 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inConePFParticles");
+  TH1F* nh5 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inBoxPFParticles");
   nh5->SetLineWidth(2);
-  nh5->SetTitle("Number of PFParticles in the Cone");
+  nh5->SetTitle("Number of PFParticles in the Box");
   nh5->GetXaxis()->SetTitle("Number");
   nh5->Draw("histo");
   c->Update();
-  c->SaveAs("ParticlesInCone.gif");
+  c->SaveAs("ParticlesInBox.gif");
 
   //Lin and Log Histograms
   TCanvas* c1 = new TCanvas("c1","", 700,500);
@@ -94,9 +94,9 @@
 
   c1pad1->cd();
   
-  TH1F* h1 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inConeTotPhotonPt");
+  TH1F* h1 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inBoxTotPhotonPt");
   h1->SetLineWidth(2);
-  h1->SetTitle("Total p_{t} from  Photons in the Cone");
+  h1->SetTitle("Total p_{t} from  Photons in the Box");
   h1->GetXaxis()->SetTitle("p_{t}");
   h1->Draw("histo");
   c1->Update();
@@ -122,9 +122,9 @@
 
   c2pad1->cd();
 
-  TH1F* h2 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inConeTotElectronPt");
+  TH1F* h2 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inBoxTotElectronPt");
   h2->SetLineWidth(2);
-  h2->SetTitle("Total p_{t} from Electrons in the Cone");
+  h2->SetTitle("Total p_{t} from Electrons in the Box");
   h2->GetXaxis()->SetTitle("p_{t}");
   h2->Draw("histo");
   c2->Update();
@@ -150,9 +150,9 @@
   
   c3pad1->cd();
   
-  TH1F* h3 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inConeTotPionPt");
+  TH1F* h3 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inBoxTotPionPt");
   h3->SetLineWidth(2);
-  h3->SetTitle("Total p_{t} from Pions in the Cone");
+  h3->SetTitle("Total p_{t} from Pions in the Box");
   h3->GetXaxis()->SetTitle("p_{t}");
   h3->Draw("histo");
   c3->Update();
@@ -178,9 +178,9 @@
 
   c4pad1->cd();  
 
-  TH1F* h4 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inConeTotKL0Pt");
+  TH1F* h4 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inBoxTotKL0Pt");
   h4->SetLineWidth(2);
-  h4->SetTitle("Total p_{t} from KL0s in the Cone");
+  h4->SetTitle("Total p_{t} from KL0s in the Box");
   h4->GetXaxis()->SetTitle("p_{t}");
   h4->Draw("histo");
   c4->Update();
@@ -206,10 +206,10 @@
 
   c5pad1->cd();
   
-  TH1F* h5 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inConeTotPFParticlePt");
+  TH1F* h5 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inBoxTotPFParticlePt");
   TGraph* g5 = new TGraph( h5);
   h5->SetLineWidth(2);
-  h5->SetTitle("Total p_{t} from PF Particles in the Cone");
+  h5->SetTitle("Total p_{t} from PF Particles in the Box");
   h5->GetXaxis()->SetTitle("p_{t}");
   h5->Draw("histo");
   c5->Update();
@@ -232,8 +232,8 @@
 
   cH1->cd();
   
-  TH2F* Hist1 = (TH2F*)f.Get("ChrisAnalyzer/Photons/inConePhotonDeltaAngle");
-  Hist1->SetTitle("In Cone Photon #Delta #eta and #Delta #phi Distribution");
+  TH2F* Hist1 = (TH2F*)f.Get("ChrisAnalyzer/Photons/inBoxPhotonDeltaAngle");
+  Hist1->SetTitle("In Box Photon #Delta #eta and #Delta #phi Distribution");
   Hist1->GetXaxis()->SetTitle("#Delta #eta");
   Hist1->GetYaxis()->SetTitle("#Delta #phi");
   Hist1->SetFillColor(9);
@@ -247,8 +247,8 @@
 
   cH2->cd();
 
-  TH2D* Hist2 = (TH2D*)f.Get("ChrisAnalyzer/Photons/inConeElectronDeltaAngle");
-  Hist2->SetTitle("In Cone Electron #Delta #eta and #Delta #phi Distribution");
+  TH2D* Hist2 = (TH2D*)f.Get("ChrisAnalyzer/Photons/inBoxElectronDeltaAngle");
+  Hist2->SetTitle("In Box Electron #Delta #eta and #Delta #phi Distribution");
   Hist2->GetXaxis()->SetTitle("#Delta #eta");
   Hist2->GetYaxis()->SetTitle("#Delta #phi");
   Hist2->SetFillColor(9);
@@ -262,8 +262,8 @@
 
   cH3->cd();
 
-  TH2D* Hist3 = (TH2D*)f.Get("ChrisAnalyzer/Photons/inConePionDeltaAngle");
-  Hist3->SetTitle("In Cone Pion #Delta #eta and #Delta #phi Distribution");
+  TH2D* Hist3 = (TH2D*)f.Get("ChrisAnalyzer/Photons/inBoxPionDeltaAngle");
+  Hist3->SetTitle("In Box Pion #Delta #eta and #Delta #phi Distribution");
   Hist3->GetXaxis()->SetTitle("#Delta #eta");
   Hist3->GetYaxis()->SetTitle("#Delta #phi");
   Hist3->SetFillColor(9);
@@ -277,8 +277,8 @@
 
   cH4->cd();
 
-  TH2D* Hist4 = (TH2D*)f.Get("ChrisAnalyzer/Photons/inConeKL0DeltaAngle");
-  Hist4->SetTitle("In Cone KL0 #Delta #eta and #Delta #phi Distribution");
+  TH2D* Hist4 = (TH2D*)f.Get("ChrisAnalyzer/Photons/inBoxKL0DeltaAngle");
+  Hist4->SetTitle("In Box KL0 #Delta #eta and #Delta #phi Distribution");
   Hist4->GetXaxis()->SetTitle("#Delta #eta");
   Hist4->GetYaxis()->SetTitle("#Delta #phi");
   Hist4->SetFillColor(9);
@@ -292,8 +292,8 @@
 
   cH5->cd();
 
-  TH2D* Hist5 = (TH2D*)f.Get("ChrisAnalyzer/Photons/inConePFParticleDeltaAngle");
-  Hist5->SetTitle("In Cone PFParticle #Delta #eta and #Delta #phi Distribution");
+  TH2D* Hist5 = (TH2D*)f.Get("ChrisAnalyzer/Photons/inBoxPFParticleDeltaAngle");
+  Hist5->SetTitle("In Box PFParticle #Delta #eta and #Delta #phi Distribution");
   Hist5->GetXaxis()->SetTitle("#Delta #eta");
   Hist5->GetYaxis()->SetTitle("#Delta #phi");
   Hist5->SetFillColor(9);

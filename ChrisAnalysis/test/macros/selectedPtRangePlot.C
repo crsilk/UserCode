@@ -34,7 +34,7 @@
 
   cpad2->cd();
 
-  TH1F* nh1 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inConeTotPhotonPt");
+  TH1F* nh1 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inBoxTotPhotonPt");
   nh1->SetLineWidth(2);
   nh1->SetTitle("Photon p_{t}");
   nh1->GetXaxis()->SetTitle("p_{t}");
@@ -43,7 +43,7 @@
 
   cpad5->cd();
 
-  TH1F* nh2 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inConeTotElectronPt");
+  TH1F* nh2 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inBoxTotElectronPt");
   nh2->SetLineWidth(2);
   nh2->SetTitle("Electron p_{t}");
   nh2->GetXaxis()->SetTitle("p_{t}");
@@ -52,7 +52,7 @@
 
   cpad3->cd();
 
-  TH1F* nh3 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inConeTotPionPt");
+  TH1F* nh3 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inBoxTotPionPt");
   nh3->SetLineWidth(2);
   nh3->SetTitle("Pion p_{t}");
   nh3->GetXaxis()->SetTitle("p_{t}");
@@ -61,7 +61,7 @@
 
   cpad4->cd();
 
-  TH1F* nh4 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inConeTotKL0Pt");
+  TH1F* nh4 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inBoxTotKL0Pt");
   nh4->SetLineWidth(2);
   nh4->SetTitle("KL0 p_{t}");
   nh4->GetXaxis()->SetTitle("p_{t}");
@@ -70,7 +70,7 @@
 
   cpad1->cd();
 
-  TH1F* nh5 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inConeTotPFParticlePt");
+  TH1F* nh5 = (TH1F*)f.Get("ChrisAnalyzer/Photons/inBoxTotPFParticlePt");
   nh5->SetLineWidth(2);
   nh5->SetTitle("PFParticle p_{t}");
   nh5->GetXaxis()->SetTitle("p_{t}");

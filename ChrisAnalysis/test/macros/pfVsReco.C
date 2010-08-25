@@ -19,15 +19,15 @@
 
   pad1->cd();
   
-  TH1D* pf = (TH1D*)f.Get("ChrisAnalyzer/Photons/inConeTotPFParticlePt");
+  TH1D* pf = (TH1D*)f.Get("ChrisAnalyzer/Photons/inBoxTotPFParticlePt");
   pf->SetLineColor(2);
   pf->SetLineWidth(2);
-  pf->SetTitle("Total In Cone Reco Photon p_{t} vs PF Particle p_{t} with 0.3 > |#eta| ");
-  pf->GetXaxis()->SetTitle("Total in Cone p_{t}");
+  pf->SetTitle("Total In Box Reco Photon p_{t} vs PF Particle p_{t} with 0.3 > |#eta| ");
+  pf->GetXaxis()->SetTitle("Total in Box p_{t}");
   pf->Draw("histo");
   
   
-  TH1D* reco = (TH1D*)f.Get("ChrisAnalyzer/Photons/inConeTotRecoPhotonPt");
+  TH1D* reco = (TH1D*)f.Get("ChrisAnalyzer/Photons/inBoxTotRecoPhotonPt");
   reco->SetLineWidth(2);
   reco->SetLineColor(4);
   reco->Draw("histo SAME");
@@ -44,7 +44,7 @@
   pf->SetLineColor(2);
   pf->SetLineWidth(2);
 
-  pf->GetXaxis()->SetTitle("Total in Cone p_{t}");
+  pf->GetXaxis()->SetTitle("Total in Box p_{t}");
   pf->Draw("histo");
  
   
