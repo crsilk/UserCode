@@ -69,21 +69,7 @@ bool ChrisAnalyzer::analyze(const edm::EventBase& iEvent){
 
   int k =0;					
   int i = 0;
-  double inConePt;
   double inBoxPt;
-
-  vector<int> inConePhotons(2);
-  vector<int> inConeElectrons(2);
-  vector<int> inConePions(2);
-  vector<int> inConeKL0s(2);
-  vector<int> inConePFParticles(2);
-  vector<int> inConeRecoPhotons(2);
-  vector<double> inConeTotPhotonPt(2);
-  vector<double> inConeTotElectronPt(2);
-  vector<double> inConeTotPionPt(2);
-  vector<double> inConeTotKL0Pt(2);
-  vector<double> inConeTotPFParticlePt(2);
-  vector<double> inConeTotRecoPhotonPt(2);
 
   vector<int> inBoxPhotons(2);
   vector<int> inBoxElectrons(2);
@@ -122,14 +108,11 @@ bool ChrisAnalyzer::analyze(const edm::EventBase& iEvent){
   for(genParticle = genHandle->begin(); 
       genParticle != genHandle->end(); genParticle++)
     {
-      inConePt = 0;
       inBoxPt = 0;
       //Sums up the total in cone/box pt.
       for(pfParticle = pfHandle->begin(); 
 	  pfParticle != pfHandle->end(); pfParticle++)      
 	{
-	  if(isMatched(pfParticle, genParticle, delRCut, includeAllPtCut))
-	    inConePt += pfParticle->pt();
 	  if(isMatched(pfParticle, genParticle, delEtaCut, delPhiCut,
 		       includeAllPtCut))
 	    inBoxPt += pfParticle->pt();
@@ -139,172 +122,142 @@ bool ChrisAnalyzer::analyze(const edm::EventBase& iEvent){
 	  pfParticle != pfHandle->end(); pfParticle++)
 	{ 
 	  //All PF particles
-	  if(isMatched(pfParticle, genParticle, delRCut, includeAllPtCut))
-	    {
-	      inConePFParticles[k]++;
-	      inConeTotPFParticlePt[k] += pfParticle->pt();
-	      chrisHistos_->fill2DHistogram("inConePFParticleDeltaAngle",
-					    pfParticle->eta()-genParticle->eta(),
-					    pfParticle->phi()-genParticle->phi());
-	      
-	    }
 	  if(isMatched(pfParticle, genParticle, delEtaCut, delPhiCut,
 		       includeAllPtCut))
 	    {
 	      inBoxPFParticles[k]++;
 	      inBoxTotPFParticlePt[k] += pfParticle->pt();
+	      chrisHistos_->fill2DHistogram("inBoxPFParticleDeltaAngle",
+					    pfParticle->eta()-genParticle->eta(),
+					    pfParticle->phi()-genParticle->phi());
+	      
 	    }
 	  //Photons
 	  if(pfParticle->pdgId() == 22)
 	    {
-	      if(isMatched(pfParticle, genParticle, delRCut, includeAllPtCut))
-		{
-		  inConePhotons[k]++;
-		  inConeTotPhotonPt[k] += pfParticle->pt();
-		  if(inConePt > 38.0)
-		    {
-		      chrisHistos_->fill1DHistogram("photonOverMeasured",
-						    pfParticle->pt());
-		    }
-	
-		  if( inConePt < 38.0 && inConePt > 32.0)
-		    {
-		      chrisHistos_->fill1DHistogram("photonCorrectlyMeasured",
-						    pfParticle->pt());
-		    }
-	
-		  if(inConePt < 32.0)
-		    {
-		      chrisHistos_->fill1DHistogram("photonUnderMeasured",
-						  pfParticle->pt());
-		    }
-		  
-		  chrisHistos_->fill2DHistogram("inConePhotonDeltaAngle",
-						pfParticle->eta()-genParticle->eta(),
-						pfParticle->phi()-genParticle->phi());
-		}       
 	      if(isMatched(pfParticle, genParticle, delEtaCut, delPhiCut,
 			   includeAllPtCut))
 		{
 		  inBoxPhotons[k]++;
 		  inBoxTotPhotonPt[k] += pfParticle->pt();
-		}
+		  if(inBoxPt > 38.0)
+		    {
+		      chrisHistos_->fill1DHistogram("photonOverMeasured",
+						    pfParticle->pt());
+		    }
+	
+		  if( inBoxPt < 38.0 && inBoxPt > 32.0)
+		    {
+		      chrisHistos_->fill1DHistogram("photonCorrectlyMeasured",
+						    pfParticle->pt());
+		    }
+	
+		  if(inBoxPt < 32.0)
+		    {
+		      chrisHistos_->fill1DHistogram("photonUnderMeasured",
+						  pfParticle->pt());
+		    }
+		  
+		  chrisHistos_->fill2DHistogram("inBoxPhotonDeltaAngle",
+						pfParticle->eta()-genParticle->eta(),
+						pfParticle->phi()-genParticle->phi());
+		}       
 	    }
 	  //Electrons
 	  if(abs(pfParticle->pdgId()) == 11)
 	    {
-	      if(isMatched(pfParticle, genParticle, delRCut, includeAllPtCut))
+	      if(isMatched(pfParticle, genParticle, delEtaCut,delPhiCut,
+			   includeAllPtCut))
 		{
-		  inConeElectrons[k]++;
-		  inConeTotElectronPt[k] += pfParticle->pt();
-		  if(inConePt > 38.0)
+		  inBoxElectrons[k]++;
+		  inBoxTotElectronPt[k] += pfParticle->pt();
+		  if(inBoxPt > 38.0)
 		    {
 		      chrisHistos_->fill1DHistogram("electronOverMeasured",
 						    pfParticle->pt());
 		    }
 		  
-		    if(inConePt > 32.0 && inConePt < 38.0)
+		    if(inBoxPt > 32.0 && inBoxPt < 38.0)
 		      {
 			chrisHistos_->fill1DHistogram("electronCorrectlyMeasured",
 						      pfParticle->pt());
 		      }
 		  
-		    if(inConePt < 32.0)
+		    if(inBoxPt < 32.0)
 		      {
 			chrisHistos_->fill1DHistogram("electronUnderMeasured",
 						      pfParticle->pt());
 		      }
-		    chrisHistos_->fill2DHistogram("inConeElectronDeltaAngle",
+		    chrisHistos_->fill2DHistogram("inBoxElectronDeltaAngle",
 						  pfParticle->eta()-genParticle->eta(),
 						  pfParticle->phi()-genParticle->phi());
-		}
-	      if(isMatched(pfParticle, genParticle, delEtaCut, delPhiCut,
-			   includeAllPtCut))
-		{
-		  inBoxElectrons[k]++;
-		  inBoxTotElectronPt[k] += pfParticle->pt();
 		}
 	    }
 	  //Pions
 	  if(abs(pfParticle->pdgId()) == 211)
 	    {
-	      if(isMatched(pfParticle, genParticle, delRCut, includeAllPtCut))
+	      if(isMatched(pfParticle, genParticle, delEtaCut, delPhiCut,
+			   includeAllPtCut))
 		{
-		  inConePions[k]++;
-		  inConeTotPionPt[k] += pfParticle->pt();
-		  if(inConePt > 38.0)
+		  inBoxPions[k]++;
+		  inBoxTotPionPt[k] += pfParticle->pt();
+		  if(inBoxPt > 38.0)
 		    {
 		      chrisHistos_->fill1DHistogram("pionOverMeasured",
 						    pfParticle->pt());
 		    }
 
-		  if(inConePt > 32.0 && inConePt < 38.0)
+		  if(inBoxPt > 32.0 && inBoxPt < 38.0)
 		    {
 		      chrisHistos_->fill1DHistogram("pionCorrectlyMeasured",
 						    pfParticle->pt());
 		    }
 
-		  if(inConePt < 32.0)
+		  if(inBoxPt < 32.0)
 		    {
 		      chrisHistos_->fill1DHistogram("pionUnderMeasured",
 						    pfParticle->pt());
 		    }
-		  chrisHistos_->fill2DHistogram("inConePionDeltaAngle",
+		  chrisHistos_->fill2DHistogram("inBoxPionDeltaAngle",
 						pfParticle->eta()-genParticle->eta(),
 						pfParticle->phi()-genParticle->phi());
-		}
-	      if(isMatched(pfParticle, genParticle, delEtaCut,delPhiCut,
-			   includeAllPtCut))
-		{
-		  inBoxPions[k]++;
-		  inBoxTotPionPt[k] += pfParticle->pt();	    
 		}
 	    }
 	  //KL0s
 	  if(pfParticle->pdgId() == 130) 
 	    {
-	      if(isMatched(pfParticle, genParticle, delRCut, includeAllPtCut))
-		{
-		  inConeKL0s[k]++;
-		  inConeTotKL0Pt[k] += pfParticle->pt();
-		  if(inConePt > 38.0)
-		    {
-		      chrisHistos_->fill1DHistogram("KL0OverMeasured",
-						    pfParticle->pt());
-		    }
-		  
-		  if(inConePt > 32.0 && inConePt < 38.0)
-		    {
-		      chrisHistos_->fill1DHistogram("KL0CorrectlyMeasured",
-						    pfParticle->pt());
-		    }
-		  
-		  if(inConePt < 32.0)
-		    {
-		      chrisHistos_->fill1DHistogram("KL0UnderMeasured",
-						    pfParticle->pt());
-		    }
-		  chrisHistos_->fill2DHistogram("inConeKL0DeltaAngle",
-					    pfParticle->eta()-genParticle->eta(),
-					    pfParticle->phi()-genParticle->phi());
-		}
 	      if(isMatched(pfParticle, genParticle, delEtaCut, delPhiCut,
 			   includeAllPtCut))
 		{
 		  inBoxKL0s[k]++;
 		  inBoxTotKL0Pt[k] += pfParticle->pt();
-		}	           
+		  if(inBoxPt > 38.0)
+		    {
+		      chrisHistos_->fill1DHistogram("KL0OverMeasured",
+						    pfParticle->pt());
+		    }
+		  
+		  if(inBoxPt > 32.0 && inBoxPt < 38.0)
+		    {
+		      chrisHistos_->fill1DHistogram("KL0CorrectlyMeasured",
+						    pfParticle->pt());
+		    }
+		  
+		  if(inBoxPt < 32.0)
+		    {
+		      chrisHistos_->fill1DHistogram("KL0UnderMeasured",
+						    pfParticle->pt());
+		    }
+		  chrisHistos_->fill2DHistogram("inBoxKL0DeltaAngle",
+					    pfParticle->eta()-genParticle->eta(),
+					    pfParticle->phi()-genParticle->phi());
+		}
 	    }
 	}
       //Go through the reco photons
       for(recoPhoton = photonHandle->begin(); 
 	  recoPhoton != photonHandle->end(); recoPhoton++)
 	{
-	  if(isMatched(recoPhoton, genParticle, delRCut, includeAllPtCut))
-	    {
-	      inConeRecoPhotons[k]++;
-	      inConeTotRecoPhotonPt[k] += recoPhoton->pt();
-	    }
 	  if(isMatched(recoPhoton, genParticle, delEtaCut, delPhiCut,
 		       includeAllPtCut))
 	    {
@@ -319,12 +272,6 @@ bool ChrisAnalyzer::analyze(const edm::EventBase& iEvent){
   for(genParticle = genHandle->begin(); 
       genParticle != genHandle->end(); genParticle++)
     {
-      chrisHistos_->fill1DHistogram("inConePhotons", inConePhotons[i]);
-      chrisHistos_->fill1DHistogram("inConeElectrons", inConeElectrons[i]);
-      chrisHistos_->fill1DHistogram("inConePions", inConePions[i]);
-      chrisHistos_->fill1DHistogram("inConeKL0s", inConeKL0s[i]);
-      chrisHistos_->fill1DHistogram("inConePFParticles", inConePFParticles[i]);
-      chrisHistos_->fill1DHistogram("inConeRecoPhotons", inConeRecoPhotons[i]);
       chrisHistos_->fill1DHistogram("inBoxPhotons", inBoxPhotons[i]);
       chrisHistos_->fill1DHistogram("inBoxElectrons", inBoxElectrons[i]);
       chrisHistos_->fill1DHistogram("inBoxPions", inBoxPions[i]);
@@ -332,25 +279,6 @@ bool ChrisAnalyzer::analyze(const edm::EventBase& iEvent){
       chrisHistos_->fill1DHistogram("inBoxPFParticles", inBoxPFParticles[i]);
       chrisHistos_->fill1DHistogram("inBoxRecoPhotons", inBoxRecoPhotons[i]);
 
-      if(inConePhotons[i] != 0) 
-	chrisHistos_->fill1DHistogram("inConeTotPhotonPt", 
-				      inConeTotPhotonPt[i]);
-      if(inConeElectrons[i] != 0)
-	chrisHistos_->fill1DHistogram("inConeTotElectronPt", 
-				      inConeTotElectronPt[i]);
-      if(inConePions[i] !=0)
-	chrisHistos_->fill1DHistogram("inConeTotPionPt", 
-				      inConeTotPionPt[i]);
-      if(inConeKL0s[i] !=0)
-	chrisHistos_->fill1DHistogram("inConeTotKL0Pt", 
-				      inConeTotKL0Pt[i]);
-
-      if(inConePFParticles[i] !=0)
-	chrisHistos_->fill1DHistogram("inConeTotPFParticlePt", 
-				      inConeTotPFParticlePt[i]);
-      if(inConeRecoPhotons[i] != 0)
-	chrisHistos_->fill1DHistogram("inConeTotRecoPhotonPt", 
-				      inConeTotRecoPhotonPt[i]);
       if(inBoxPhotons[i] != 0) 
 	chrisHistos_->fill1DHistogram("inBoxTotPhotonPt", 
 				      inBoxTotPhotonPt[i]);

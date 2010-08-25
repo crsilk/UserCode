@@ -30,20 +30,6 @@ void ChrisHistograms::defineHistograms(){
          
 
 
-   add1DHistogram("inConePhotons", "; Number of PF Photons in the cone", 5,0 ,5, file_);
-   add1DHistogram("inConeElectrons", "Number of Electrons in the cone",5, 0, 5, file_);
-   add1DHistogram("inConePions", "Number of Pions in the cone",5,0 , 5, file_);
-   add1DHistogram("inConeKL0s", "Number of KL0s in the cone",10,0 ,10, file_);
-   add1DHistogram("inConePFParticles", "Number of PFParticles in the cone",20,0, 20, file_);
-   add1DHistogram("inConeRecoPhotons", "; Number of Reco Photons in the cone", 5,0 ,5, file_); 
-
-   add1DHistogram("inConeTotPhotonPt", "Total pt from photons in cone",200,0,60, file_);
-   add1DHistogram("inConeTotElectronPt", "Total pt from electrons in cone",60, 0, 50, file_);
-   add1DHistogram("inConeTotPionPt", "Total pt from pions in cone",200,0, 60, file_);
-   add1DHistogram("inConeTotKL0Pt",    "Total pt from KL0s in cone",200, 0, 60, file_);
-   add1DHistogram("inConeTotPFParticlePt",    "Total pt from PF Particles in cone",200, 0, 60, file_);
-   add1DHistogram("inConeTotRecoPhotonPt",    "Total pt from reco photons in cone",200, 0, 60, file_);
-   
      add1DHistogram("inBoxPhotons", "; Number of PF Photons in the box", 5,0 ,5, file_);
    add1DHistogram("inBoxElectrons", "Number of Electrons in the box",5, 0, 5, file_);
    add1DHistogram("inBoxPions", "Number of Pions in the box",5,0 , 5, file_);
@@ -76,11 +62,11 @@ void ChrisHistograms::defineHistograms(){
 
 
 
-   add2DHistogram("inConePhotonDeltaAngle", "Delta Eta and Delta Phi Distribution of photons in the cone",40, -0.1, .1, 80, -.5, .5, file_); 
-   add2DHistogram("inConeElectronDeltaAngle", "Delta Eta and Delta Phi Distribution of electrons in the cone",40, -.05, .05, 40, -.15, .15, file_); 
-   add2DHistogram("inConePionDeltaAngle", "Delta Eta and Delta Phi Distribution of pions in the cone",80, -.2, .2, 40, -1, 1, file_); 
-   add2DHistogram("inConeKL0DeltaAngle", "Delta Eta and Delta Phi Distribution of KL0s in the cone",40, -1, 1, 40, -1, 1, file_); 
-   add2DHistogram("inConePFParticleDeltaAngle", "Delta Eta and Delta Phi Distribution of pf particles in the cone",80, -1, 1, 20, -1, 1, file_); 
+   add2DHistogram("inBoxPhotonDeltaAngle", "Delta Eta and Delta Phi Distribution of photons in the box",40, -0.1, .1, 80, -.5, .5, file_); 
+   add2DHistogram("inBoxElectronDeltaAngle", "Delta Eta and Delta Phi Distribution of electrons in the box",40, -.05, .05, 40, -.15, .15, file_); 
+   add2DHistogram("inBoxPionDeltaAngle", "Delta Eta and Delta Phi Distribution of pions in the box",80, -.2, .2, 40, -1, 1, file_); 
+   add2DHistogram("inBoxKL0DeltaAngle", "Delta Eta and Delta Phi Distribution of KL0s in the box",40, -1, 1, 40, -1, 1, file_); 
+   add2DHistogram("inBoxPFParticleDeltaAngle", "Delta Eta and Delta Phi Distribution of pf particles in the box",80, -1, 1, 20, -1, 1, file_); 
 
    
 
