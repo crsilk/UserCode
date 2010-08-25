@@ -30,7 +30,8 @@ data:{
  # (= 40 for OfflineMonitor in CRAFT09) 
  lumiSectionLength = 23.3;
  lumiScaleFactor = LUMIFACTOR;
- # prescaleNormalization = 800;
+ PRESCALENORM
+ PREFILTER
 
  runLumiblockList = ( 
  );

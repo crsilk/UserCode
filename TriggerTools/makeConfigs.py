@@ -14,16 +14,31 @@ def main(argv):
                       help = "Name of menu",
                       metavar = "MENU")
     parser.add_option("-l", dest = "in_lumiscale", default = '1.0',
-                      help = "Lumi scale factor (default is 1.0)",
+                      help = "Lumi scale factor (default - 1.0)",
                       metavar = "FLOAT")
     parser.add_option("-f", action = "store_true", dest = "in_fulltable",
                       default = False, help = "Run over all datasets")
-
+    parser.add_option("-p", dest = "in_prescaleNormalization",
+                      default = '1',
+                      metavar = "INTEGER",
+                      help = "Prescale normalization for full table (default - 1)"
+                      )
+    parser.add_option("-b", dest = "in_preFilterByBits",default  = '',
+                      metavar = "TRIGGERPATH",
+                      help = "pre-filter by bits trigger path")
+    
     (options, args) = parser.parse_args()
     paths = []
-    template = open('hltmenu_MENU_RUNNUMBER_DS_DATASET.cfg.template', 'r')
     L1Triggers = pickOutL1Triggers('hltmenu_extractedhltmenu.cfg')
     minBiasPath = ''
+    prescaleNorm = ('prescaleNormalization = ' +
+                    options.in_prescaleNormalization +';')
+    if options.in_preFilterByBits != '':
+        preFilter = ('preFilterByBits = ' + '\"' + options.in_preFilterByBits +
+                     '\";')
+    else:
+        preFilter = ''
+    
 
     if os.path.isfile(args[0]):
         pathFile = open(args[0], 'r')
@@ -39,6 +54,7 @@ def main(argv):
 ##### For the individual data sets #####
     if options.in_fulltable == False:        
         for in_path in paths:
+ 
             runNumber = re.findall('r[0-9]{6}',in_path)
             versionTag = re.findall('20[0-9]{6}', in_path)
 
@@ -50,6 +66,8 @@ def main(argv):
 
             changedline =''            
 
+            template = open('hltmenu_MENU_RUNNUMBER_DS_DATASET.cfg.template',
+                            'r')
             for line in template :
                 if line == '############# dataset DATASET ###############\n':
                     for line2 in dataSet:
@@ -71,6 +89,8 @@ def main(argv):
                     line = re.sub(r'TAGNUMBER', versionTag[0], line)
                     line = re.sub(r'RUNNUMBER', runNumber[0], line)
                     line = re.sub(r'DATASET', dataSetName[0], line)
+                    line = re.sub(r'PRESCALENORM', '', line)
+                    line = re.sub(r'PREFILTER', '', line)
                     line = re.sub(r'LUMIFACTOR', options.in_lumiscale, line)
                     outfile.write(line)
     
@@ -124,6 +144,8 @@ def main(argv):
                 line = re.sub(r'TAGNUMBER', versionTag[0], line)
                 line = re.sub(r'RUNNUMBER', runNumber[0], line)
                 line = re.sub(r'DATASET', 'FullTable', line)
+                line = re.sub(r'PRESCALENORM', prescaleNorm, line)
+                line = re.sub(r'PREFILTER', preFilter, line)
                 line = re.sub(r'LUMIFACTOR', options.in_lumiscale, line)
                 outfile.write(line)
 
