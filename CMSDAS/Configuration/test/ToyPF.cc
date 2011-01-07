@@ -130,6 +130,8 @@ vector<Track> ToyPF::getTracks(const PFCandidateCollection::const_iterator& fpfC
   return ftracks;
 }
 
+//PFRecTracks are not necessarily in the datasets, so they are commented out
+
 /*vector<PFRecTrack> ToyPF::getPFRecTracks(const PFCandidateCollection::const_iterator& fpfCandidate)
 {
 

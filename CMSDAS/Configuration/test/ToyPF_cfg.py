@@ -1,3 +1,4 @@
+#cfg to Run ToyPF
 import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("ANALYSIS")

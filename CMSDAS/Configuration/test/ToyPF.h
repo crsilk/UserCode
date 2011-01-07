@@ -42,7 +42,9 @@ class ToyPF : public edm::EDAnalyzer {
 
   std::vector<reco::Track> getTracks(const reco::PFCandidateCollection::const_iterator& fpfCandidate);
 
-  std::vector<reco::PFRecTrack> getPFRecTracks(const reco::PFCandidateCollection::const_iterator& fpfCandidate);
+//PFRecTracks are not necessarily in the datasets, so they are commented out
+
+  //  std::vector<reco::PFRecTrack> getPFRecTracks(const reco::PFCandidateCollection::const_iterator& fpfCandidate);
 
   std::vector<reco::PFCluster> getEcalClusters(const reco::PFCandidateCollection::const_iterator& fpfCandidate);
 
