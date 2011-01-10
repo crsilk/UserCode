@@ -50,6 +50,10 @@ class ToyPF : public edm::EDAnalyzer {
 
   std::vector<reco::PFCluster> getHcalClusters(const reco::PFCandidateCollection::const_iterator& fpfCandidate);
 
+  bool isLinked(const reco::Track& ftrack, const reco::PFCluster& fcluster);
+
+  bool isLinked(const reco::PFCluster& fcluster1, const reco::PFCluster& fcluster2);
+
  private:
   
   

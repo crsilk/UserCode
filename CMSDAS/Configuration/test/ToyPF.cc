@@ -3,6 +3,7 @@
 #include "DataFormats/ParticleFlowReco/interface/PFBlock.h"
 #include "DataFormats/ParticleFlowReco/interface/PFCluster.h"
 #include "DataFormats/ParticleFlowReco/interface/PFRecTrack.h"
+#include "DataFormats/Math/interface/deltaR.h"
 
 #include "FWCore/Framework/interface/ESHandle.h"
 
@@ -54,46 +55,141 @@ ToyPF::analyze(const Event& iEvent,
   PFCandidateCollection::const_iterator pfCandidate;
 
   vector<Track> tracks;
-  //vector<PFRecTrack> pfTracks;
-  
   vector<PFCluster> ecalClusters;
   vector<PFCluster> hcalClusters;
 
   vector<Track> tracksTemp;
-  //vector<PFRecTrack> pfTracksTemp;
   vector<PFCluster> ecalClustersTemp;
   vector<PFCluster> hcalClustersTemp;
   
+
   for( pfCandidate = pfCandidates->begin();
        pfCandidate != pfCandidates->end(); pfCandidate++)
     {
-      tracksTemp = getTracks(pfCandidate);
-      //      pfTracksTemp = getPFRecTracks(pfCandidate);
-      ecalClustersTemp = getEcalClusters(pfCandidate);
-      hcalClustersTemp = getHcalClusters(pfCandidate);
+      if(getTracks(pfCandidate).size() != 0) 
+	{
+	  tracksTemp = getTracks(pfCandidate);
+	  
+	  for(unsigned i = 0; i < tracksTemp.size(); i++)
+	    {
+	      tracks.push_back(tracksTemp[i]);
+	    }
+	}
       
-			     
-      for(unsigned i = 0; i < tracksTemp.size(); i++)
+      if(getEcalClusters(pfCandidate).size())
 	{
-	  tracks.push_back(tracksTemp[i]);
+	  ecalClustersTemp = getEcalClusters(pfCandidate);
+	  for
+	    (unsigned j = 0; j < ecalClustersTemp.size(); j++)
+	    {
+	      ecalClusters.push_back(ecalClustersTemp[j]);
+	    }
 	}
-      /*  for(unsigned l = 0; l < tracksTemp.size(); l++)
+      
+      if(getHcalClusters(pfCandidate).size())
 	{
-	  pfTracks.push_back(tracksTemp[l]);
-	  }*/
-      for(unsigned j = 0; j < ecalClustersTemp.size(); j++)
-	{
-	  ecalClusters.push_back(ecalClustersTemp[j]);
+	  hcalClustersTemp = getHcalClusters(pfCandidate);
+      
+	  for(unsigned k = 0; k < hcalClustersTemp.size(); k++)
+	    {
+	      hcalClusters.push_back(hcalClustersTemp[k]);
+	    }
 	}
-      for(unsigned k = 0; k < hcalClustersTemp.size(); k++)
-	{
-	  hcalClusters.push_back(hcalClustersTemp[k]);
-	}
+
     }
 
   //////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////
   
+  vector<vector<vector<int> > > links;
+  vector<bool> trackBool(tracks.size(), true);
+  vector<bool> ecalBool(ecalClusters.size(), true);
+  vector<bool> hcalBool(hcalClusters.size(), true);
+
+  for(unsigned i = 0; i < tracks.size(); i++)
+    {
+      for(unsigned j = 0; j < ecalClusters.size(); j++)
+	{
+	  for(unsigned k = 0; k < hcalClusters.size(); k++)
+	    {
+	      if(isLinked(tracks[i], ecalClusters[j]) && 
+		 isLinked(tracks[i], hcalClusters[k]) &&
+		 isLinked(ecalClusters[j], hcalClusters[k]))
+		{
+		  links[i][j][k] = 0;
+		}
+	      if(!isLinked(tracks[i], ecalClusters[j]) && 
+		 isLinked(tracks[i], hcalClusters[k]) &&
+		 isLinked(ecalClusters[j], hcalClusters[k]))
+		{
+		  links[i][j][k] = 1;
+		}
+	      if(isLinked(tracks[i], ecalClusters[j]) && 
+		 !isLinked(tracks[i], hcalClusters[k]) &&
+		 isLinked(ecalClusters[j], hcalClusters[k]))
+		{
+		  links[i][j][k] = 2;
+		}
+	      if(isLinked(tracks[i], ecalClusters[j]) && 
+		 isLinked(tracks[i], hcalClusters[k]) &&
+		 !isLinked(ecalClusters[j], hcalClusters[k]))
+		{
+		  links[i][j][k] = 3;
+		}
+	      if(!isLinked(tracks[i], ecalClusters[j]) && 
+		 !isLinked(tracks[i], hcalClusters[k]) &&
+		 isLinked(ecalClusters[j], hcalClusters[k]))
+		{
+		  links[i][j][k] = 4;
+		}
+	      if(!isLinked(tracks[i], ecalClusters[j]) && 
+		 isLinked(tracks[i], hcalClusters[k]) &&
+		 !isLinked(ecalClusters[j], hcalClusters[k]))
+		{
+		  links[i][j][k] = 5;
+		}
+	      if(isLinked(tracks[i], ecalClusters[j]) && 
+		 !isLinked(tracks[i], hcalClusters[k]) &&
+		 !isLinked(ecalClusters[j], hcalClusters[k]))
+		{
+		  links[i][j][k] = 6;		  
+		}
+	      if(!isLinked(tracks[i], ecalClusters[j]) && 
+		 !isLinked(tracks[i], hcalClusters[k]) &&
+		 !isLinked(ecalClusters[j], hcalClusters[k]))
+		{
+		  links[i][j][k] = 7;
+		}
+
+	    }
+	}
+    }
+
+  for(int order = 0; order < 8; order++)
+    {
+        for(unsigned i = 0; i < tracks.size(); i++)
+	  {
+	    for(unsigned j = 0; j < ecalClusters.size(); j++)
+	      {
+		for(unsigned k = 0; k < hcalClusters.size(); k++)
+		  {
+		    if(trackBool[i] && ecalBool[j] && hcalBool[k])
+		      {
+			if(links[i][j][k] == order)
+			  {
+			    trackBool[i] = false;
+			    ecalBool[j] = false;
+			    hcalBool[k] = false;
+			  }
+		      }
+		    else
+		      {
+			links[i][j][k] = -1;
+		      }
+		  }
+	      }
+	  }
+    }
 
 
 
@@ -129,34 +225,6 @@ vector<Track> ToyPF::getTracks(const PFCandidateCollection::const_iterator& fpfC
   
   return ftracks;
 }
-
-//PFRecTracks are not necessarily in the datasets, so they are commented out
-
-/*vector<PFRecTrack> ToyPF::getPFRecTracks(const PFCandidateCollection::const_iterator& fpfCandidate)
-{
-
-  OwnVector<PFBlockElement>  fBlockElements;
-  OwnVector<PFBlockElement>::const_iterator fBlockElement;
-
-  vector<PFRecTrack> fpfTracks;
-
-  for(unsigned i = 0; i < fpfCandidate->elementsInBlocks().size();i++)
-	{
-	  PFBlock fBlock = *fpfCandidate->elementsInBlocks()[i].first;
-	  fBlockElements = fBlock.elements();
-
-	  for(fBlockElement = fBlockElements.begin();
-	      fBlockElement != fBlockElements.end(); fBlockElement++)
-	    {
-	      if(fBlockElement->type() == 1) 
-		{
-		  fpfTracks.push_back(*fBlockElement->trackRefPF());
-		}		
-	    }
-	}
-  
-  return fpfTracks;
-  }*/
 
 vector<PFCluster> ToyPF::getEcalClusters(const PFCandidateCollection::const_iterator& fpfCandidate)
 {
@@ -208,6 +276,26 @@ vector<PFCluster> ToyPF::getHcalClusters(const PFCandidateCollection::const_iter
 	}
   
   return fhcalClusters;
+}
+
+bool ToyPF::isLinked(const Track& ftrack, const PFCluster& fcluster)
+{
+  bool linked = false;
+  
+  if(deltaR(ftrack.outerEta(), ftrack.outerPhi(), 
+	    fcluster.eta(), fcluster.phi())< .7) linked = true;
+
+  return linked;
+}
+
+bool ToyPF::isLinked(const PFCluster& fcluster1, const PFCluster& fcluster2)
+{
+  bool linked = false;
+  
+  if(deltaR(fcluster1.eta(), fcluster1.phi(), 
+	    fcluster2.eta(), fcluster2.phi()) < .7) linked = true;
+
+  return linked;
 }
 
 DEFINE_FWK_MODULE(ToyPF);
