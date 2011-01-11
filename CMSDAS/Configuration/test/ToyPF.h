@@ -40,19 +40,27 @@ class ToyPF : public edm::EDAnalyzer {
 
   virtual void beginRun(const edm::Run & r, const edm::EventSetup & c);
 
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+
+  bool isLinked(const reco::Track& ftrack, const reco::PFCluster& fcluster);
+
+  bool isLinked(const reco::PFCluster& ecal, const reco::PFCluster& hcal);
+
+  std::vector<std::vector<std::vector<int> > > link(const std::vector<reco::Track>& ftracks, const std::vector<reco::PFCluster>& fcluster1, const std::vector<reco::PFCluster>& fcluster2);
+  std::vector<std::vector<std::vector<int> > > link(const std::vector<reco::PFCluster>& fcluster1, const std::vector<reco::PFCluster>& fcluster2);
+  std::vector<std::vector<std::vector<int> > > link(const std::vector<reco::Track>& ftracks, const std::vector<reco::PFCluster>& fcluster1, const char& clusterType);
+
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+
   std::vector<reco::Track> getTracks(const reco::PFCandidateCollection::const_iterator& fpfCandidate);
-
-//PFRecTracks are not necessarily in the datasets, so they are commented out
-
-  //  std::vector<reco::PFRecTrack> getPFRecTracks(const reco::PFCandidateCollection::const_iterator& fpfCandidate);
 
   std::vector<reco::PFCluster> getEcalClusters(const reco::PFCandidateCollection::const_iterator& fpfCandidate);
 
   std::vector<reco::PFCluster> getHcalClusters(const reco::PFCandidateCollection::const_iterator& fpfCandidate);
 
-  bool isLinked(const reco::Track& ftrack, const reco::PFCluster& fcluster);
 
-  bool isLinked(const reco::PFCluster& fcluster1, const reco::PFCluster& fcluster2);
 
  private:
   

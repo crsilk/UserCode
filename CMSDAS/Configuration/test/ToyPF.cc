@@ -101,95 +101,8 @@ ToyPF::analyze(const Event& iEvent,
   //////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////
   
-  vector<vector<vector<int> > > links;
-  vector<bool> trackBool(tracks.size(), true);
-  vector<bool> ecalBool(ecalClusters.size(), true);
-  vector<bool> hcalBool(hcalClusters.size(), true);
 
-  for(unsigned i = 0; i < tracks.size(); i++)
-    {
-      for(unsigned j = 0; j < ecalClusters.size(); j++)
-	{
-	  for(unsigned k = 0; k < hcalClusters.size(); k++)
-	    {
-	      if(isLinked(tracks[i], ecalClusters[j]) && 
-		 isLinked(tracks[i], hcalClusters[k]) &&
-		 isLinked(ecalClusters[j], hcalClusters[k]))
-		{
-		  links[i][j][k] = 0;
-		}
-	      if(!isLinked(tracks[i], ecalClusters[j]) && 
-		 isLinked(tracks[i], hcalClusters[k]) &&
-		 isLinked(ecalClusters[j], hcalClusters[k]))
-		{
-		  links[i][j][k] = 1;
-		}
-	      if(isLinked(tracks[i], ecalClusters[j]) && 
-		 !isLinked(tracks[i], hcalClusters[k]) &&
-		 isLinked(ecalClusters[j], hcalClusters[k]))
-		{
-		  links[i][j][k] = 2;
-		}
-	      if(isLinked(tracks[i], ecalClusters[j]) && 
-		 isLinked(tracks[i], hcalClusters[k]) &&
-		 !isLinked(ecalClusters[j], hcalClusters[k]))
-		{
-		  links[i][j][k] = 3;
-		}
-	      if(!isLinked(tracks[i], ecalClusters[j]) && 
-		 !isLinked(tracks[i], hcalClusters[k]) &&
-		 isLinked(ecalClusters[j], hcalClusters[k]))
-		{
-		  links[i][j][k] = 4;
-		}
-	      if(!isLinked(tracks[i], ecalClusters[j]) && 
-		 isLinked(tracks[i], hcalClusters[k]) &&
-		 !isLinked(ecalClusters[j], hcalClusters[k]))
-		{
-		  links[i][j][k] = 5;
-		}
-	      if(isLinked(tracks[i], ecalClusters[j]) && 
-		 !isLinked(tracks[i], hcalClusters[k]) &&
-		 !isLinked(ecalClusters[j], hcalClusters[k]))
-		{
-		  links[i][j][k] = 6;		  
-		}
-	      if(!isLinked(tracks[i], ecalClusters[j]) && 
-		 !isLinked(tracks[i], hcalClusters[k]) &&
-		 !isLinked(ecalClusters[j], hcalClusters[k]))
-		{
-		  links[i][j][k] = 7;
-		}
 
-	    }
-	}
-    }
-
-  for(int order = 0; order < 8; order++)
-    {
-        for(unsigned i = 0; i < tracks.size(); i++)
-	  {
-	    for(unsigned j = 0; j < ecalClusters.size(); j++)
-	      {
-		for(unsigned k = 0; k < hcalClusters.size(); k++)
-		  {
-		    if(trackBool[i] && ecalBool[j] && hcalBool[k])
-		      {
-			if(links[i][j][k] == order)
-			  {
-			    trackBool[i] = false;
-			    ecalBool[j] = false;
-			    hcalBool[k] = false;
-			  }
-		      }
-		    else
-		      {
-			links[i][j][k] = -1;
-		      }
-		  }
-	      }
-	  }
-    }
 
 
 
@@ -200,6 +113,242 @@ ToyPF::analyze(const Event& iEvent,
 
 }
 
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+bool ToyPF::isLinked(const Track& ftrack, const PFCluster& fcluster)
+{
+  bool linked = false;
+  
+  if(deltaR(ftrack.outerEta(), ftrack.outerPhi(), 
+	    fcluster.eta(), fcluster.phi())< .7) linked = true;
+
+  return linked;
+}
+
+bool ToyPF::isLinked(const PFCluster& fcluster1, const PFCluster& fcluster2)
+{
+  bool linked = false;
+  
+  if(deltaR(fcluster1.eta(), fcluster1.phi(), 
+	    fcluster2.eta(), fcluster2.phi()) < .7) linked = true;
+
+  return linked;
+}
+
+vector<vector<vector<int> > > ToyPF::link(const vector<Track>& ftracks,
+					  const vector<PFCluster>& fcluster1,
+					  const vector<PFCluster>& fcluster2)
+{
+  vector<vector<vector<int> > > links;
+  vector<bool> ftrackBool(ftracks.size(), true);
+  vector<bool> fcluster1Bool(fcluster1.size(), true);
+  vector<bool> fcluster2Bool(fcluster2.size(), true);
+
+  for(unsigned i = 0; i < ftracks.size(); i++)
+    {
+      for(unsigned j = 0; j < fcluster1.size(); j++)
+	{
+	  for(unsigned k = 0; k < fcluster2.size(); k++)
+	    {
+	      if(isLinked(ftracks[i], fcluster1[j]) && 
+		 isLinked(ftracks[i], fcluster2[k]) &&
+		 isLinked(fcluster1[j], fcluster2[k]))
+		{
+		  links.at(i).at(j).at(k) = 0;
+		}
+	      if(!isLinked(ftracks[i], fcluster1[j]) && 
+		 isLinked(ftracks[i], fcluster2[k]) &&
+		 isLinked(fcluster1[j], fcluster2[k]))
+		{
+		  links.at(i).at(j).at(k) = 1;
+		}
+	      if(isLinked(ftracks[i], fcluster1[j]) && 
+		 !isLinked(ftracks[i], fcluster2[k]) &&
+		 isLinked(fcluster1[j], fcluster2[k]))
+		{
+		  links.at(i).at(j).at(k) = 2;
+		}
+	      if(isLinked(ftracks[i], fcluster1[j]) && 
+		 isLinked(ftracks[i], fcluster2[k]) &&
+		 !isLinked(fcluster1[j], fcluster2[k]))
+		{
+		  links.at(i).at(j).at(k) = 3;
+		}
+	      if(!isLinked(ftracks[i], fcluster1[j]) && 
+		 !isLinked(ftracks[i], fcluster2[k]) &&
+		 isLinked(fcluster1[j], fcluster2[k]))
+		{
+		  links.at(i).at(j).at(k) = 4;
+		}
+	      if(!isLinked(ftracks[i], fcluster1[j]) && 
+		 isLinked(ftracks[i], fcluster2[k]) &&
+		 !isLinked(fcluster1[j], fcluster2[k]))
+		{
+		  links.at(i).at(j).at(k) = 5;
+		}
+	      if(isLinked(ftracks[i], fcluster1[j]) && 
+		 !isLinked(ftracks[i], fcluster2[k]) &&
+		 !isLinked(fcluster1[j], fcluster2[k]))
+		{
+		  links.at(i).at(j).at(k) = 6;		  
+		}
+	      if(!isLinked(ftracks[i], fcluster1[j]) && 
+		 !isLinked(ftracks[i], fcluster2[k]) &&
+		 !isLinked(fcluster1[j], fcluster2[k]))
+		{
+		  links.at(i).at(j).at(k) = 7;
+		}
+	    }
+	}
+    }
+  
+  for(int order = 0; order < 8; order++)
+    {
+      for(unsigned i = 0; i < ftracks.size(); i++)
+	{
+	  for(unsigned j = 0; j < fcluster1.size(); j++)
+	    {
+	      for(unsigned k = 0; k < fcluster2.size(); k++)
+		{
+		  if(ftrackBool[i] && fcluster1Bool[j] && fcluster2Bool[k])
+		    {
+		      if(links.at(i).at(j).at(k) == order)
+			{
+			  ftrackBool[i] = false;
+			  fcluster1Bool[j] = false;
+			  fcluster2Bool[k] = false;
+			}
+		    }
+		  else
+		    {
+		      links.at(i).at(j).at(k) = -1;
+		    }
+		}
+	    }
+	}
+    }
+
+  return links;
+}
+vector<vector<vector<int> > > ToyPF::link(const vector<Track>& ftracks,
+					  const vector<PFCluster>& fcluster1,
+					  const char& clusterType)
+{
+  vector<vector<vector<int> > > links;
+  
+  vector<bool> ftrackBool(ftracks.size(), true);
+  vector<bool> fcluster1Bool(fcluster1.size(), true);
+
+  for(unsigned i = 0; i < ftracks.size(); i++)
+    {
+      for(unsigned j = 0; j < fcluster1.size(); j++)
+	{
+	  if(clusterType == 'e')
+	    {
+	      if(isLinked(ftracks[i], fcluster1[j])) links.at(i).at(j).at(0) = 6;
+	      else links.at(i).at(j).at(0) = 7;
+	    }
+	  else
+	    {
+	      if(isLinked(ftracks[i], fcluster1[j])) links.at(i).at(0).at(j) = 5;
+	      else links.at(i).at(j).at(0) = 7;
+	    }
+	}
+    }
+  
+  for(int order = 0; order < 8; order++)
+    {
+      for(unsigned i = 0; i < ftracks.size(); i++)
+	{
+	  for(unsigned j = 0; j < fcluster1.size(); j++)
+	    {
+	      if(clusterType == 'e')
+		{
+		  if(ftrackBool[i] && fcluster1Bool[j])  
+		    {
+		      if(links.at(i).at(j).at(0) == order)
+			{
+			  ftrackBool[i] = false;
+			  fcluster1Bool[j] = false;
+			}
+		    }
+		  else
+		    {
+		      links.at(i).at(j).at(0) = -1;
+		    }
+		}
+	      else
+		{
+		  if(links.at(i).at(0).at(j) == order)
+		    {
+		      ftrackBool[i] = false;
+		      fcluster1Bool[j] = false;
+		    }
+		  else
+		    {
+		      links.at(i).at(0).at(j) = -1;
+		    }
+		  
+		}
+	    }
+	}
+    }
+
+
+  return links;
+}
+
+vector<vector<vector<int> > > ToyPF::link(const vector<PFCluster>& fcluster1,
+					  const vector<PFCluster>& fcluster2)
+{
+  vector<vector<vector<int> > > links;
+  vector<bool> fcluster1Bool(fcluster1.size(), true);
+  vector<bool> fcluster2Bool(fcluster2.size(), true);
+
+  for(unsigned j = 0; j < fcluster1.size(); j++)
+    {
+      for(unsigned k = 0; k < fcluster2.size(); k++)
+	{
+	  if(isLinked(fcluster1[j], fcluster2[k])) links.at(0).at(j).at(k) = 4;
+	  else links.at(0).at(j).at(k) = 7;
+	}
+    }
+
+  
+  for(int order = 0; order < 8; order++)
+    {
+      for(unsigned j = 0; j < fcluster1.size(); j++)
+	{
+	  for(unsigned k = 0; k < fcluster2.size(); k++)
+	    {
+	      if(fcluster1Bool[j] && fcluster2Bool[k])
+		{
+		  if(links.at(0).at(j).at(k) == order)
+		    {
+		      fcluster1Bool[j] = false;
+		      fcluster2Bool[k] = false;
+		    }
+		}
+	      else
+		{
+		  links.at(0).at(j).at(k) = -1;
+		}
+	    }
+	}
+      
+    }
+
+  return links;
+}
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
 vector<Track> ToyPF::getTracks(const PFCandidateCollection::const_iterator& fpfCandidate)
 {
   
@@ -278,24 +427,5 @@ vector<PFCluster> ToyPF::getHcalClusters(const PFCandidateCollection::const_iter
   return fhcalClusters;
 }
 
-bool ToyPF::isLinked(const Track& ftrack, const PFCluster& fcluster)
-{
-  bool linked = false;
-  
-  if(deltaR(ftrack.outerEta(), ftrack.outerPhi(), 
-	    fcluster.eta(), fcluster.phi())< .7) linked = true;
-
-  return linked;
-}
-
-bool ToyPF::isLinked(const PFCluster& fcluster1, const PFCluster& fcluster2)
-{
-  bool linked = false;
-  
-  if(deltaR(fcluster1.eta(), fcluster1.phi(), 
-	    fcluster2.eta(), fcluster2.phi()) < .7) linked = true;
-
-  return linked;
-}
 
 DEFINE_FWK_MODULE(ToyPF);
