@@ -2,13 +2,14 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("ANALYSIS")
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(10)
 )
 
 
 process.source = cms.Source (
-    "PoolSource",    
-    fileNames = cms.untracked.vstring('/store/relval/CMSSW_3_8_7/RelValTTbar_Tauola/GEN-SIM-RECO/START38_V13_PU_E7TeV_AVE_2_BX156-v1/0018/F0A1D986-4CFD-DF11-89B5-001A92971B62.root'),
+    "PoolSource",
+    #fileNames = cms.untracked.vstring('dcap://cmsdca3.fnal.gov:24143/pnfs/fnal.gov/usr/cms/WAX/resilient/lucieg/CMSDAS/DiPions/DiPions_38_1_xhW.root'),
+    fileNames = cms.untracked.vstring('file:/uscms/home/cavanaug/work/CMSSW_3_8_7/src/RecoParticleFlow/Configuration/test/display.root'),
     secondaryFileNames = cms.untracked.vstring(),
     noEventSort = cms.untracked.bool(True),
     duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
