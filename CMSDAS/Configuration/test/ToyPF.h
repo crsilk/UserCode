@@ -8,7 +8,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "FWCore/Framework/interface/Event.h"
@@ -29,14 +29,14 @@
 
 
 
-class ToyPF : public edm::EDAnalyzer {
+class ToyPF : public edm::EDProducer {
  public:
 
   explicit ToyPF(const edm::ParameterSet&);
 
   ~ToyPF();
   
-  virtual void analyze(const edm::Event&, const edm::EventSetup&);
+  virtual void produce( edm::Event&, const edm::EventSetup&);
 
   virtual void beginRun(const edm::Run & r, const edm::EventSetup & c);
 

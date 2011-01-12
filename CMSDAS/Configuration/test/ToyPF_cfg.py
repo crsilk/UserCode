@@ -18,7 +18,7 @@ process.source = cms.Source (
 
 
 
-process.pfCandidateAnalyzer = cms.EDAnalyzer("ToyPF",
+process.pfCandidateProducer = cms.EDProducer("ToyPF",
     PFCandidates = cms.InputTag("particleFlow"),
     verbose = cms.untracked.bool(True),
     printBlocks = cms.untracked.bool(False)
@@ -33,6 +33,6 @@ process.aod = cms.OutputModule("PoolOutputModule",
 process.outpath = cms.EndPath(process.aod )
 
 
-process.p = cms.Path(process.pfCandidateAnalyzer)
+process.p = cms.Path(process.pfCandidateProducer)
 
 

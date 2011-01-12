@@ -39,12 +39,12 @@ ToyPF::~ToyPF() { }
 
 void 
 ToyPF::beginRun(const edm::Run& run, 
-			      const edm::EventSetup & es) { }
+		const edm::EventSetup & es) { }
 
 
 void 
-ToyPF::analyze(const Event& iEvent, 
-			     const EventSetup& iSetup) {
+ToyPF::produce(Event& iEvent, 
+	       const EventSetup& iSetup) {
   
   LogDebug("ToyPF")<<"START event: "<<iEvent.id().event()
 			 <<" in run "<<iEvent.id().run()<<endl;
