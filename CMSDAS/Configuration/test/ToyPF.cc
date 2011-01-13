@@ -65,46 +65,48 @@ ToyPF::produce(Event& iEvent,
 
   for( pfCandidate = pfCandidates->begin();
        pfCandidate != pfCandidates->end(); pfCandidate++)
-    {
+    {    
       if(pfCandidate->pt() > 2)
       {
-	  if(getTracks(pfCandidate).size()) 
-	    {
-	      tracksTemp = getTracks(pfCandidate);
-	      
-	      for(unsigned i = 0; i < tracksTemp.size(); i++)
-		{
-		  tracks.push_back(tracksTemp[i]);
-		}
-	    }
-	  
-	  if(getEcalClusters(pfCandidate).size())
-	    {
-	      ecalClustersTemp = getEcalClusters(pfCandidate);
-	      for
-		(unsigned j = 0; j < ecalClustersTemp.size(); j++)
-		{
-		  ecalClusters.push_back(ecalClustersTemp[j]);
-		}
-	    }
-	  
-	  if(getHcalClusters(pfCandidate).size())
-	    {
-	      hcalClustersTemp = getHcalClusters(pfCandidate);
-	      
-	      for(unsigned k = 0; k < hcalClustersTemp.size(); k++)
-		{
-		  hcalClusters.push_back(hcalClustersTemp[k]);
-		}
-	    }
+	cout<<"pfcand: "<<pfCandidate->pt()<<endl;
+	if(getTracks(pfCandidate).size()) 
+	  {
+	    tracksTemp = getTracks(pfCandidate);
+	    for(unsigned i = 0; i < tracksTemp.size(); i++)
+	      {
+		tracks.push_back(tracksTemp[i]);
+	      }
 	  }
+	
+	if(getEcalClusters(pfCandidate).size())
+	  {
+	    ecalClustersTemp = getEcalClusters(pfCandidate);
+	    for
+	      (unsigned j = 0; j < ecalClustersTemp.size(); j++)
+	      {
+		ecalClusters.push_back(ecalClustersTemp[j]);
+	      }
+	  }
+	
+	if(getHcalClusters(pfCandidate).size())
+	  {
+	    hcalClustersTemp = getHcalClusters(pfCandidate);
+	    
+	    for(unsigned k = 0; k < hcalClustersTemp.size(); k++)
+	      {
+		hcalClusters.push_back(hcalClustersTemp[k]);
+	      }
+	  }
+      }
     }
   cout<<"                 "<<endl;
   cout<<tracks.size()<<endl;
   cout<<ecalClusters.size()<<endl;
   cout<<hcalClusters.size()<<endl;
   cout<<"                "<<endl;
- 
+  //cout<<"momentum1: "<<tracks[0].pt()<<endl;
+  //cout<<"momentum2: "<<tracks[1].pt()<<endl;
+  
   //////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////
   vector<vector<vector<int> > > links;
@@ -452,41 +454,46 @@ vector<vector<vector<int> > > ToyPF::link(const vector<PFCluster>& fcluster1,
 //////////////////////////////////////////////////////////////
 vector<Track> ToyPF::getTracks(const PFCandidateCollection::const_iterator& fpfCandidate)
 {
-  
+  /*  vector<Track> temp;
+  if( fpfCandidate->trackRef() != NULL)
+    {
+    vector<Track> ftracks(1, *fpfCandidate->trackRef());
+    return ftracks;
+    }
+  else return temp;
+  */
+
   OwnVector<PFBlockElement>  fBlockElements;
   OwnVector<PFBlockElement>::const_iterator fBlockElement;
-  
   vector<Track> ftracks;
 
-  for(unsigned i = 0; i < fpfCandidate->elementsInBlocks().size();i++)
+  PFBlock fBlock = *fpfCandidate->elementsInBlocks()[0].first;
+  fBlockElements = fBlock.elements();
+  for(fBlockElement = fBlockElements.begin();
+      fBlockElement != fBlockElements.end(); fBlockElement++)
+    {
+      if(fBlockElement->type() == 1) 
 	{
-	  PFBlock fBlock = *fpfCandidate->elementsInBlocks()[i].first;
-	  fBlockElements = fBlock.elements();
-	  for(fBlockElement = fBlockElements.begin();
-	      fBlockElement != fBlockElements.end(); fBlockElement++)
-	    {
-	      if(fBlockElement->type() == 1) 
-		{
-		  ftracks.push_back(*fBlockElement->trackRef());
-		}
-		
-	    }
+	  ftracks.push_back(*fBlockElement->trackRef());
 	}
-  
+      
+    }
+
   return ftracks;
+
 }
 
 vector<PFCluster> ToyPF::getEcalClusters(const PFCandidateCollection::const_iterator& fpfCandidate)
 {
-  
   OwnVector<PFBlockElement>  fBlockElements;
   OwnVector<PFBlockElement>::const_iterator fBlockElement;
 
+  
   vector<PFCluster> fecalClusters;
 
-  for(unsigned i = 0; i < fpfCandidate->elementsInBlocks().size();i++)
-	{
-	  PFBlock fBlock = *fpfCandidate->elementsInBlocks()[i].first;
+  //  for(unsigned i = 0; i < fpfCandidate->elementsInBlocks().size();i++)
+  //{
+	  PFBlock fBlock = *fpfCandidate->elementsInBlocks()[0].first;
 	  fBlockElements = fBlock.elements();
 	  for(fBlockElement = fBlockElements.begin();
 	      fBlockElement != fBlockElements.end(); fBlockElement++)
@@ -497,22 +504,22 @@ vector<PFCluster> ToyPF::getEcalClusters(const PFCandidateCollection::const_iter
 		}
 		
 	    }
-	}
+	  //}
   
   return fecalClusters;
 }
 
 vector<PFCluster> ToyPF::getHcalClusters(const PFCandidateCollection::const_iterator& fpfCandidate)
 {
-  
   OwnVector<PFBlockElement>  fBlockElements;
   OwnVector<PFBlockElement>::const_iterator fBlockElement;
 
   vector<PFCluster> fhcalClusters;
 
-  for(unsigned i = 0; i < fpfCandidate->elementsInBlocks().size();i++)
-	{
-	  PFBlock fBlock = *fpfCandidate->elementsInBlocks()[i].first;
+  //  for(unsigned i = 0; i < fpfCandidate->elementsInBlocks().size();i++)
+  //	{
+
+	  PFBlock fBlock = *fpfCandidate->elementsInBlocks()[0].first;
 	  fBlockElements = fBlock.elements();
 	  for(fBlockElement = fBlockElements.begin();
 	      fBlockElement != fBlockElements.end(); fBlockElement++)
@@ -523,8 +530,7 @@ vector<PFCluster> ToyPF::getHcalClusters(const PFCandidateCollection::const_iter
 		}
 		
 	    }
-	}
-  
+	  //	}
   return fhcalClusters;
 }
 
