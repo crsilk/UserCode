@@ -124,10 +124,10 @@ ToyPF::produce(Event& iEvent,
   
   links = link(tracks, ecalClusters, hcalClusters);
 
-  // auto_ptr<PFCandidateCollection> pfCand(new PFCandidateCollection);
-  //*pfCand = makeParticles(tracks, ecalClusters, hcalClusters, links);
+   auto_ptr<PFCandidateCollection> pfCand(new PFCandidateCollection);
+   //*pfCand = makeParticles(tracks, ecalClusters, hcalClusters, links);
 
-  //iEvent.put( pfCand );
+   iEvent.put( pfCand, "pfCand" );
 
   //////////////////////////////////////////////////////////////
   //end students' main coding///////////////////////////////////
