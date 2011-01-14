@@ -32,7 +32,8 @@ ToyPF::ToyPF(const edm::ParameterSet& iConfig) {
   LogDebug("ToyPF")
     <<" input collection : "<<inputTagPFCandidates_ ;
 
-  produces<PFCandidateCollection>( "pfCand" ).setBranchAlias( "pfCand");
+  //  produces<PFCandidateCollection>( "pfCand" ).setBranchAlias( "pfCand");
+  produces<PFCandidateCollection>( );
   
    
 }
@@ -111,7 +112,7 @@ ToyPF::produce(Event& iEvent,
   cout<<tracks.size()<<endl;
   cout<<ecalClusters.size()<<endl;
   cout<<hcalClusters.size()<<endl;
-  cout<<"Hi Mom                "<<endl;
+  cout<<"                "<<endl;
    
   //////////////////////////////////////////////////////////////
   ///begin students' main coding////////////////////////////////
@@ -124,11 +125,13 @@ ToyPF::produce(Event& iEvent,
   
   links = link(tracks, ecalClusters, hcalClusters);
 
-   auto_ptr<PFCandidateCollection> pfCand(new PFCandidateCollection);
-   //*pfCand = makeParticles(tracks, ecalClusters, hcalClusters, links);
-
-   iEvent.put( pfCand, "pfCand" );
-
+  auto_ptr<PFCandidateCollection> pfCand(new PFCandidateCollection);
+   *pfCand = makeParticles(tracks, ecalClusters, hcalClusters, links);
+   
+   cout<<pfCand->size()<<endl;
+   
+   //   iEvent.put( pfCand, "pfCand" );
+   iEvent.put( pfCand);
   //////////////////////////////////////////////////////////////
   //end students' main coding///////////////////////////////////
 }
@@ -323,7 +326,6 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 		{
 		  if( flinks[i][j][k] == 0) 
 		    {
-		      cout<<"0";
 		      fpx = ftracks[i].px();
 		      fpy = ftracks[i].py();
 		      fpz = ftracks[i].pz();
@@ -338,7 +340,7 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 		    }
 		   if( flinks[i][j][k] == 1)
 		    {
-		      cout<<"1";
+
 		      fpx = ftracks[i].px();
 		      fpy = ftracks[i].py();
 		      fpz = ftracks[i].pz();
@@ -353,7 +355,7 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 		    }
 		  if( flinks[i][j][k] == 2)
 		    {
-		      cout<<"2";		      
+
 		      fpx = ftracks[i].px();
 		      fpy = ftracks[i].py();
 		      fpz = ftracks[i].pz();
@@ -368,7 +370,7 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 		    }
 		  if( flinks[i][j][k] == 3)
 		    {
-		      cout<<"3";
+
 		      fpx = ftracks[i].px();
 		      fpy = ftracks[i].py();
 		      fpz = ftracks[i].pz();
@@ -383,7 +385,6 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 		    }
 		  if( flinks[i][j][k] == 4)
 		    {
-		      cout<<"4";
 		      fpx = ftracks[i].px();
 		      fpy = ftracks[i].py();
 		      fpz = ftracks[i].pz();
@@ -398,7 +399,7 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 		    }
 		  if( flinks[i][j][k] == 5)
 		    {
-		      cout<<"5";
+
 		      fpx = ftracks[i].px();
 		      fpy = ftracks[i].py();
 		      fpz = ftracks[i].pz();
@@ -413,7 +414,7 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 		    }
 		  if( flinks[i][j][k] == 6)
 		    {
-		      cout<<"6";
+
 		      fx = fcluster1[j].x();
 		      fy = fcluster1[j].y();
 		      fz = fcluster1[j].z();
@@ -441,7 +442,7 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 		    }
 		  if( flinks[i][j][k] == 7)
 		    {
-		      cout<<"7";
+
 		      fpx = ftracks[i].px();
 		      fpy = ftracks[i].py();
 		      fpz = ftracks[i].pz();
@@ -456,7 +457,7 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 		    }
 		  if( flinks[i][j][k] == 8)
 		    {
-		      cout<<"8";
+
 		      fx = fcluster1[j].x();
 		      fy = fcluster1[j].y();
 		      fz = fcluster1[j].z();
@@ -474,7 +475,7 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 		    }
 		  if( flinks[i][j][k] == 9)
 		    {
-		      cout<<"9";
+
 		      fx = fcluster2[k].x();
 		      fy = fcluster2[k].y();
 		      fz = fcluster2[k].z();
