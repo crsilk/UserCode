@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-process = cms.Process("ANALYSIS")
+process = cms.Process("NEWNAME")
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(100)
 )
@@ -15,10 +15,7 @@ process.source = cms.Source (
     duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
     )
 
-
-
-
-process.pfCandidateProducer = cms.EDProducer("ToyPF",
+process.ToyPFProducer = cms.EDProducer("ToyPF",
     PFCandidates = cms.InputTag("particleFlow"),
     verbose = cms.untracked.bool(True),
     printBlocks = cms.untracked.bool(False)
@@ -33,6 +30,6 @@ process.aod = cms.OutputModule("PoolOutputModule",
 process.outpath = cms.EndPath(process.aod )
 
 
-process.p = cms.Path(process.pfCandidateProducer)
+process.p = cms.Path(process.ToyPFProducer)
 
 

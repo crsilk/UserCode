@@ -4,6 +4,8 @@
 #include "DataFormats/ParticleFlowReco/interface/PFCluster.h"
 #include "DataFormats/ParticleFlowReco/interface/PFRecTrack.h"
 #include "DataFormats/Math/interface/deltaR.h"
+#include "DataFormats/Math/interface/LorentzVector.h"
+
 
 #include "FWCore/Framework/interface/ESHandle.h"
 
@@ -29,10 +31,10 @@ ToyPF::ToyPF(const edm::ParameterSet& iConfig) {
 
   LogDebug("ToyPF")
     <<" input collection : "<<inputTagPFCandidates_ ;
- 
+
   produces<PFCandidateCollection>( "pfCand" ).setBranchAlias( "pfCand");
- 
- 
+  
+   
 }
 
 
@@ -56,6 +58,9 @@ ToyPF::produce(Event& iEvent,
   Handle<PFCandidateCollection> pfCandidates;
   iEvent.getByLabel(inputTagPFCandidates_, pfCandidates);
   PFCandidateCollection::const_iterator pfCandidate;
+
+  PFCandidateCollection pfCandidatesOut;
+  PFCandidateCollection::const_iterator pfCandidateOut;
 
   vector<Track> tracks;
   vector<PFCluster> ecalClusters;
@@ -106,94 +111,29 @@ ToyPF::produce(Event& iEvent,
   cout<<tracks.size()<<endl;
   cout<<ecalClusters.size()<<endl;
   cout<<hcalClusters.size()<<endl;
-  cout<<"                "<<endl;
+  cout<<"Hi Mom                "<<endl;
    
   //////////////////////////////////////////////////////////////
   ///begin students' main coding////////////////////////////////
   vector<vector<vector<int> > > links;
+  //PFCandidateCollection PFCandsOut;
   
   //fills the links array taking into account all the scenarios, i.e. if the 
   //tracks, ecal or hcal vectors are empty (Note: if two are empty there will 
   //be no links!).
-  if(tracks.size() != 0 && ecalClusters.size() != 0 && 
-     hcalClusters.size() != 0)
-    {
+  
+  links = link(tracks, ecalClusters, hcalClusters);
 
-      links = link(tracks, ecalClusters, hcalClusters);
-      
-      for( unsigned i = 0; i < tracks.size(); i++)
-	{
-	  for (unsigned j = 0; j < ecalClusters.size(); j++)
-	    {
-	      for(unsigned k = 0; k < hcalClusters.size(); k++)
-		{
-		  if(links[i][j][k] != -1)
-		    cout<<links[i][j][k]<<" ";
-		  
-		}
-	      
-	    }
-	}
-      
-    }
-  else if(tracks.size() != 0 && ecalClusters.size() != 0 && 
-	  hcalClusters.size() == 0)
-    {
-      links = link(tracks, ecalClusters, 'e');
-      
-      for( unsigned i = 0; i < tracks.size(); i++)
-	{
-	  for (unsigned j = 0; j < ecalClusters.size(); j++)
-	    {
-	      if(links[i][j][0] != -1)
-		  cout<<links[i][j][0]<<" ";
-		 
-	    }
-	}
-    }
- 
-  else if(tracks.size() != 0  && ecalClusters.size()  == 0 && 
-	  hcalClusters.size() != 0 )
-    {
-      links = link(tracks, hcalClusters, 'h');
-      
-      for( unsigned i = 0; i < tracks.size(); i++)
-	{
-	  for (unsigned j = 0; j < hcalClusters.size(); j++)
-	    {
-	      if(links[i][0][j] != -1)
-		cout<<links[i][0][j]<<" ";     
-	    }
-	}
-    }
-  else if(tracks.size() == 0 && ecalClusters.size() != 0 && 
-	  hcalClusters.size()!= 0 )
-    {
-      links = link(ecalClusters, hcalClusters);
-      for (unsigned j = 0; j < ecalClusters.size(); j++)
-	{
-	  for(unsigned k = 0; k < hcalClusters.size(); k++)
-	    {
-	      if(links[0][j][k] != -1)
-		cout<<links[0][j][k]<<" ";
-	      
-	    }  
-	}
-    }
-  else cout<<"no links"<<endl;
+  // auto_ptr<PFCandidateCollection> pfCand(new PFCandidateCollection);
+  //*pfCand = makeParticles(tracks, ecalClusters, hcalClusters, links);
 
-
+  //iEvent.put( pfCand );
 
   //////////////////////////////////////////////////////////////
-
-  auto_ptr<PFCandidateCollection> pfCand( new PFCandidateCollection );
-  iEvent.put( pfCand, "pfCand" );
-
-
   //end students' main coding///////////////////////////////////
-
-
 }
+
+
 
 
 //--------------------------------------------------------------
@@ -232,105 +172,115 @@ vector<vector<vector<int> > > ToyPF::link(const vector<Track>& ftracks,
 					  const vector<PFCluster>& fcluster2)
 {
   //Build the three dimensional array to store link info.
-  vector<int> temp1d(fcluster2.size(), -1);
-  vector<vector<int> > temp2d(fcluster1.size(), temp1d);
-  vector<vector<vector<int> > > flinks(ftracks.size(), temp2d);
+  vector<int> temp1d(fcluster2.size() + 1, -1);
+  vector<vector<int> > temp2d(fcluster1.size() + 1, temp1d);
+  vector<vector<vector<int> > > flinks(ftracks.size() + 1, temp2d);
 
   //Bool vectors that control the "deletion" of unwanted link info
-  vector<bool> ftrackBool(ftracks.size(), true);
-  vector<bool> fcluster1Bool(fcluster1.size(), true);
-  vector<bool> fcluster2Bool(fcluster2.size(), true);
+  vector<bool> ftrackBool(ftracks.size() + 1, true);
+  vector<bool> fcluster1Bool(fcluster1.size() + 1, true);
+  vector<bool> fcluster2Bool(fcluster2.size() + 1, true);
 
   //Build bool vector that "saves" the wanted link info
-  vector<vector<int> > tempBool(fcluster1.size(), 
-				vector<int>(fcluster2.size()));
-  vector<vector<vector<int> > > fsave(ftracks.size(), tempBool);
-  
+  vector<vector<int> > tempBool(fcluster1.size()+1, 
+				vector<int>(fcluster2.size()+1));
+  vector<vector<vector<int> > > fsave(ftracks.size()+1 , tempBool);
   //Cycle through all the possible combination of tracks and clusters. Then
   //test which are linked to each other. The 8 possible senarios of links are
   //then given a number (0-7) and this is the "type" of link.
-  for(unsigned i = 0; i < ftracks.size(); i++)
+  for(unsigned i = 0; i <= ftracks.size(); i++)
     {
-      for(unsigned j = 0; j < fcluster1.size(); j++)
+      for(unsigned j = 0; j <= fcluster1.size(); j++)
 	{
-	  for(unsigned k = 0; k < fcluster2.size(); k++)
+	  for(unsigned k = 0; k <= fcluster2.size(); k++)
 	    {
-	      if(isLinked(ftracks[i], fcluster1[j]) && 
-		 isLinked(ftracks[i], fcluster2[k]) &&
-		 isLinked(fcluster1[j], fcluster2[k]))
+	      if(i != ftracks.size() && j != fcluster1.size() && 
+		 k != fcluster2.size()) 
 		{
-		  flinks[i][j][k] = 0;
+		  if(isLinked(ftracks[i], fcluster1[j]) && 
+		     isLinked(ftracks[i], fcluster2[k]) &&
+		     isLinked(fcluster1[j], fcluster2[k]))
+		    {
+		      flinks[i][j][k] = 0;
+		    }
+		  else if(!isLinked(ftracks[i], fcluster1[j]) && 
+		     isLinked(ftracks[i], fcluster2[k]) &&
+		     isLinked(fcluster1[j], fcluster2[k]))
+		    {
+		      flinks[i][j][k] = 1;
+		    }
+		  else if(isLinked(ftracks[i], fcluster1[j]) && 
+		     !isLinked(ftracks[i], fcluster2[k]) &&
+		     isLinked(fcluster1[j], fcluster2[k]))
+		    {
+		      flinks[i][j][k] = 2;
+		    }
+		  else if(isLinked(ftracks[i], fcluster1[j]) && 
+		     isLinked(ftracks[i], fcluster2[k]) &&
+		     !isLinked(fcluster1[j], fcluster2[k]))
+		    {
+		      flinks[i][j][k] = 3;
+		    }
+		  else
+		    {
+		      flinks[i][j][k] = -1;
+		    }
 		}
-	      if(!isLinked(ftracks[i], fcluster1[j]) && 
-		 isLinked(ftracks[i], fcluster2[k]) &&
-		 isLinked(fcluster1[j], fcluster2[k]))
+	      else if( i != ftracks.size() && j != fcluster1.size())
 		{
-		 
-		  flinks[i][j][k] = 1;
+		  if(isLinked(ftracks[i], fcluster1[j])) flinks[i][j][k] = 4;
 		}
-	      if(isLinked(ftracks[i], fcluster1[j]) && 
-		 !isLinked(ftracks[i], fcluster2[k]) &&
-		 isLinked(fcluster1[j], fcluster2[k]))
+	      else if( i != ftracks.size() && k != fcluster2.size())
 		{
-		 
-		  flinks[i][j][k] = 2;
+		  if(isLinked(ftracks[i], fcluster2[k])) flinks[i][j][k] = 5;
 		}
-	      if(isLinked(ftracks[i], fcluster1[j]) && 
-		 isLinked(ftracks[i], fcluster2[k]) &&
-		 !isLinked(fcluster1[j], fcluster2[k]))
+	      else if( j != fcluster1.size() && k != fcluster2.size())
 		{
-		 
-		  flinks[i][j][k] = 3;
+		  if(isLinked(fcluster1[j], fcluster2[k])) flinks[i][j][k]= 6;
 		}
-	      if(!isLinked(ftracks[i], fcluster1[j]) && 
-		 !isLinked(ftracks[i], fcluster2[k]) &&
-		 isLinked(fcluster1[j], fcluster2[k]))
-		{
-		 
-		  flinks[i][j][k] = 4;
-		}
-	      if(!isLinked(ftracks[i], fcluster1[j]) && 
-		 isLinked(ftracks[i], fcluster2[k]) &&
-		 !isLinked(fcluster1[j], fcluster2[k]))
-		{
-		  flinks[i][j][k] = 5;
-		}
-	      if(isLinked(ftracks[i], fcluster1[j]) && 
-		 !isLinked(ftracks[i], fcluster2[k]) &&
-		 !isLinked(fcluster1[j], fcluster2[k]))
-		{
-		  flinks[i][j][k] = 6;		  
-		}
-	      if(!isLinked(ftracks[i], fcluster1[j]) && 
-		 !isLinked(ftracks[i], fcluster2[k]) &&
-		 !isLinked(fcluster1[j], fcluster2[k]))
+	      else if( i != ftracks.size())
 		{
 		  flinks[i][j][k] = 7;
+		}
+	      else if( j != fcluster1.size())
+		{
+		  flinks[i][j][k] = 8;
+		}
+	      else if( k != fcluster2.size())
+		{
+		  flinks[i][j][k] = 9;
+		}
+	      else
+		{
+		  flinks[i][j][k] = -1;
 		}
 	      
 	    }
 	}
     }
 
-  //Cycle through the link array and keep the link "type" with the most number 
+  //Cycle through the link array and keep the link "type" with the most number
   //of links. Those are then "saved" and all other links that contain that 
   //track, ecal cluster or hcal cluster are "deleted", i.e. set to -1.
-  for(int order = 0; order < 8; order++)
+  for(int order = 0; order < 10; order++)
     {
-      for(unsigned i = 0; i < ftracks.size(); i++)
+      for(unsigned i = 0; i <= ftracks.size(); i++)
 	{
-	  for(unsigned j = 0; j < fcluster1.size(); j++)
+	  for(unsigned j = 0; j <= fcluster1.size(); j++)
 	    {
-	      for(unsigned k = 0; k < fcluster2.size(); k++)
+	      for(unsigned k = 0; k <= fcluster2.size(); k++)
 		{
+		  
 		  if(ftrackBool[i] && fcluster1Bool[j] && fcluster2Bool[k])
 		    {
 		      if(flinks[i][j][k] == order)
 			{
+			 
 			  fsave[i][j][k] = 1;
-			  ftrackBool[i] = false;
-			  fcluster1Bool[j] = false;
-			  fcluster2Bool[k] = false;
+			  if(i != ftracks.size()) ftrackBool[i] = false;
+			  if(j != fcluster1.size()) fcluster1Bool[j] = false;
+			  if(k != fcluster2.size()) fcluster2Bool[k] = false;
+
 			}
 		    }
 		  else
@@ -341,166 +291,213 @@ vector<vector<vector<int> > > ToyPF::link(const vector<Track>& ftracks,
 	    }
 	}
     }
-
+ 
   return flinks;
 }
 
-//Links the tracks/cluster when one of the clusters are zero. clusterType is 
-//the non-zero collection of clusters. Either 'e' or ecal or 'h' for hcal.
-vector<vector<vector<int> > > ToyPF::link(const vector<Track>& ftracks,
-					  const vector<PFCluster>& fcluster1,
-					  const char& clusterType)
+PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks, 
+					   const vector<PFCluster>& fcluster1,
+					   const vector<PFCluster>& fcluster2,
+					   vector<vector<vector<int> > > flinks)
 {
-  //Build the three dimensional array to store link info. However since one of
-  //the dimensions is 1 its really a 2d array. flinks2 is for the case that its
-  //an ecal cluster while flinks1 is if its an hcal cluster
-  vector<vector<int> > temp2d1(1, vector<int>(fcluster1.size()));
-  vector<vector<int> > temp2d2(fcluster1.size(), vector<int>(1));   
-  vector<vector<vector<int> > > flinks1(ftracks.size(), temp2d1);
-  vector<vector<vector<int> > > flinks2(ftracks.size(), temp2d2);
-  vector<vector<vector<int> > > flinks;
-
-  //Bool vectors that control the "deletion" of unwanted link info
-  vector<bool> ftrackBool(ftracks.size(), true);
-  vector<bool> fcluster1Bool(fcluster1.size(), true);
-
-  //Build bool vector that "saves" the wanted link info  
-  vector<vector<int> > fsave( ftracks.size(), vector<int>(fcluster1.size()));
-  
-  //Cycle through all the possible combination of tracks and clusters. Then
-  //test which are linked to each other. There are only 2 possible scenarios
-  //in this case (linked or unlinked), we use the same link "type" as above.
-  for(unsigned i = 0; i < ftracks.size(); i++)
-    {
-
-      for(unsigned j = 0; j < fcluster1.size(); j++)
-	{
-
-	  if(clusterType == 'e')
-	    {
-
-	      if(isLinked(ftracks[i], fcluster1[j])) 
-		{
-		  flinks2[i][j][0] = 6;
-		}
-	      else 
-		{
-		  flinks2[i][j][0] = 7;
-		}
-
-	    }
-	  else
-	    {
-	      if(isLinked(ftracks[i], fcluster1[j])) flinks1[i][0][j] = 5;
-	      else flinks1[i][0][j] = 7;
-	    }
-	}
-    }
-
+  PFCandidateCollection fpfCandidates;
  
-  for(int order = 0; order < 8; order++)
+  double fE;
+  double fpx;
+  double fpy;
+  double fpz;
+  //  double ft;
+  double fx;
+  double fy;
+  double fz;
+
+  Candidate::LorentzVector fp4;
+
+    for( unsigned i = 0; i <= ftracks.size(); i++)
     {
-      for(unsigned i = 0; i < ftracks.size(); i++)
+      for( unsigned j = 0; j <= fcluster1.size(); j++)
 	{
-	  for(unsigned j = 0; j < fcluster1.size(); j++)
+	  for( unsigned k =0; k <= fcluster2.size(); k++)
 	    {
-	      if(clusterType == 'e')
+	      if( flinks[i][j][k] != -1)
 		{
-		  if(ftrackBool[i] && fcluster1Bool[j])  
-		    { 
-		      if(flinks2[i][j][0] == order)
+		  if( flinks[i][j][k] == 0) 
+		    {
+		      cout<<"0";
+		      fpx = ftracks[i].px();
+		      fpy = ftracks[i].py();
+		      fpz = ftracks[i].pz();
+		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
+		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
+
+		      PFCandidate pfTemp;
+		      pfTemp.setCharge(ftracks[i].charge());
+		      pfTemp.setP4(fp4);
+		      pfTemp.setPdgId(ftracks[i].charge()*211);
+		      fpfCandidates.push_back(pfTemp);
+		    }
+		   if( flinks[i][j][k] == 1)
+		    {
+		      cout<<"1";
+		      fpx = ftracks[i].px();
+		      fpy = ftracks[i].py();
+		      fpz = ftracks[i].pz();
+		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
+		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
+
+		      PFCandidate pfTemp;
+		      pfTemp.setCharge(ftracks[i].charge());
+		      pfTemp.setP4(fp4);
+		      pfTemp.setPdgId(ftracks[i].charge()*211);
+		      fpfCandidates.push_back(pfTemp);
+		    }
+		  if( flinks[i][j][k] == 2)
+		    {
+		      cout<<"2";		      
+		      fpx = ftracks[i].px();
+		      fpy = ftracks[i].py();
+		      fpz = ftracks[i].pz();
+		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
+		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
+
+		      PFCandidate pfTemp;
+		      pfTemp.setCharge(ftracks[i].charge());
+		      pfTemp.setP4(fp4);
+		      pfTemp.setPdgId(ftracks[i].charge()*211);
+		      fpfCandidates.push_back(pfTemp);
+		    }
+		  if( flinks[i][j][k] == 3)
+		    {
+		      cout<<"3";
+		      fpx = ftracks[i].px();
+		      fpy = ftracks[i].py();
+		      fpz = ftracks[i].pz();
+		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
+		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
+
+		      PFCandidate pfTemp;
+		      pfTemp.setCharge(ftracks[i].charge());
+		      pfTemp.setP4(fp4);
+		      pfTemp.setPdgId(ftracks[i].charge()*211);
+		      fpfCandidates.push_back(pfTemp);
+		    }
+		  if( flinks[i][j][k] == 4)
+		    {
+		      cout<<"4";
+		      fpx = ftracks[i].px();
+		      fpy = ftracks[i].py();
+		      fpz = ftracks[i].pz();
+		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
+		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
+
+		      PFCandidate pfTemp;
+		      pfTemp.setCharge(ftracks[i].charge());
+		      pfTemp.setP4(fp4);
+		      pfTemp.setPdgId(ftracks[i].charge()*211);
+		      fpfCandidates.push_back(pfTemp);
+		    }
+		  if( flinks[i][j][k] == 5)
+		    {
+		      cout<<"5";
+		      fpx = ftracks[i].px();
+		      fpy = ftracks[i].py();
+		      fpz = ftracks[i].pz();
+		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
+		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
+
+		      PFCandidate pfTemp;
+		      pfTemp.setCharge(ftracks[i].charge());
+		      pfTemp.setP4(fp4);
+		      pfTemp.setPdgId(ftracks[i].charge()*211);
+		      fpfCandidates.push_back(pfTemp);	
+		    }
+		  if( flinks[i][j][k] == 6)
+		    {
+		      cout<<"6";
+		      fx = fcluster1[j].x();
+		      fy = fcluster1[j].y();
+		      fz = fcluster1[j].z();
+		      fE = fcluster1[j].energy() + fcluster2[k].energy();
+		      fpx = fE*fx/sqrt(fx*fx +fy*fy +fz*fz); 
+		      fpy = fE*fy/sqrt(fx*fx +fy*fy +fz*fz); 
+		      fpz = fE*fz/sqrt(fx*fx +fy*fy +fz*fz); 
+		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
+		      if(fcluster1[j].energy() > fcluster2[k].energy())
 			{
-			  fsave[i][j] = 1;
-			  ftrackBool[i] = false;
-			  fcluster1Bool[j] = false;
+			  PFCandidate pfTemp;
+			  pfTemp.setCharge(0);
+			  pfTemp.setP4(fp4);
+			  pfTemp.setPdgId(22);
+			  fpfCandidates.push_back(pfTemp);
+			}
+		      else
+			{
+			  PFCandidate pfTemp;
+			  pfTemp.setCharge(0);
+			  pfTemp.setP4(fp4);
+			  pfTemp.setPdgId(130);
+			  fpfCandidates.push_back(pfTemp);
 			}
 		    }
-		  else
+		  if( flinks[i][j][k] == 7)
 		    {
-		      if(!fsave[i][j]) flinks2[i][j][0] = -1;
+		      cout<<"7";
+		      fpx = ftracks[i].px();
+		      fpy = ftracks[i].py();
+		      fpz = ftracks[i].pz();
+		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
+		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
+
+		      PFCandidate pfTemp;
+		      pfTemp.setCharge(ftracks[i].charge());
+		      pfTemp.setP4(fp4);
+		      pfTemp.setPdgId(ftracks[i].charge()*211);
+		      fpfCandidates.push_back(pfTemp);
 		    }
-		}
-	      else
-		{
-		  if(flinks1[i][0][j] == order)
+		  if( flinks[i][j][k] == 8)
 		    {
-		      fsave[i][j] = 1;
-		      ftrackBool[i] = false;
-		      fcluster1Bool[j] = false;
+		      cout<<"8";
+		      fx = fcluster1[j].x();
+		      fy = fcluster1[j].y();
+		      fz = fcluster1[j].z();
+		      fE = fcluster1[j].energy();
+		      fpx = fE*fx/sqrt(fx*fx +fy*fy +fz*fz); 
+		      fpy = fE*fy/sqrt(fx*fx +fy*fy +fz*fz); 
+		      fpz = fE*fz/sqrt(fx*fx +fy*fy +fz*fz); 
+		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
+
+		      PFCandidate pfTemp;
+		      pfTemp.setCharge(0);
+		      pfTemp.setP4(fp4);
+		      pfTemp.setPdgId(22);
+		      fpfCandidates.push_back(pfTemp);		      
 		    }
-		  else
+		  if( flinks[i][j][k] == 9)
 		    {
-		      if(!fsave[i][j]) flinks1[i][0][j] = -1;
+		      cout<<"9";
+		      fx = fcluster2[k].x();
+		      fy = fcluster2[k].y();
+		      fz = fcluster2[k].z();
+		      fE = fcluster2[k].energy();
+		      fpx = fE*fx/sqrt(fx*fx +fy*fy +fz*fz); 
+		      fpy = fE*fy/sqrt(fx*fx +fy*fy +fz*fz);
+		      fpz = fE*fz/sqrt(fx*fx +fy*fy +fz*fz); 
+		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
+
+		      PFCandidate pfTemp;
+		      pfTemp.setCharge(0);
+		      pfTemp.setP4(fp4);
+		      pfTemp.setPdgId(130);
+		      fpfCandidates.push_back(pfTemp);		      
 		    }
-		  
 		}
 	    }
 	}
     }
 
-  if(clusterType == 'e') flinks = flinks2;
-  else flinks = flinks1;
-
-  return flinks;
+    return fpfCandidates;
 }
-
-//Links the two cluster collections when there are zero tracks.
-vector<vector<vector<int> > > ToyPF::link(const vector<PFCluster>& fcluster1,
-					  const vector<PFCluster>& fcluster2)
-{
-  //Build the three dimensional array to store link info.
-  vector<vector<int> > temp2d(fcluster1.size(), vector<int>(fcluster2.size()));
-  vector<vector<vector<int> > > flinks(1, temp2d);
-  
-  //Bool vectors that control the "deletion" of unwanted link info
-  vector<bool> fcluster1Bool(fcluster1.size(), true);
-  vector<bool> fcluster2Bool(fcluster2.size(), true);
-
- //Build bool vector that "saves" the wanted link info
-  vector<vector<int> > fsave( fcluster1.size(), vector<int>(fcluster2.size()));
-
-  //Cycle through all the possible combination of tracks and clusters. Then
-  //test which are linked to each other. There are only 2 possible scenarios
-  //in this case (linked or unlinked), we use the same link "type" as above.
-  for(unsigned j = 0; j < fcluster1.size(); j++)
-    {
-      for(unsigned k = 0; k < fcluster2.size(); k++)
-	{
-	  if(isLinked(fcluster1[j], fcluster2[k])) flinks[0][j][k] = 4;
-	  else flinks[0][j][k] = 7;
-	}
-    }
-
-  //Cycle through the link array and keep the link "type" with the most number 
-  //of links. Those are then "saved" and all other links that contain that 
-  //track, ecal cluster or hcal cluster are "deleted", i.e. set to -1.
-  for(int order = 0; order < 8; order++)
-    {
-      for(unsigned j = 0; j < fcluster1.size(); j++)
-	{
-	  for(unsigned k = 0; k < fcluster2.size(); k++)
-	    {
-	      if(fcluster1Bool[j] && fcluster2Bool[k])
-		{
-		  if(flinks[0][j][k] == order)
-		    {
-		      fsave[j][k] = 1;
-		      fcluster1Bool[j] = false;
-		      fcluster2Bool[k] = false;
-		    }
-		}
-	      else
-		{
-		  if(!fsave[j][k]) flinks[0][j][k] = -1;
-		}
-	    }
-	}
-      
-    }
-
-  return flinks;
-}
-
+				 
 
 //--------------------------------------------------------------
 //end students' functions---------------------------------------
