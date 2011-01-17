@@ -21,15 +21,11 @@ process.ToyPFProducer = cms.EDProducer("ToyPF",
     printBlocks = cms.untracked.bool(False)
 )
 
-process.load("FastSimulation.Configuration.EventContent_cff")
-process.aod = cms.OutputModule("PoolOutputModule",
-    process.AODSIMEventContent,
-    fileName = cms.untracked.string('aod.root')
-)
-
-process.outpath = cms.EndPath(process.aod )
-
-
 process.p = cms.Path(process.ToyPFProducer)
 
+process.out = cms.OutputModule("PoolOutputModule",
+                               fileName = cms.untracked.string('ToyPF.root'),
+                               outputCommands = cms.untracked.vstring('keep *')
+                               )
 
+process.outpath = cms.EndPath(process.out)
