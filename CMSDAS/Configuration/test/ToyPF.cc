@@ -143,7 +143,7 @@ bool ToyPF::isLinked(const Track& ftrack, const PFCluster& fcluster)
   return linked;
 }
 
-bool ToyPF::isLinked(const PFCluster& fcluster1, const PFCluster& fcluster2)
+bool ToyPF::isLinked(const PFCluster& fecal, const PFCluster& fhcal)
 {
   bool linked = false;
     
@@ -158,56 +158,56 @@ bool ToyPF::isLinked(const PFCluster& fcluster1, const PFCluster& fcluster2)
 
 //Links the tracks/cluster when all three vectors are non-zero
 vector<vector<vector<int> > > ToyPF::link(const vector<Track>& ftracks,
-					  const vector<PFCluster>& fcluster1,
-					  const vector<PFCluster>& fcluster2)
+					  const vector<PFCluster>& fecal,
+					  const vector<PFCluster>& fhcal)
 {
   //Build the three dimensional array to store link info.
-  vector<int> temp1d(fcluster2.size() + 1, -1);
-  vector<vector<int> > temp2d(fcluster1.size() + 1, temp1d);
+  vector<int> temp1d(fhcal.size() + 1, -1);
+  vector<vector<int> > temp2d(fecal.size() + 1, temp1d);
   vector<vector<vector<int> > > flinks(ftracks.size() + 1, temp2d);
 
   //Bool vectors that control the "deletion" of unwanted link info
   vector<bool> ftrackBool(ftracks.size() + 1, true);
-  vector<bool> fcluster1Bool(fcluster1.size() + 1, true);
-  vector<bool> fcluster2Bool(fcluster2.size() + 1, true);
+  vector<bool> fecalBool(fecal.size() + 1, true);
+  vector<bool> fhcalBool(fhcal.size() + 1, true);
 
   //Build bool vector that "saves" the wanted link info
-  vector<vector<int> > tempBool(fcluster1.size()+1, 
-				vector<int>(fcluster2.size()+1));
+  vector<vector<int> > tempBool(fecal.size()+1, 
+				vector<int>(fhcal.size()+1));
   vector<vector<vector<int> > > fsave(ftracks.size()+1 , tempBool);
   //Cycle through all the possible combination of tracks and clusters. Then
   //test which are linked to each other. The 8 possible senarios of links are
   //then given a number (0-7) and this is the "type" of link.
   for(unsigned i = 0; i <= ftracks.size(); i++)
     {
-      for(unsigned j = 0; j <= fcluster1.size(); j++)
+      for(unsigned j = 0; j <= fecal.size(); j++)
 	{
-	  for(unsigned k = 0; k <= fcluster2.size(); k++)
+	  for(unsigned k = 0; k <= fhcal.size(); k++)
 	    {
-	      if(i != ftracks.size() && j != fcluster1.size() && 
-		 k != fcluster2.size()) 
+	      if(i != ftracks.size() && j != fecal.size() && 
+		 k != fhcal.size()) 
 		{
-		  if(isLinked(ftracks[i], fcluster1[j]) && 
-		     isLinked(ftracks[i], fcluster2[k]) &&
-		     isLinked(fcluster1[j], fcluster2[k]))
+		  if(isLinked(ftracks[i], fecal[j]) && 
+		     isLinked(ftracks[i], fhcal[k]) &&
+		     isLinked(fecal[j], fhcal[k]))
 		    {
 		      flinks[i][j][k] = 0;
 		    }
-		  else if(!isLinked(ftracks[i], fcluster1[j]) && 
-		     isLinked(ftracks[i], fcluster2[k]) &&
-		     isLinked(fcluster1[j], fcluster2[k]))
+		  else if(!isLinked(ftracks[i], fecal[j]) && 
+		     isLinked(ftracks[i], fhcal[k]) &&
+		     isLinked(fecal[j], fhcal[k]))
 		    {
 		      flinks[i][j][k] = 1;
 		    }
-		  else if(isLinked(ftracks[i], fcluster1[j]) && 
-		     !isLinked(ftracks[i], fcluster2[k]) &&
-		     isLinked(fcluster1[j], fcluster2[k]))
+		  else if(isLinked(ftracks[i], fecal[j]) && 
+		     !isLinked(ftracks[i], fhcal[k]) &&
+		     isLinked(fecal[j], fhcal[k]))
 		    {
 		      flinks[i][j][k] = 2;
 		    }
-		  else if(isLinked(ftracks[i], fcluster1[j]) && 
-		     isLinked(ftracks[i], fcluster2[k]) &&
-		     !isLinked(fcluster1[j], fcluster2[k]))
+		  else if(isLinked(ftracks[i], fecal[j]) && 
+		     isLinked(ftracks[i], fhcal[k]) &&
+		     !isLinked(fecal[j], fhcal[k]))
 		    {
 		      flinks[i][j][k] = 3;
 		    }
@@ -216,27 +216,27 @@ vector<vector<vector<int> > > ToyPF::link(const vector<Track>& ftracks,
 		      flinks[i][j][k] = -1;
 		    }
 		}
-	      else if( i != ftracks.size() && j != fcluster1.size())
+	      else if( i != ftracks.size() && j != fecal.size())
 		{
-		  if(isLinked(ftracks[i], fcluster1[j])) flinks[i][j][k] = 4;
+		  if(isLinked(ftracks[i], fecal[j])) flinks[i][j][k] = 4;
 		}
-	      else if( i != ftracks.size() && k != fcluster2.size())
+	      else if( i != ftracks.size() && k != fhcal.size())
 		{
-		  if(isLinked(ftracks[i], fcluster2[k])) flinks[i][j][k] = 5;
+		  if(isLinked(ftracks[i], fhcal[k])) flinks[i][j][k] = 5;
 		}
-	      else if( j != fcluster1.size() && k != fcluster2.size())
+	      else if( j != fecal.size() && k != fhcal.size())
 		{
-		  if(isLinked(fcluster1[j], fcluster2[k])) flinks[i][j][k]= 6;
+		  if(isLinked(fecal[j], fhcal[k])) flinks[i][j][k]= 6;
 		}
 	      else if( i != ftracks.size())
 		{
 		  flinks[i][j][k] = 7;
 		}
-	      else if( j != fcluster1.size())
+	      else if( j != fecal.size())
 		{
 		  flinks[i][j][k] = 8;
 		}
-	      else if( k != fcluster2.size())
+	      else if( k != fhcal.size())
 		{
 		  flinks[i][j][k] = 9;
 		}
@@ -256,20 +256,20 @@ vector<vector<vector<int> > > ToyPF::link(const vector<Track>& ftracks,
     {
       for(unsigned i = 0; i <= ftracks.size(); i++)
 	{
-	  for(unsigned j = 0; j <= fcluster1.size(); j++)
+	  for(unsigned j = 0; j <= fecal.size(); j++)
 	    {
-	      for(unsigned k = 0; k <= fcluster2.size(); k++)
+	      for(unsigned k = 0; k <= fhcal.size(); k++)
 		{
 		  
-		  if(ftrackBool[i] && fcluster1Bool[j] && fcluster2Bool[k])
+		  if(ftrackBool[i] && fecalBool[j] && fhcalBool[k])
 		    {
 		      if(flinks[i][j][k] == order)
 			{
 			 
 			  fsave[i][j][k] = 1;
 			  if(i != ftracks.size()) ftrackBool[i] = false;
-			  if(j != fcluster1.size()) fcluster1Bool[j] = false;
-			  if(k != fcluster2.size()) fcluster2Bool[k] = false;
+			  if(j != fecal.size()) fecalBool[j] = false;
+			  if(k != fhcal.size()) fhcalBool[k] = false;
 
 			}
 		    }
@@ -292,8 +292,8 @@ vector<vector<vector<int> > > ToyPF::link(const vector<Track>& ftracks,
 ///////////////////////////
 
 PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks, 
-					   const vector<PFCluster>& fcluster1,
-					   const vector<PFCluster>& fcluster2,
+					   const vector<PFCluster>& fecal,
+					   const vector<PFCluster>& fhcal,
 					   vector<vector<vector<int> > > flinks)
 {
   PFCandidateCollection fpfCandidates;
@@ -311,9 +311,9 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 
     for( unsigned i = 0; i <= ftracks.size(); i++)
     {
-      for( unsigned j = 0; j <= fcluster1.size(); j++)
+      for( unsigned j = 0; j <= fecal.size(); j++)
 	{
-	  for( unsigned k =0; k <= fcluster2.size(); k++)
+	  for( unsigned k =0; k <= fhcal.size(); k++)
 	    {
 	      if( flinks[i][j][k] != -1)
 		{
