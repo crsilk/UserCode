@@ -114,60 +114,52 @@ ToyPF::produce(Event& iEvent,
   cout<<hcalClusters.size()<<endl;
   cout<<"                "<<endl;
    
-  //////////////////////////////////////////////////////////////
-  ///begin students' main coding////////////////////////////////
   vector<vector<vector<int> > > links;
-  //PFCandidateCollection PFCandsOut;
   
-  //fills the links array taking into account all the scenarios, i.e. if the 
-  //tracks, ecal or hcal vectors are empty (Note: if two are empty there will 
-  //be no links!).
+  
   
   links = link(tracks, ecalClusters, hcalClusters);
 
   auto_ptr<PFCandidateCollection> pfCand(new PFCandidateCollection);
-   *pfCand = makeParticles(tracks, ecalClusters, hcalClusters, links);
+  *pfCand = makeParticles(tracks, ecalClusters, hcalClusters, links);
+  
    
-   cout<<pfCand->size()<<endl;
-   
-   //   iEvent.put( pfCand, "pfCand" );
-   iEvent.put( pfCand);
-  //////////////////////////////////////////////////////////////
-  //end students' main coding///////////////////////////////////
+  iEvent.put( pfCand);
 }
 
 
 
+///////////////////////////
+///////////////////////////
+////Part 1 begin here//////
+///////////////////////////
+///////////////////////////
 
-//--------------------------------------------------------------
-//begin students' fucntions-------------------------------------
 
-//Tests if a track and an ecal cluster are linked
 bool ToyPF::isLinked(const Track& ftrack, const PFCluster& fcluster)
 {
   bool linked = false;
-  //Test if the track and cluster are within a deltaR of .7 of each other. If 
-  //they are then they are said to be linked. The measurement for the track is
-  //made at the entrace to the ecal(deltaR = sqrt( deltaEta^2+deltaPhi^2))
   if(deltaR(ftrack.outerEta(), ftrack.outerPhi(), 
 	    fcluster.eta(), fcluster.phi())< .7) linked = true;
   
   return linked;
 }
 
-//Tests if two PFClusters are linked
 bool ToyPF::isLinked(const PFCluster& fcluster1, const PFCluster& fcluster2)
 {
   bool linked = false;
   
-  //Test if the clusters are within a deltaR of .7 of each other. If they are
-  //then they are said to be linked. (deltaR = sqrt( deltaEta^2+deltaPhi^2))
   if(deltaR(fcluster1.eta(), fcluster1.phi(), 
 	    fcluster2.eta(), fcluster2.phi()) < .7) linked = true;
   
   return linked;
 }
 
+///////////////////////////
+///////////////////////////
+////Part 1 end here////////
+///////////////////////////
+///////////////////////////
 
 //Links the tracks/cluster when all three vectors are non-zero
 vector<vector<vector<int> > > ToyPF::link(const vector<Track>& ftracks,
@@ -298,6 +290,12 @@ vector<vector<vector<int> > > ToyPF::link(const vector<Track>& ftracks,
   return flinks;
 }
 
+///////////////////////////
+///////////////////////////
+////Part 2 begin here//////
+///////////////////////////
+///////////////////////////
+
 PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks, 
 					   const vector<PFCluster>& fcluster1,
 					   const vector<PFCluster>& fcluster2,
@@ -324,7 +322,66 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 	    {
 	      if( flinks[i][j][k] != -1)
 		{
-		  if( flinks[i][j][k] == 0) 
+		  if( flinks[i][j][k] == 0) //The trigger, ecal and hcal are
+		    {                       //all linked to each other.
+		      fpx = ftracks[i].px();
+		      fpy = ftracks[i].py();
+		      fpz = ftracks[i].pz();
+		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
+		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
+
+		      PFCandidate pfTemp;
+		      pfTemp.setCharge(ftracks[i].charge());
+		      pfTemp.setP4(fp4);
+		      pfTemp.setPdgId(ftracks[i].charge()*211);
+		      fpfCandidates.push_back(pfTemp);
+		    }
+		  if( flinks[i][j][k] == 1) //The hcal is linked to the trigger
+		    {                       //and ecal but the trigger and ecal
+		                            //aren't linked.
+		      fpx = ftracks[i].px();
+		      fpy = ftracks[i].py();
+		      fpz = ftracks[i].pz();
+		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
+		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
+
+		      PFCandidate pfTemp;
+		      pfTemp.setCharge(ftracks[i].charge());
+		      pfTemp.setP4(fp4);
+		      pfTemp.setPdgId(ftracks[i].charge()*211);
+		      fpfCandidates.push_back(pfTemp);
+		    }
+		  if( flinks[i][j][k] == 2)//The ecal is linked to the trigger
+		    {                       //and hcal but the trigger and hcal
+		                            //aren't linked.
+		      fpx = ftracks[i].px();
+		      fpy = ftracks[i].py();
+		      fpz = ftracks[i].pz();
+		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
+		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
+
+		      PFCandidate pfTemp;
+		      pfTemp.setCharge(ftracks[i].charge());
+		      pfTemp.setP4(fp4);
+		      pfTemp.setPdgId(ftracks[i].charge()*211);
+		      fpfCandidates.push_back(pfTemp);
+		    }
+		  if( flinks[i][j][k] == 3) //The trigger is linked to the ecal
+		    {                       // and hcal but the hcal and ecal
+		                            // aren't linked.
+		      fpx = ftracks[i].px();
+		      fpy = ftracks[i].py();
+		      fpz = ftracks[i].pz();
+		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
+		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
+
+		      PFCandidate pfTemp;
+		      pfTemp.setCharge(ftracks[i].charge());
+		      pfTemp.setP4(fp4);
+		      pfTemp.setPdgId(ftracks[i].charge()*211);
+		      fpfCandidates.push_back(pfTemp);
+		    }
+		  if( flinks[i][j][k] == 4) //The trigger and ecal are linked
 		    {
 		      fpx = ftracks[i].px();
 		      fpy = ftracks[i].py();
@@ -338,66 +395,7 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 		      pfTemp.setPdgId(ftracks[i].charge()*211);
 		      fpfCandidates.push_back(pfTemp);
 		    }
-		   if( flinks[i][j][k] == 1)
-		    {
-
-		      fpx = ftracks[i].px();
-		      fpy = ftracks[i].py();
-		      fpz = ftracks[i].pz();
-		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
-		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
-
-		      PFCandidate pfTemp;
-		      pfTemp.setCharge(ftracks[i].charge());
-		      pfTemp.setP4(fp4);
-		      pfTemp.setPdgId(ftracks[i].charge()*211);
-		      fpfCandidates.push_back(pfTemp);
-		    }
-		  if( flinks[i][j][k] == 2)
-		    {
-
-		      fpx = ftracks[i].px();
-		      fpy = ftracks[i].py();
-		      fpz = ftracks[i].pz();
-		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
-		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
-
-		      PFCandidate pfTemp;
-		      pfTemp.setCharge(ftracks[i].charge());
-		      pfTemp.setP4(fp4);
-		      pfTemp.setPdgId(ftracks[i].charge()*211);
-		      fpfCandidates.push_back(pfTemp);
-		    }
-		  if( flinks[i][j][k] == 3)
-		    {
-
-		      fpx = ftracks[i].px();
-		      fpy = ftracks[i].py();
-		      fpz = ftracks[i].pz();
-		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
-		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
-
-		      PFCandidate pfTemp;
-		      pfTemp.setCharge(ftracks[i].charge());
-		      pfTemp.setP4(fp4);
-		      pfTemp.setPdgId(ftracks[i].charge()*211);
-		      fpfCandidates.push_back(pfTemp);
-		    }
-		  if( flinks[i][j][k] == 4)
-		    {
-		      fpx = ftracks[i].px();
-		      fpy = ftracks[i].py();
-		      fpz = ftracks[i].pz();
-		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
-		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
-
-		      PFCandidate pfTemp;
-		      pfTemp.setCharge(ftracks[i].charge());
-		      pfTemp.setP4(fp4);
-		      pfTemp.setPdgId(ftracks[i].charge()*211);
-		      fpfCandidates.push_back(pfTemp);
-		    }
-		  if( flinks[i][j][k] == 5)
+		  if( flinks[i][j][k] == 5) // The trigger and hcal are linked
 		    {
 
 		      fpx = ftracks[i].px();
@@ -412,7 +410,7 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 		      pfTemp.setPdgId(ftracks[i].charge()*211);
 		      fpfCandidates.push_back(pfTemp);	
 		    }
-		  if( flinks[i][j][k] == 6)
+		  if( flinks[i][j][k] == 6) // The ecal and hcal are linked
 		    {
 
 		      fx = fcluster1[j].x();
@@ -440,7 +438,7 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 			  fpfCandidates.push_back(pfTemp);
 			}
 		    }
-		  if( flinks[i][j][k] == 7)
+		  if( flinks[i][j][k] == 7) //A track by itself.
 		    {
 
 		      fpx = ftracks[i].px();
@@ -455,7 +453,7 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 		      pfTemp.setPdgId(ftracks[i].charge()*211);
 		      fpfCandidates.push_back(pfTemp);
 		    }
-		  if( flinks[i][j][k] == 8)
+		  if( flinks[i][j][k] == 8) //An ecal by itself.
 		    {
 
 		      fx = fcluster1[j].x();
@@ -473,7 +471,7 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 		      pfTemp.setPdgId(22);
 		      fpfCandidates.push_back(pfTemp);		      
 		    }
-		  if( flinks[i][j][k] == 9)
+		  if( flinks[i][j][k] == 9) //an hcal by itself.
 		    {
 
 		      fx = fcluster2[k].x();
@@ -499,10 +497,11 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
     return fpfCandidates;
 }
 				 
-
-//--------------------------------------------------------------
-//end students' functions---------------------------------------
-
+///////////////////////////
+///////////////////////////
+////Part 2 end here////////
+///////////////////////////
+///////////////////////////
 
 //Returns a vector of tracks associated with that PFCandidate
 vector<Track> ToyPF::getTracks(const PFCandidateCollection::const_iterator& fpfCandidate)

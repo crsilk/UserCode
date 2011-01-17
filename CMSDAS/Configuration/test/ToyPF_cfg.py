@@ -9,7 +9,7 @@ process.maxEvents = cms.untracked.PSet(
 process.source = cms.Source (
     "PoolSource",
     #fileNames = cms.untracked.vstring('dcap://cmsdca3.fnal.gov:24143/pnfs/fnal.gov/usr/cms/WAX/resilient/lucieg/CMSDAS/DiPions/DiPions_38_1_xhW.root'),
-    fileNames = cms.untracked.vstring('file:/uscms/home/cavanaug/work/CMSSW_3_8_7/src/RecoParticleFlow/Configuration/test/single-pion.root'),
+    fileNames = cms.untracked.vstring('file:/uscms/home/cavanaug/work/CMSSW_3_8_7/src/RecoParticleFlow/Configuration/test/single-photon.root'),
     secondaryFileNames = cms.untracked.vstring(),
     noEventSort = cms.untracked.bool(True),
     duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
