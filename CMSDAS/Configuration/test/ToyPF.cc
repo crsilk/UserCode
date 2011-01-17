@@ -139,19 +139,14 @@ ToyPF::produce(Event& iEvent,
 bool ToyPF::isLinked(const Track& ftrack, const PFCluster& fcluster)
 {
   bool linked = false;
-  if(deltaR(ftrack.outerEta(), ftrack.outerPhi(), 
-	    fcluster.eta(), fcluster.phi())< .7) linked = true;
-  
+    
   return linked;
 }
 
 bool ToyPF::isLinked(const PFCluster& fcluster1, const PFCluster& fcluster2)
 {
   bool linked = false;
-  
-  if(deltaR(fcluster1.eta(), fcluster1.phi(), 
-	    fcluster2.eta(), fcluster2.phi()) < .7) linked = true;
-  
+    
   return linked;
 }
 
@@ -324,170 +319,45 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 		{
 		  if( flinks[i][j][k] == 0) //The trigger, ecal and hcal are
 		    {                       //all linked to each other.
-		      fpx = ftracks[i].px();
-		      fpy = ftracks[i].py();
-		      fpz = ftracks[i].pz();
-		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
-		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
-
-		      PFCandidate pfTemp;
-		      pfTemp.setCharge(ftracks[i].charge());
-		      pfTemp.setP4(fp4);
-		      pfTemp.setPdgId(ftracks[i].charge()*211);
-		      fpfCandidates.push_back(pfTemp);
+		     
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);
 		    }
 		  if( flinks[i][j][k] == 1) //The hcal is linked to the trigger
 		    {                       //and ecal but the trigger and ecal
 		                            //aren't linked.
-		      fpx = ftracks[i].px();
-		      fpy = ftracks[i].py();
-		      fpz = ftracks[i].pz();
-		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
-		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
-
-		      PFCandidate pfTemp;
-		      pfTemp.setCharge(ftracks[i].charge());
-		      pfTemp.setP4(fp4);
-		      pfTemp.setPdgId(ftracks[i].charge()*211);
-		      fpfCandidates.push_back(pfTemp);
 		    }
 		  if( flinks[i][j][k] == 2)//The ecal is linked to the trigger
 		    {                       //and hcal but the trigger and hcal
 		                            //aren't linked.
-		      fpx = ftracks[i].px();
-		      fpy = ftracks[i].py();
-		      fpz = ftracks[i].pz();
-		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
-		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
-
-		      PFCandidate pfTemp;
-		      pfTemp.setCharge(ftracks[i].charge());
-		      pfTemp.setP4(fp4);
-		      pfTemp.setPdgId(ftracks[i].charge()*211);
-		      fpfCandidates.push_back(pfTemp);
 		    }
 		  if( flinks[i][j][k] == 3) //The trigger is linked to the ecal
 		    {                       // and hcal but the hcal and ecal
 		                            // aren't linked.
-		      fpx = ftracks[i].px();
-		      fpy = ftracks[i].py();
-		      fpz = ftracks[i].pz();
-		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
-		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
-
-		      PFCandidate pfTemp;
-		      pfTemp.setCharge(ftracks[i].charge());
-		      pfTemp.setP4(fp4);
-		      pfTemp.setPdgId(ftracks[i].charge()*211);
-		      fpfCandidates.push_back(pfTemp);
 		    }
 		  if( flinks[i][j][k] == 4) //The trigger and ecal are linked
 		    {
-		      fpx = ftracks[i].px();
-		      fpy = ftracks[i].py();
-		      fpz = ftracks[i].pz();
-		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
-		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
 
-		      PFCandidate pfTemp;
-		      pfTemp.setCharge(ftracks[i].charge());
-		      pfTemp.setP4(fp4);
-		      pfTemp.setPdgId(ftracks[i].charge()*211);
-		      fpfCandidates.push_back(pfTemp);
 		    }
 		  if( flinks[i][j][k] == 5) // The trigger and hcal are linked
 		    {
 
-		      fpx = ftracks[i].px();
-		      fpy = ftracks[i].py();
-		      fpz = ftracks[i].pz();
-		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
-		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
-
-		      PFCandidate pfTemp;
-		      pfTemp.setCharge(ftracks[i].charge());
-		      pfTemp.setP4(fp4);
-		      pfTemp.setPdgId(ftracks[i].charge()*211);
-		      fpfCandidates.push_back(pfTemp);	
 		    }
 		  if( flinks[i][j][k] == 6) // The ecal and hcal are linked
 		    {
 
-		      fx = fcluster1[j].x();
-		      fy = fcluster1[j].y();
-		      fz = fcluster1[j].z();
-		      fE = fcluster1[j].energy() + fcluster2[k].energy();
-		      fpx = fE*fx/sqrt(fx*fx +fy*fy +fz*fz); 
-		      fpy = fE*fy/sqrt(fx*fx +fy*fy +fz*fz); 
-		      fpz = fE*fz/sqrt(fx*fx +fy*fy +fz*fz); 
-		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
-		      if(fcluster1[j].energy() > fcluster2[k].energy())
-			{
-			  PFCandidate pfTemp;
-			  pfTemp.setCharge(0);
-			  pfTemp.setP4(fp4);
-			  pfTemp.setPdgId(22);
-			  fpfCandidates.push_back(pfTemp);
-			}
-		      else
-			{
-			  PFCandidate pfTemp;
-			  pfTemp.setCharge(0);
-			  pfTemp.setP4(fp4);
-			  pfTemp.setPdgId(130);
-			  fpfCandidates.push_back(pfTemp);
-			}
 		    }
 		  if( flinks[i][j][k] == 7) //A track by itself.
 		    {
 
-		      fpx = ftracks[i].px();
-		      fpy = ftracks[i].py();
-		      fpz = ftracks[i].pz();
-		      fE = sqrt(fpx*fpx + fpy*fpy + fpz*fpz);
-		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
-
-		      PFCandidate pfTemp;
-		      pfTemp.setCharge(ftracks[i].charge());
-		      pfTemp.setP4(fp4);
-		      pfTemp.setPdgId(ftracks[i].charge()*211);
-		      fpfCandidates.push_back(pfTemp);
 		    }
 		  if( flinks[i][j][k] == 8) //An ecal by itself.
 		    {
 
-		      fx = fcluster1[j].x();
-		      fy = fcluster1[j].y();
-		      fz = fcluster1[j].z();
-		      fE = fcluster1[j].energy();
-		      fpx = fE*fx/sqrt(fx*fx +fy*fy +fz*fz); 
-		      fpy = fE*fy/sqrt(fx*fx +fy*fy +fz*fz); 
-		      fpz = fE*fz/sqrt(fx*fx +fy*fy +fz*fz); 
-		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
-
-		      PFCandidate pfTemp;
-		      pfTemp.setCharge(0);
-		      pfTemp.setP4(fp4);
-		      pfTemp.setPdgId(22);
-		      fpfCandidates.push_back(pfTemp);		      
 		    }
 		  if( flinks[i][j][k] == 9) //an hcal by itself.
 		    {
 
-		      fx = fcluster2[k].x();
-		      fy = fcluster2[k].y();
-		      fz = fcluster2[k].z();
-		      fE = fcluster2[k].energy();
-		      fpx = fE*fx/sqrt(fx*fx +fy*fy +fz*fz); 
-		      fpy = fE*fy/sqrt(fx*fx +fy*fy +fz*fz);
-		      fpz = fE*fz/sqrt(fx*fx +fy*fy +fz*fz); 
-		      fp4 = Candidate::LorentzVector(fpx, fpy, fpz, fE);
-
-		      PFCandidate pfTemp;
-		      pfTemp.setCharge(0);
-		      pfTemp.setP4(fp4);
-		      pfTemp.setPdgId(130);
-		      fpfCandidates.push_back(pfTemp);		      
 		    }
 		}
 	    }
