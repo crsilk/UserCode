@@ -22,8 +22,8 @@
 /**\class ToyPF 
 \brief produces IsolatedPFCandidates from PFCandidates
 
-\author Colin Bernet
-\date   february 2008
+\author Richard Cavanaugh, Lucie Gauthier, Christopher Silkworth
+\date   January 2011
 */
 
 
@@ -42,21 +42,22 @@ class ToyPF : public edm::EDProducer {
   //////////////////////////////////////////////////////////
   //begin students' functions///////////////////////////////
 
-  bool isLinked(const reco::Track& ftrack, const reco::PFCluster& fcluster);
+  bool isLinked(const reco::Track& ftrack, const reco::PFCluster& fcluster, 
+		const char& fclusterType);
 
   bool isLinked(const reco::PFCluster& ecal, const reco::PFCluster& hcal);
 
-  std::vector<std::vector<std::vector<int> > > link(const std::vector<reco::Track>& ftracks, const std::vector<reco::PFCluster>& fecal, const std::vector<reco::PFCluster>& fhcal);
+  std::vector<std::vector<std::vector<int> > > link(const std::vector<reco::Track>& ftracks, const std::vector<reco::PFCluster>& fcluster1, const std::vector<reco::PFCluster>& fcluster2);
 
-  std::vector<std::vector<std::vector<int> > > link(const std::vector<reco::PFCluster>& fecal, const std::vector<reco::PFCluster>& fhcal);
+  std::vector<std::vector<std::vector<int> > > link(const std::vector<reco::PFCluster>& fcluster1, const std::vector<reco::PFCluster>& fcluster2);
   
-  std::vector<std::vector<std::vector<int> > > link(const std::vector<reco::Track>& ftracks, const std::vector<reco::PFCluster>& fecal, const char& clusterType);
+  std::vector<std::vector<std::vector<int> > > link(const std::vector<reco::Track>& ftracks, const std::vector<reco::PFCluster>& fcluster1, const char& clusterType);
   
-  std::vector<std::vector<std::vector<int> > > link(const std::vector<reco::PFCluster>& fecal, const char& clusterType);
+  std::vector<std::vector<std::vector<int> > > link(const std::vector<reco::PFCluster>& fcluster1, const char& clusterType);
   
   std::vector<std::vector<std::vector<int> > > link(const std::vector<reco::Track>& ftracks);
   
-  reco::PFCandidateCollection makeParticles(const std::vector<reco::Track>& ftracks, const std::vector<reco::PFCluster>& fecal, const std::vector<reco::PFCluster>& fhcal, std::vector<std::vector<std::vector<int> > > flinks);
+  reco::PFCandidateCollection makeParticles(const std::vector<reco::Track>& ftracks, const std::vector<reco::PFCluster>& fcluster1, const std::vector<reco::PFCluster>& fcluster2, std::vector<std::vector<std::vector<int> > > flinks);
 
   //////////////////////////////////////////////////////////
   //end students' functions/////////////////////////////////

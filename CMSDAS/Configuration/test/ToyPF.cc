@@ -135,18 +135,27 @@ ToyPF::produce(Event& iEvent,
 ///////////////////////////
 ///////////////////////////
 
-
-bool ToyPF::isLinked(const Track& ftrack, const PFCluster& fcluster)
+bool ToyPF::isLinked(const Track& ftrack, const PFCluster& fcluster, 
+		     const char& fclusterType)
 {
   bool linked = false;
+  if(fclusterType == 'e') //Put linking condition for tracks to ecal here.
+    {
     
+    }
+  if(fclusterType == 'h') //Put linking condition for tracks to hcal here.
+    {
+    
+    }
   return linked;
 }
 
 bool ToyPF::isLinked(const PFCluster& fecal, const PFCluster& fhcal)
 {
   bool linked = false;
-    
+  //Put linking condition for ecal to hcal here.
+ 
+  
   return linked;
 }
 
@@ -158,56 +167,56 @@ bool ToyPF::isLinked(const PFCluster& fecal, const PFCluster& fhcal)
 
 //Links the tracks/cluster when all three vectors are non-zero
 vector<vector<vector<int> > > ToyPF::link(const vector<Track>& ftracks,
-					  const vector<PFCluster>& fecal,
-					  const vector<PFCluster>& fhcal)
+					  const vector<PFCluster>& fecals,
+					  const vector<PFCluster>& fhcals)
 {
   //Build the three dimensional array to store link info.
-  vector<int> temp1d(fhcal.size() + 1, -1);
-  vector<vector<int> > temp2d(fecal.size() + 1, temp1d);
+  vector<int> temp1d(fhcals.size() + 1, -1);
+  vector<vector<int> > temp2d(fecals.size() + 1, temp1d);
   vector<vector<vector<int> > > flinks(ftracks.size() + 1, temp2d);
 
   //Bool vectors that control the "deletion" of unwanted link info
   vector<bool> ftrackBool(ftracks.size() + 1, true);
-  vector<bool> fecalBool(fecal.size() + 1, true);
-  vector<bool> fhcalBool(fhcal.size() + 1, true);
+  vector<bool> fecalsBool(fecals.size() + 1, true);
+  vector<bool> fhcalsBool(fhcals.size() + 1, true);
 
   //Build bool vector that "saves" the wanted link info
-  vector<vector<int> > tempBool(fecal.size()+1, 
-				vector<int>(fhcal.size()+1));
+  vector<vector<int> > tempBool(fecals.size()+1, 
+				vector<int>(fhcals.size()+1));
   vector<vector<vector<int> > > fsave(ftracks.size()+1 , tempBool);
   //Cycle through all the possible combination of tracks and clusters. Then
   //test which are linked to each other. The 8 possible senarios of links are
   //then given a number (0-7) and this is the "type" of link.
   for(unsigned i = 0; i <= ftracks.size(); i++)
     {
-      for(unsigned j = 0; j <= fecal.size(); j++)
+      for(unsigned j = 0; j <= fecals.size(); j++)
 	{
-	  for(unsigned k = 0; k <= fhcal.size(); k++)
+	  for(unsigned k = 0; k <= fhcals.size(); k++)
 	    {
-	      if(i != ftracks.size() && j != fecal.size() && 
-		 k != fhcal.size()) 
+	      if(i != ftracks.size() && j != fecals.size() && 
+		 k != fhcals.size()) 
 		{
-		  if(isLinked(ftracks[i], fecal[j]) && 
-		     isLinked(ftracks[i], fhcal[k]) &&
-		     isLinked(fecal[j], fhcal[k]))
+		  if(isLinked(ftracks[i], fecals[j], 'e') && 
+		     isLinked(ftracks[i], fhcals[k], 'h') &&
+		     isLinked(fecals[j], fhcals[k]))
 		    {
 		      flinks[i][j][k] = 0;
 		    }
-		  else if(!isLinked(ftracks[i], fecal[j]) && 
-		     isLinked(ftracks[i], fhcal[k]) &&
-		     isLinked(fecal[j], fhcal[k]))
+		  else if(!isLinked(ftracks[i], fecals[j], 'e') && 
+		     isLinked(ftracks[i], fhcals[k], 'h') &&
+		     isLinked(fecals[j], fhcals[k]))
 		    {
 		      flinks[i][j][k] = 1;
 		    }
-		  else if(isLinked(ftracks[i], fecal[j]) && 
-		     !isLinked(ftracks[i], fhcal[k]) &&
-		     isLinked(fecal[j], fhcal[k]))
+		  else if(isLinked(ftracks[i], fecals[j], 'e') && 
+		     !isLinked(ftracks[i], fhcals[k], 'h') &&
+		     isLinked(fecals[j], fhcals[k]))
 		    {
 		      flinks[i][j][k] = 2;
 		    }
-		  else if(isLinked(ftracks[i], fecal[j]) && 
-		     isLinked(ftracks[i], fhcal[k]) &&
-		     !isLinked(fecal[j], fhcal[k]))
+		  else if(isLinked(ftracks[i], fecals[j], 'e') && 
+		     isLinked(ftracks[i], fhcals[k], 'h') &&
+		     !isLinked(fecals[j], fhcals[k]))
 		    {
 		      flinks[i][j][k] = 3;
 		    }
@@ -216,27 +225,27 @@ vector<vector<vector<int> > > ToyPF::link(const vector<Track>& ftracks,
 		      flinks[i][j][k] = -1;
 		    }
 		}
-	      else if( i != ftracks.size() && j != fecal.size())
+	      else if( i != ftracks.size() && j != fecals.size())
 		{
-		  if(isLinked(ftracks[i], fecal[j])) flinks[i][j][k] = 4;
+		  if(isLinked(ftracks[i], fecals[j], 'e')) flinks[i][j][k] = 4;
 		}
-	      else if( i != ftracks.size() && k != fhcal.size())
+	      else if( i != ftracks.size() && k != fhcals.size())
 		{
-		  if(isLinked(ftracks[i], fhcal[k])) flinks[i][j][k] = 5;
+		  if(isLinked(ftracks[i], fhcals[k], 'h')) flinks[i][j][k] = 5;
 		}
-	      else if( j != fecal.size() && k != fhcal.size())
+	      else if( j != fecals.size() && k != fhcals.size())
 		{
-		  if(isLinked(fecal[j], fhcal[k])) flinks[i][j][k]= 6;
+		  if(isLinked(fecals[j], fhcals[k])) flinks[i][j][k]= 6;
 		}
 	      else if( i != ftracks.size())
 		{
 		  flinks[i][j][k] = 7;
 		}
-	      else if( j != fecal.size())
+	      else if( j != fecals.size())
 		{
 		  flinks[i][j][k] = 8;
 		}
-	      else if( k != fhcal.size())
+	      else if( k != fhcals.size())
 		{
 		  flinks[i][j][k] = 9;
 		}
@@ -256,20 +265,20 @@ vector<vector<vector<int> > > ToyPF::link(const vector<Track>& ftracks,
     {
       for(unsigned i = 0; i <= ftracks.size(); i++)
 	{
-	  for(unsigned j = 0; j <= fecal.size(); j++)
+	  for(unsigned j = 0; j <= fecals.size(); j++)
 	    {
-	      for(unsigned k = 0; k <= fhcal.size(); k++)
+	      for(unsigned k = 0; k <= fhcals.size(); k++)
 		{
 		  
-		  if(ftrackBool[i] && fecalBool[j] && fhcalBool[k])
+		  if(ftrackBool[i] && fecalsBool[j] && fhcalsBool[k])
 		    {
 		      if(flinks[i][j][k] == order)
 			{
 			 
 			  fsave[i][j][k] = 1;
 			  if(i != ftracks.size()) ftrackBool[i] = false;
-			  if(j != fecal.size()) fecalBool[j] = false;
-			  if(k != fhcal.size()) fhcalBool[k] = false;
+			  if(j != fecals.size()) fecalsBool[j] = false;
+			  if(k != fhcals.size()) fhcalsBool[k] = false;
 
 			}
 		    }
@@ -292,72 +301,92 @@ vector<vector<vector<int> > > ToyPF::link(const vector<Track>& ftracks,
 ///////////////////////////
 
 PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks, 
-					   const vector<PFCluster>& fecal,
-					   const vector<PFCluster>& fhcal,
+					   const vector<PFCluster>& fecals,
+					   const vector<PFCluster>& fhcals,
 					   vector<vector<vector<int> > > flinks)
 {
   PFCandidateCollection fpfCandidates;
- 
+  
   double fE;
   double fpx;
   double fpy;
   double fpz;
-  //  double ft;
+  double ft;
   double fx;
   double fy;
   double fz;
+  
+
 
   Candidate::LorentzVector fp4;
 
     for( unsigned i = 0; i <= ftracks.size(); i++)
     {
-      for( unsigned j = 0; j <= fecal.size(); j++)
+      for( unsigned j = 0; j <= fecals.size(); j++)
 	{
-	  for( unsigned k =0; k <= fhcal.size(); k++)
+	  for( unsigned k =0; k <= fhcals.size(); k++)
 	    {
 	      if( flinks[i][j][k] != -1)
 		{
-		  if( flinks[i][j][k] == 0) //The trigger, ecal and hcal are
+		  if( flinks[i][j][k] == 0) //The trigger, ecal and hcals are
 		    {                       //all linked to each other.
-		     
+
 		      //PFCandidate pfTemp;
-		      //fpfCandidates.push_back(pfTemp);
+		      //fpfCandidates.push_back(pfTemp);  		  
 		    }
-		  if( flinks[i][j][k] == 1) //The hcal is linked to the trigger
+		  if( flinks[i][j][k] == 1) //The hcals is linked to the trigger
 		    {                       //and ecal but the trigger and ecal
 		                            //aren't linked.
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);  		  
 		    }
 		  if( flinks[i][j][k] == 2)//The ecal is linked to the trigger
 		    {                       //and hcal but the trigger and hcal
 		                            //aren't linked.
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);  		 
 		    }
 		  if( flinks[i][j][k] == 3) //The trigger is linked to the ecal
 		    {                       // and hcal but the hcal and ecal
 		                            // aren't linked.
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);  		 
 		    }
 		  if( flinks[i][j][k] == 4) //The trigger and ecal are linked
 		    {
 
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);  		
 		    }
 		  if( flinks[i][j][k] == 5) // The trigger and hcal are linked
 		    {
 
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);  
 		    }
 		  if( flinks[i][j][k] == 6) // The ecal and hcal are linked
 		    {
 
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);  
 		    }
 		  if( flinks[i][j][k] == 7) //A track by itself.
 		    {
 
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);  	
 		    }
 		  if( flinks[i][j][k] == 8) //An ecal by itself.
 		    {
 
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);		      
 		    }
-		  if( flinks[i][j][k] == 9) //an hcal by itself.
+		  if( flinks[i][j][k] == 9) //An hcal by itself.
 		    {
 
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);  
 		    }
 		}
 	    }
