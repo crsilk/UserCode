@@ -1,4 +1,4 @@
-#include "RecoParticleFlow/Configuration/test/ToyPF.h"
+#include "ToyPF/Configuration/plugins/ToyPF.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowReco/interface/PFBlock.h"
 #include "DataFormats/ParticleFlowReco/interface/PFCluster.h"
@@ -306,15 +306,15 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 					   vector<vector<vector<int> > > flinks)
 {
   PFCandidateCollection fpfCandidates;
-  
-  double fE;
-  double fpx;
-  double fpy;
-  double fpz;
-  double ft;
-  double fx;
-  double fy;
-  double fz;
+  //the following variables might be useful when implementing makeParticles. By default, they are commented out so as not to raise warnings "unused variable" when compiling  
+//   double fE;
+//   double fpx;
+//   double fpy;
+//   double fpz;
+//   double ft;
+//   double fx;
+//   double fy;
+//   double fz;
   
 
 
