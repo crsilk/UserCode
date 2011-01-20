@@ -1,22 +1,10 @@
 #include "ToyPF/Configuration/plugins/ToyPF.h"
-#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
-#include "DataFormats/ParticleFlowReco/interface/PFBlock.h"
-#include "DataFormats/ParticleFlowReco/interface/PFCluster.h"
-#include "DataFormats/ParticleFlowReco/interface/PFRecTrack.h"
-#include "DataFormats/Math/interface/deltaR.h"
-#include "DataFormats/Math/interface/LorentzVector.h"
-
-
-#include "FWCore/Framework/interface/ESHandle.h"
-
-#include "FWCore/MessageLogger/interface/MessageLogger.h"
-#include "FWCore/Utilities/interface/Exception.h"
-#include "FWCore/Framework/interface/EventSetup.h"
-
 
 using namespace std;
 using namespace edm;
 using namespace reco;
+
+enum LinkType { TE_TH_EH = 0, NoTE_TH_EH = 1, TE_NoTH_EH = 2, TE_TH_NoEH = 3, TE = 4, TH = 5, EH = 6, T =7, E = 8, H = 9};
 
 ToyPF::ToyPF(const edm::ParameterSet& iConfig) {
   
@@ -32,7 +20,6 @@ ToyPF::ToyPF(const edm::ParameterSet& iConfig) {
   LogDebug("ToyPF")
     <<" input collection : "<<inputTagPFCandidates_ ;
 
-  //  produces<PFCandidateCollection>( "pfCand" ).setBranchAlias( "pfCand");
   produces<PFCandidateCollection>( );
   
    
@@ -76,7 +63,7 @@ ToyPF::produce(Event& iEvent,
   for( pfCandidate = pfCandidates->begin();
        pfCandidate != pfCandidates->end(); pfCandidate++)
     {    
-      if(pfCandidate->pt() > 2) //apply an energy cut.
+      if(pfCandidate->pt() > 2.) //apply an energy cut.
       {
 	if(getTracks(pfCandidate).size()) //makes sure its not empty
 	  {
@@ -162,6 +149,114 @@ bool ToyPF::isLinked(const PFCluster& fecal, const PFCluster& fhcal)
 ///////////////////////////
 ///////////////////////////
 ////Part 1 end here////////
+///////////////////////////
+///////////////////////////
+
+///////////////////////////
+///////////////////////////
+////Part 2 begin here//////
+///////////////////////////
+///////////////////////////
+
+PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks, 
+					   const vector<PFCluster>& fecals,
+					   const vector<PFCluster>& fhcals,
+					   vector<vector<vector<int> > > flinks)
+{
+  PFCandidateCollection fpfCandidates;
+  //the following variables might be useful when implementing makeParticles. By default, they are commented out so as not to raise warnings "unused variable" when compiling  - uncomment if needed while doing part 2
+//   double fE;
+//   double fpx;
+//   double fpy;
+//   double fpz;
+//   double ft;
+//   double fx;
+//   double fy;
+//   double fz;
+  
+
+
+  Candidate::LorentzVector fp4;
+
+    for( unsigned track = 0; track <= ftracks.size(); track++)
+    {
+      for( unsigned ecal = 0; ecal <= fecals.size(); ecal++)
+	{
+	  for( unsigned hcal =0; hcal <= fhcals.size(); hcal++)
+	    {
+	      if( flinks[track][ecal][hcal] != -1)
+		{
+		  if( flinks[track][ecal][hcal] == TE_TH_EH) //The tracker, ecal and hcals are
+		    {                       //all linked to each other.
+
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);  		  
+		    }
+		  if( flinks[track][ecal][hcal] == NoTE_TH_EH) //The hcals is linked to the tracker
+		    {                       //and ecal but the tracker and ecal
+		                            //aren't linked.
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);  		  
+		    }
+		  if( flinks[track][ecal][hcal] == TE_NoTH_EH )//The ecal is linked to the tracker
+		    {                       //and hcal but the tracker and hcal
+		                            //aren't linked.
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);  		 
+		    }
+		  if( flinks[track][ecal][hcal] == TE_TH_NoEH) //The tracker is linked to the ecal
+		    {                       // and hcal but the hcal and ecal
+		                            // aren't linked.
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);  		 
+		    }
+		  if( flinks[track][ecal][hcal] == TE) //The tracker and ecal are linked
+		    {
+
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);  		
+		    }
+		  if( flinks[track][ecal][hcal] == TH) // The tracker and hcal are linked
+		    {
+
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);  
+		    }
+		  if( flinks[track][ecal][hcal] == EH) // The ecal and hcal are linked
+		    {
+
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);  
+		    }
+		  if( flinks[track][ecal][hcal] == T) //A track by itself.
+		    {
+
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);  	
+		    }
+		  if( flinks[track][ecal][hcal] == E) //An ecal by itself.
+		    {
+
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);		      
+		    }
+		  if( flinks[track][ecal][hcal] == H) //An hcal by itself.
+		    {
+
+		      //PFCandidate pfTemp;
+		      //fpfCandidates.push_back(pfTemp);  
+		    }
+		}
+	    }
+	}
+    }
+
+    return fpfCandidates;
+}
+				 
+///////////////////////////
+///////////////////////////
+////Part 2 end here////////
 ///////////////////////////
 ///////////////////////////
 
@@ -293,114 +388,6 @@ vector<vector<vector<int> > > ToyPF::link(const vector<Track>& ftracks,
  
   return flinks;
 }
-
-///////////////////////////
-///////////////////////////
-////Part 2 begin here//////
-///////////////////////////
-///////////////////////////
-
-PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks, 
-					   const vector<PFCluster>& fecals,
-					   const vector<PFCluster>& fhcals,
-					   vector<vector<vector<int> > > flinks)
-{
-  PFCandidateCollection fpfCandidates;
-  //the following variables might be useful when implementing makeParticles. By default, they are commented out so as not to raise warnings "unused variable" when compiling  
-//   double fE;
-//   double fpx;
-//   double fpy;
-//   double fpz;
-//   double ft;
-//   double fx;
-//   double fy;
-//   double fz;
-  
-
-
-  Candidate::LorentzVector fp4;
-
-    for( unsigned i = 0; i <= ftracks.size(); i++)
-    {
-      for( unsigned j = 0; j <= fecals.size(); j++)
-	{
-	  for( unsigned k =0; k <= fhcals.size(); k++)
-	    {
-	      if( flinks[i][j][k] != -1)
-		{
-		  if( flinks[i][j][k] == 0) //The trigger, ecal and hcals are
-		    {                       //all linked to each other.
-
-		      //PFCandidate pfTemp;
-		      //fpfCandidates.push_back(pfTemp);  		  
-		    }
-		  if( flinks[i][j][k] == 1) //The hcals is linked to the trigger
-		    {                       //and ecal but the trigger and ecal
-		                            //aren't linked.
-		      //PFCandidate pfTemp;
-		      //fpfCandidates.push_back(pfTemp);  		  
-		    }
-		  if( flinks[i][j][k] == 2)//The ecal is linked to the trigger
-		    {                       //and hcal but the trigger and hcal
-		                            //aren't linked.
-		      //PFCandidate pfTemp;
-		      //fpfCandidates.push_back(pfTemp);  		 
-		    }
-		  if( flinks[i][j][k] == 3) //The trigger is linked to the ecal
-		    {                       // and hcal but the hcal and ecal
-		                            // aren't linked.
-		      //PFCandidate pfTemp;
-		      //fpfCandidates.push_back(pfTemp);  		 
-		    }
-		  if( flinks[i][j][k] == 4) //The trigger and ecal are linked
-		    {
-
-		      //PFCandidate pfTemp;
-		      //fpfCandidates.push_back(pfTemp);  		
-		    }
-		  if( flinks[i][j][k] == 5) // The trigger and hcal are linked
-		    {
-
-		      //PFCandidate pfTemp;
-		      //fpfCandidates.push_back(pfTemp);  
-		    }
-		  if( flinks[i][j][k] == 6) // The ecal and hcal are linked
-		    {
-
-		      //PFCandidate pfTemp;
-		      //fpfCandidates.push_back(pfTemp);  
-		    }
-		  if( flinks[i][j][k] == 7) //A track by itself.
-		    {
-
-		      //PFCandidate pfTemp;
-		      //fpfCandidates.push_back(pfTemp);  	
-		    }
-		  if( flinks[i][j][k] == 8) //An ecal by itself.
-		    {
-
-		      //PFCandidate pfTemp;
-		      //fpfCandidates.push_back(pfTemp);		      
-		    }
-		  if( flinks[i][j][k] == 9) //An hcal by itself.
-		    {
-
-		      //PFCandidate pfTemp;
-		      //fpfCandidates.push_back(pfTemp);  
-		    }
-		}
-	    }
-	}
-    }
-
-    return fpfCandidates;
-}
-				 
-///////////////////////////
-///////////////////////////
-////Part 2 end here////////
-///////////////////////////
-///////////////////////////
 
 //Returns a vector of tracks associated with that PFCandidate
 vector<Track> ToyPF::getTracks(const PFCandidateCollection::const_iterator& fpfCandidate)
