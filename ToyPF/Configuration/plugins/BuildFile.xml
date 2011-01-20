@@ -1,9 +1,12 @@
-<library name="ToyPF" file="ToyPF.cc">
+<library name="ToyPF" file="*.cc">
+  <use   name="DataFormats/Common"/>
   <use   name="DataFormats/ParticleFlowCandidate"/>
   <use   name="DataFormats/ParticleFlowReco"/>
+  <use   name="DataFormats/METReco"/>
   <use   name="FWCore/Framework"/>
   <use   name="FWCore/MessageLogger"/>
   <use   name="FWCore/ParameterSet"/>
   <use   name="FWCore/Utilities"/>
+  <use   name="rootmath"/>
   <flags   EDM_PLUGIN="1"/>
 </library>

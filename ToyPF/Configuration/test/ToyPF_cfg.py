@@ -19,8 +19,15 @@ process.source = cms.Source (
 ###load the ToyPFProducer. Its parameters are set in ToyPF/Configuration/python/ToyPF_cff
 process.load("ToyPF.Configuration.ToyPF_cff")
 
+###load the ToyPFMETProducer. Not needed until part 3
+##process.load("ToyPF.Configuration.ToyPFMET_cff")
+
+
 ####### define the path = the module(s) to be executed #######
-process.p = cms.Path(process.toyPFProducer)
+process.toyPF = cms.Path(process.toyPFProducer)
+
+##process.toyPF = cms.Path( process.toyPFProducer + process.toyPFMETProducer ) ##path for part 3
+
 
 ####### output commands ######################################
 process.out = cms.OutputModule("PoolOutputModule",
