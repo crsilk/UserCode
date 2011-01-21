@@ -32,7 +32,7 @@ process.toyPF = cms.Path(process.toyPFProducer)
 ####### output commands ######################################
 process.out = cms.OutputModule("PoolOutputModule",
                                fileName = cms.untracked.string('ToyPF.root'),
-                               outputCommands = cms.untracked.vstring('keep *_*_*_NEWNAME')#keep * would keep everything, that is both the collection produced with toyPFProducer and the collections from the input file
+                               outputCommands = cms.untracked.vstring('keep *_*_*_NEWNAME', 'keep *_*_*_PROD')#keep * would keep everything, that is both the collection produced with toyPFProducer and the collections from the input file
                                )
 
 process.outpath = cms.EndPath(process.out)
