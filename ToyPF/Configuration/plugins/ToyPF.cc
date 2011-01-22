@@ -35,83 +35,97 @@ ToyPF::beginRun(const edm::Run& run,
 		const edm::EventSetup & es) { }
 
 
-void 
-ToyPF::produce(Event& iEvent, 
-	       const EventSetup& iSetup) {
-  
-  LogDebug("ToyPF")<<"START event: "<<iEvent.id().event()
-			 <<" in run "<<iEvent.id().run()<<endl;
-  
-  
-  Handle<PFCandidateCollection> pfCandidates;
-  iEvent.getByLabel(inputTagPFCandidates_, pfCandidates);
-  PFCandidateCollection::const_iterator pfCandidate;
+void
+ToyPF::produce(Event& iEvent,
+              const EventSetup& iSetup) {
 
-  PFCandidateCollection pfCandidatesOut;
-  PFCandidateCollection::const_iterator pfCandidateOut;
+ LogDebug("ToyPF")<<"START event: "<<iEvent.id().event()
+                        <<" in run "<<iEvent.id().run()<<endl;
 
-  vector<Track> tracks;
-  vector<PFCluster> ecalClusters;
-  vector<PFCluster> hcalClusters;
 
-  vector<Track> tracksTemp;
-  vector<PFCluster> ecalClustersTemp;
-  vector<PFCluster> hcalClustersTemp;
-  
-  //Cycle through all the PFCandidates in the event and make vectors of tracks,
-  //ecal and hcal clusters.
-  for( pfCandidate = pfCandidates->begin();
-       pfCandidate != pfCandidates->end(); pfCandidate++)
-    {    
-      if(pfCandidate->pt() > 2.) //apply an energy cut.
-      {
-	if(getTracks(pfCandidate).size()) //makes sure its not empty
-	  {
-	    tracksTemp = getTracks(pfCandidate);
-	    for(unsigned i = 0; i < tracksTemp.size(); i++)
-	      {
-		tracks.push_back(tracksTemp[i]); 
-	      }
-	  }
-	
-	if(getEcalClusters(pfCandidate).size()) //makes sure its not empty
-	  {
-	    ecalClustersTemp = getEcalClusters(pfCandidate);
-	    for
-	      (unsigned j = 0; j < ecalClustersTemp.size(); j++)
-	      {
-		ecalClusters.push_back(ecalClustersTemp[j]); 
-	      }
-	  }
-	
-	if(getHcalClusters(pfCandidate).size()) //makes sure its not empty
-	  {
-	    hcalClustersTemp = getHcalClusters(pfCandidate);
-	    
-	    for(unsigned k = 0; k < hcalClustersTemp.size(); k++)
-	      {
-		hcalClusters.push_back(hcalClustersTemp[k]);
-	      }
-	  }
-      }
-    }
-  cout<<"                 "<<endl;
-  cout<<tracks.size()<<endl;
-  cout<<ecalClusters.size()<<endl;
-  cout<<hcalClusters.size()<<endl;
-  cout<<"                "<<endl;
-   
-  vector<vector<vector<int> > > links;
-  
-  
-  
-  links = link(tracks, ecalClusters, hcalClusters);
+ Handle<PFCandidateCollection> pfCandidates;
+ iEvent.getByLabel(inputTagPFCandidates_, pfCandidates);
+ PFCandidateCollection::const_iterator pfCandidate;
 
-  auto_ptr<PFCandidateCollection> pfCand(new PFCandidateCollection);
-  *pfCand = makeParticles(tracks, ecalClusters, hcalClusters, links);
-  
-   
-  iEvent.put( pfCand);
+ PFCandidateCollection pfCandidatesOut;
+ PFCandidateCollection::const_iterator pfCandidateOut;
+
+ vector<Track> tracks;
+ vector<PFCluster> ecalClusters;
+ vector<PFCluster> hcalClusters;
+
+ vector<Track> tracksTemp;
+ vector<PFCluster> ecalClustersTemp;
+ vector<PFCluster> hcalClustersTemp;
+
+ //Cycle through all the PFCandidates in the event and make vectors of tracks,
+ //ecal and hcal clusters.
+ for( pfCandidate = pfCandidates->begin();
+      pfCandidate != pfCandidates->end(); pfCandidate++)
+   {
+     if(pfCandidate->pt() > 2.0) //apply an energy cut.
+     {
+       if(getTracks(pfCandidate).size()) //makes sure its not empty
+         {
+           tracksTemp = getTracks(pfCandidate);
+           for(unsigned i = 0; i < tracksTemp.size(); i++)
+             {
+               bool ignore = false;
+               for( unsigned x = 0; x < tracks.size(); x++ )
+                 if( tracks[x].pt() == tracksTemp[i].pt() )
+                   ignore = true;
+               if(!ignore) tracks.push_back(tracksTemp[i]);
+             }
+         }
+
+       if(getEcalClusters(pfCandidate).size()) //makes sure its not empty
+         {
+           ecalClustersTemp = getEcalClusters(pfCandidate);
+           for
+             (unsigned j = 0; j < ecalClustersTemp.size(); j++)
+             {
+               bool ignore = false;
+               for( unsigned x = 0; x < ecalClusters.size(); x++ )
+                 if( ecalClusters[x].energy() ==
+ecalClustersTemp[j].energy() )
+                   ignore = true;
+               if(!ignore) ecalClusters.push_back(ecalClustersTemp[j]);
+             }
+         }
+
+       if(getHcalClusters(pfCandidate).size()) //makes sure its not empty
+         {
+           hcalClustersTemp = getHcalClusters(pfCandidate);
+
+           for(unsigned k = 0; k < hcalClustersTemp.size(); k++)
+             {
+               bool ignore = false;
+               for( unsigned x = 0; x < hcalClusters.size(); x++ )
+                 if( hcalClusters[x].energy() ==
+hcalClustersTemp[k].energy() )
+                     ignore = true;
+               if(!ignore) hcalClusters.push_back(hcalClustersTemp[k]);
+             }
+         }
+     }
+   }
+ cout<<"                 "<<endl;
+ cout<<tracks.size()<<endl;
+ cout<<ecalClusters.size()<<endl;
+ cout<<hcalClusters.size()<<endl;
+ cout<<"                "<<endl;
+
+ vector<vector<vector<int> > > links;
+
+
+
+ links = link(tracks, ecalClusters, hcalClusters);
+
+ auto_ptr<PFCandidateCollection> pfCand(new PFCandidateCollection);
+ *pfCand = makeParticles(tracks, ecalClusters, hcalClusters, links);
+
+
+ iEvent.put( pfCand);
 }
 
 
