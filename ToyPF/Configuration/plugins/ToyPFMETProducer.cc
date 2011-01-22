@@ -35,18 +35,14 @@ void ToyPFMET::produce(Event& iEvent,
 
   //compute the pfMet 
   for( pfCandidate = pfCandidates->begin();
-       pfCandidate != pfCandidates->end(); pfCandidate++) //loop over pfCandidates
-    { 
+       pfCandidate != pfCandidates->end(); pfCandidate++) //loop over 
+    {                                                     //pfCandidates
  
     }
 
-  double Pt = 0.;// to be filled with "some" output of the loop
-  XYZTLorentzVector missingPt(0.,0.,0.,0.);// to be filled with "some" output of the loop : METx, METy, METz, MET 
-
-  ////////////////////////
-  /////Part 3 ends here///
-  ////////////////////////
-
+  double Pt = 0.;// to be filled with sum output of the loop
+  XYZTLorentzVector missingPt(0.,0.,0.,0.);//to be filled with sum output of
+                                           //the loop : METx, METy, METz, MET 
   auto_ptr< METCollection > pfMetColl( new METCollection() ); 
 
   XYZPoint vertex; //dummy vertex
@@ -54,6 +50,9 @@ void ToyPFMET::produce(Event& iEvent,
   pfMetColl->push_back(ToyPfMet);
   iEvent.put(pfMetColl);  // add the collection to the output
 
+  ////////////////////////
+  /////Part 3 ends here///
+  ////////////////////////
 }
 
 
