@@ -63,68 +63,69 @@ ToyPF::produce(Event& iEvent,
  for( pfCandidate = pfCandidates->begin();
       pfCandidate != pfCandidates->end(); pfCandidate++)
    {
-     if(pfCandidate->pt() > 2.0) //apply an energy cut.
-     {
-       if(getTracks(pfCandidate).size()) //makes sure its not empty
-         {
-           tracksTemp = getTracks(pfCandidate);
-           for(unsigned i = 0; i < tracksTemp.size(); i++)
-             {
-               bool ignore = false;
-               for( unsigned x = 0; x < tracks.size(); x++ )
-                 if( tracks[x].pt() == tracksTemp[i].pt() )
-                   ignore = true;
-               if(!ignore) tracks.push_back(tracksTemp[i]);
-             }
-         }
-
-       if(getEcalClusters(pfCandidate).size()) //makes sure its not empty
-         {
-           ecalClustersTemp = getEcalClusters(pfCandidate);
-           for
-             (unsigned j = 0; j < ecalClustersTemp.size(); j++)
-             {
-               bool ignore = false;
-               for( unsigned x = 0; x < ecalClusters.size(); x++ )
-                 if( ecalClusters[x].energy() ==
-ecalClustersTemp[j].energy() )
-                   ignore = true;
-               if(!ignore) ecalClusters.push_back(ecalClustersTemp[j]);
-             }
-         }
-
-       if(getHcalClusters(pfCandidate).size()) //makes sure its not empty
-         {
-           hcalClustersTemp = getHcalClusters(pfCandidate);
-
-           for(unsigned k = 0; k < hcalClustersTemp.size(); k++)
-             {
-               bool ignore = false;
-               for( unsigned x = 0; x < hcalClusters.size(); x++ )
-                 if( hcalClusters[x].energy() ==
-hcalClustersTemp[k].energy() )
+     //Apply an energy cut and make sure it's in the barrel.
+     if(pfCandidate->pt() > 2.0 && abs(pfCandidate->eta()) < 1.4975) 
+       {
+	 if(getTracks(pfCandidate).size()) //Makes sure its not empty
+	   {
+	     tracksTemp = getTracks(pfCandidate);
+	     for(unsigned i = 0; i < tracksTemp.size(); i++)
+	       {
+		 bool ignore = false;
+		 for( unsigned x = 0; x < tracks.size(); x++ )
+		   if( tracks[x].pt() == tracksTemp[i].pt() )
+		     ignore = true;
+		 if(!ignore) tracks.push_back(tracksTemp[i]);
+	       }
+	   }
+	 
+	 if(getEcalClusters(pfCandidate).size()) //Makes sure its not empty
+	   {
+	     ecalClustersTemp = getEcalClusters(pfCandidate);
+	     for
+	       (unsigned j = 0; j < ecalClustersTemp.size(); j++)
+	       {
+		 bool ignore = false;
+		 for( unsigned x = 0; x < ecalClusters.size(); x++ )
+		   if( ecalClusters[x].energy() ==
+		       ecalClustersTemp[j].energy() )
+		     ignore = true;
+		 if(!ignore) ecalClusters.push_back(ecalClustersTemp[j]);
+	       }
+	   }
+	 
+	 if(getHcalClusters(pfCandidate).size()) //Makes sure its not empty
+	   {
+	     hcalClustersTemp = getHcalClusters(pfCandidate);
+	     
+	     for(unsigned k = 0; k < hcalClustersTemp.size(); k++)
+	       {
+		 bool ignore = false;
+		 for( unsigned x = 0; x < hcalClusters.size(); x++ )
+		   if( hcalClusters[x].energy() ==
+		       hcalClustersTemp[k].energy() )
                      ignore = true;
-               if(!ignore) hcalClusters.push_back(hcalClustersTemp[k]);
-             }
-         }
-     }
+		 if(!ignore) hcalClusters.push_back(hcalClustersTemp[k]);
+	       }
+	   }
+       }
    }
  cout<<"                 "<<endl;
  cout<<tracks.size()<<endl;
  cout<<ecalClusters.size()<<endl;
  cout<<hcalClusters.size()<<endl;
  cout<<"                "<<endl;
-
+ 
  vector<vector<vector<int> > > links;
-
-
-
+ 
+ 
+ 
  links = link(tracks, ecalClusters, hcalClusters);
-
+ 
  auto_ptr<PFCandidateCollection> pfCand(new PFCandidateCollection);
  *pfCand = makeParticles(tracks, ecalClusters, hcalClusters, links);
-
-
+ 
+ 
  iEvent.put( pfCand);
 }
 
@@ -200,61 +201,80 @@ PFCandidateCollection ToyPF::makeParticles(const vector<Track>& ftracks,
 	    {
 	      if( flinks[track][ecal][hcal] != -1)
 		{
-		  if( flinks[track][ecal][hcal] == TE_TH_EH) //The tracker, ecal and hcals are
-		    {                       //all linked to each other.
+		  //The tracker, ecal and hcals are all linked to each other.
+		  if( flinks[track][ecal][hcal] == TE_TH_EH) 
+		    {                       
 
 		      //PFCandidate pfTemp;
 		      //fpfCandidates.push_back(pfTemp);  		  
 		    }
-		  if( flinks[track][ecal][hcal] == NoTE_TH_EH) //The hcals is linked to the tracker
-		    {                       //and ecal but the tracker and ecal
-		                            //aren't linked.
+		  
+		  //The hcals is linked to the tracker and ecal but the tracker
+		  //and ecal aren't linked.
+		  if( flinks[track][ecal][hcal] == NoTE_TH_EH) 
+		    {                       
 		      //PFCandidate pfTemp;
 		      //fpfCandidates.push_back(pfTemp);  		  
 		    }
-		  if( flinks[track][ecal][hcal] == TE_NoTH_EH )//The ecal is linked to the tracker
-		    {                       //and hcal but the tracker and hcal
-		                            //aren't linked.
+		  
+		  //The ecal is linked to the tracker and hcal but the tracker
+		  //and hcal aren't linked.
+		  if( flinks[track][ecal][hcal] == TE_NoTH_EH )
+		    {              
 		      //PFCandidate pfTemp;
 		      //fpfCandidates.push_back(pfTemp);  		 
 		    }
-		  if( flinks[track][ecal][hcal] == TE_TH_NoEH) //The tracker is linked to the ecal
-		    {                       // and hcal but the hcal and ecal
-		                            // aren't linked.
+		  
+		  //The tracker is linked to the ecal and hcal but the hcal and
+		  //ecal aren't linked.
+		  if( flinks[track][ecal][hcal] == TE_TH_NoEH) 
+		    {                       
 		      //PFCandidate pfTemp;
 		      //fpfCandidates.push_back(pfTemp);  		 
 		    }
-		  if( flinks[track][ecal][hcal] == TE) //The tracker and ecal are linked
+		  
+		  //The tracker and ecal are linked
+		  if( flinks[track][ecal][hcal] == TE) 
 		    {
 
 		      //PFCandidate pfTemp;
 		      //fpfCandidates.push_back(pfTemp);  		
 		    }
-		  if( flinks[track][ecal][hcal] == TH) // The tracker and hcal are linked
+		  
+		  // The tracker and hcal are linked
+		  if( flinks[track][ecal][hcal] == TH) 
 		    {
 
 		      //PFCandidate pfTemp;
 		      //fpfCandidates.push_back(pfTemp);  
 		    }
-		  if( flinks[track][ecal][hcal] == EH) // The ecal and hcal are linked
+		  
+		  // The ecal and hcal are linked
+		  if( flinks[track][ecal][hcal] == EH) 
 		    {
 
 		      //PFCandidate pfTemp;
 		      //fpfCandidates.push_back(pfTemp);  
 		    }
-		  if( flinks[track][ecal][hcal] == T) //A track by itself.
+		  
+		  //A track by itself.
+		  if( flinks[track][ecal][hcal] == T) 
 		    {
 
 		      //PFCandidate pfTemp;
 		      //fpfCandidates.push_back(pfTemp);  	
 		    }
-		  if( flinks[track][ecal][hcal] == E) //An ecal by itself.
+		  
+		  //An ecal by itself.
+		  if( flinks[track][ecal][hcal] == E) 
 		    {
 
 		      //PFCandidate pfTemp;
 		      //fpfCandidates.push_back(pfTemp);		      
 		    }
-		  if( flinks[track][ecal][hcal] == H) //An hcal by itself.
+		  
+		  //An hcal by itself.
+		  if( flinks[track][ecal][hcal] == H) 
 		    {
 
 		      //PFCandidate pfTemp;
@@ -294,8 +314,8 @@ vector<vector<vector<int> > > ToyPF::link(const vector<Track>& ftracks,
 				vector<int>(fhcals.size()+1));
   vector<vector<vector<int> > > fsave(ftracks.size()+1 , tempBool);
   //Cycle through all the possible combination of tracks and clusters. Then
-  //test which are linked to each other. The 8 possible senarios of links are
-  //then given a number (0-7) and this is the "type" of link.
+  //test which are linked to each other. The 10 possible senarios of links are
+  //then given a number (0-9) and this is the "type" of link.
   for(unsigned i = 0; i <= ftracks.size(); i++)
     {
       for(unsigned j = 0; j <= fecals.size(); j++)
