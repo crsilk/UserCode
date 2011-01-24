@@ -11,7 +11,7 @@ process.maxEvents = cms.untracked.PSet(
 ######## input files #########################################
 process.source = cms.Source (
     "PoolSource",
-    fileNames = cms.untracked.vstring('file:/uscms/home/cavanaug/work/CMSSW_3_8_7/src/RecoParticleFlow/Configuration/test/single-photon.root'),
+    fileNames = cms.untracked.vstring('file:/uscms/home/cavanaug/CMSDAS/dipion-gun-no-mat.root'),
     noEventSort = cms.untracked.bool(True),
     duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
     )
