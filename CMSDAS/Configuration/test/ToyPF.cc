@@ -5,6 +5,7 @@
 #include "DataFormats/ParticleFlowReco/interface/PFRecTrack.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
+#include "DataFormats/Math/interface/PolarLorentzVector.h"
 
 
 #include "FWCore/Framework/interface/ESHandle.h"
