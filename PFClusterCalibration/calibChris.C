@@ -1816,7 +1816,6 @@ void calibChrisDoublePrime()
          endcapWithHcalCalib->addGraphPoints(endcapAlphaBeta[bin]);
       }
       
-      cout<<"Bin: "<<bin<<" alpha: "<< endcapAlphaBeta[bin]->getAlpha()<<" beta: "<<endcapAlphaBeta[bin]->getBeta()<<endl;
    }
   
    
