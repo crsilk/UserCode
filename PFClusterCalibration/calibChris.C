@@ -47,13 +47,9 @@ class ABC
       double a_;  //Constant values.
       double b_;
       double c_;
-      double alpha_;
-      double beta_;
 
       double sigmaB_;  //Uncertainty in the constants
       double sigmaC_;
-      double sigmaAlpha_;
-      double sigmaBeta_;
 
    public:
       ABC(double binLowEdge, double binHighEdge, bool isBarrel); 
@@ -71,13 +67,9 @@ class ABC
       double getA();
       double getB();
       double getC();
-      double getAlpha();
-      double getBeta();
       double getSigmaB();
       double getSigmaC();
-      double getSigmaAlpha();
-      double getSigmaBeta();
-      
+       
       double getETrue(unsigned i);
       double getEcal(unsigned i); //Returns b*ecal for entry i
       double getHcal(unsigned i); //Returns c*hcal for entry i
@@ -89,7 +81,6 @@ class ABC
       void computeB();             //but rather just set.
       void computeC();
       bool computeBC();
-      bool computeAlphaBeta();
       void clear();
 };
 
@@ -119,14 +110,10 @@ ABC::ABC(double binLowEdge, double binHighEdge,
    a_ = 0;
    b_ = 0;
    c_ = 0;
-   alpha_ = 0;
-   beta_ = 0;
    ETrueAverage_ = 0;
    ETrueRMS_ = 0;
    sigmaB_ = 0;
    sigmaC_ = 0;
-   sigmaAlpha_ = 0;
-   sigmaBeta_ = 0;
 }
 bool ABC::addEntry(double ETrue, double ecalEnergy, double hcalEnergy, double eta)
 {
@@ -162,12 +149,8 @@ double ABC::getETrueRMS() {return ETrueRMS_;}
 double ABC::getA() {return a_;}
 double ABC::getB() {return b_;}
 double ABC::getC() {return c_;}
-double ABC::getAlpha() {return alpha_;}
-double ABC::getBeta() {return beta_;}
 double ABC::getSigmaB() {return sigmaB_;}
 double ABC::getSigmaC() {return sigmaC_;}
-double ABC::getSigmaAlpha() {return sigmaAlpha_;}
-double ABC::getSigmaBeta() {return sigmaBeta_;}
 
 double ABC::getETrue(unsigned i) {return ETrueEnergies_[i];}
 double ABC::getEcal(unsigned i) {return ecalEnergies_[i];}
@@ -324,125 +307,6 @@ bool ABC::computeBC()
    else return false;
 }
 
-bool ABC::computeAlphaBeta()
-{
-   ROOT::Math::SMatrix<double,2, 2, ROOT::Math::MatRepStd<double,2> > coeffs;
-   ROOT::Math::SVector<double, 2> consts;
-   ROOT::Math::SVector<double, 2> values;
-   bool isInverted;
-   vector<double> etaPow;
-   double factor;
-
-   coeffs(0, 0) = 0;
-   coeffs(0, 1) = 0;
-   coeffs(1, 0) = 0;
-   coeffs(1, 1) = 0;
-   consts(0) = 0;
-   consts(1) = 0;
-
-   if(isBarrel_) 
-   {
-      for(unsigned i = 0; i < etas_.size(); i++) 
-         etaPow.push_back(etas_[i]*etas_[i]);
-      
-
-      for(unsigned i = 0; i < etas_.size(); ++i)
-      {   
-         if(fabs(etas_[i]) < etaMinEtaFit_ || fabs(etas_[i]) > etaMaxEtaFit_)
-            continue;
-         
-         coeffs(0, 0) += 2*b_*ecalEnergies_[i]*b_*ecalEnergies_[i]/
-            (sigmaEcalHcal_[i]*sigmaEcalHcal_[i]);
-         
-         coeffs(0, 1) += 2*etaPow[i]*b_*ecalEnergies_[i]*b_*ecalEnergies_[i]/
-            (sigmaEcalHcal_[i]*sigmaEcalHcal_[i]);
-         
-         coeffs(1, 0) += 2*etaPow[i]*b_*ecalEnergies_[i]*b_*ecalEnergies_[i]/
-            (sigmaEcalHcal_[i]*sigmaEcalHcal_[i]);
-         
-         coeffs(1, 1) += 2*etaPow[i]*etaPow[i]*b_*ecalEnergies_[i]*
-            b_*ecalEnergies_[i]/(sigmaEcalHcal_[i]*sigmaEcalHcal_[i]);
-         
-         consts(0) += 2*(ETrueEnergies_[i] - a_ - b_*ecalEnergies_[i] - 
-             c_*hcalEnergies_[i])*b_*ecalEnergies_[i]/
-            (sigmaEcalHcal_[i]*sigmaEcalHcal_[i]);  
-         
-         consts(1) += 2*etaPow[i]*
-            (ETrueEnergies_[i] - a_ - b_*ecalEnergies_[i] - 
-             c_*hcalEnergies_[i])*b_*ecalEnergies_[i]/
-            (sigmaEcalHcal_[i]*sigmaEcalHcal_[i]);
-      }
-   }
-   else
-   {
-      factor = 0.5; //A factor put in my hand to make the eta dependence agree
-                    //better. Should fit for the value later.
-      for(unsigned i = 0; i < etas_.size(); i++) 
-         etaPow.push_back((fabs(etas_[i]) - 1.5)*(fabs(etas_[i]) - 1.5)*
-                          (fabs(etas_[i]) - 1.5)*(fabs(etas_[i]) - 1.5));
-      
-      for(unsigned i = 0; i < etas_.size(); ++i)
-      {   
-         if(fabs(etas_[i]) < etaMinEtaFit_ || fabs(etas_[i]) > etaMaxEtaFit_)
-            continue;
-         
-         coeffs(0, 0) += 2*
-            (factor*b_*ecalEnergies_[i] + c_*hcalEnergies_[i])*
-            (factor*b_*ecalEnergies_[i] + c_*hcalEnergies_[i])/
-            (sigmaEcalHcal_[i]*sigmaEcalHcal_[i]);
-         
-         coeffs(0, 1) += 2*etaPow[i]*
-            (factor*b_*ecalEnergies_[i] + c_*hcalEnergies_[i])*
-            (factor*b_*ecalEnergies_[i] + c_*hcalEnergies_[i])/
-            (sigmaEcalHcal_[i]*sigmaEcalHcal_[i]);
-         
-         coeffs(1, 0) += 2*etaPow[i]*
-            (factor*b_*ecalEnergies_[i] + c_*hcalEnergies_[i])*
-            (factor*b_*ecalEnergies_[i] + c_*hcalEnergies_[i])/
-            (sigmaEcalHcal_[i]*sigmaEcalHcal_[i]);
-         
-         coeffs(1, 1) += 2*etaPow[i]*etaPow[i]*
-            (factor*b_*ecalEnergies_[i] + c_*hcalEnergies_[i])*
-            (factor*b_*ecalEnergies_[i] + c_*hcalEnergies_[i])/
-            (sigmaEcalHcal_[i]*sigmaEcalHcal_[i]);
-         
-         consts(0) += 2*
-            (ETrueEnergies_[i] - a_ - b_*ecalEnergies_[i] - 
-             c_*hcalEnergies_[i])*
-            (factor*b_*ecalEnergies_[i] + c_*hcalEnergies_[i])/
-            (sigmaEcalHcal_[i]*sigmaEcalHcal_[i]);  
-         
-         consts(1) += 2*etaPow[i]*
-            (ETrueEnergies_[i] - a_ - b_*ecalEnergies_[i] - 
-             c_*hcalEnergies_[i])*
-            (factor*b_*ecalEnergies_[i] + c_*hcalEnergies_[i])/
-            (sigmaEcalHcal_[i]*sigmaEcalHcal_[i]);
-      }
-   }
-
-   //Create the matrix that will be inverted and the vector which will multiply
-   //that matrix to find the alpha and beta calibration constants.
-
-
-   isInverted = coeffs.Invert();
-   
-   if(isInverted)
-   {
-      values = coeffs*consts;
-      
-      alpha_ = values(0);
-      beta_ = values(1);
-      sigmaAlpha_ = sqrt(coeffs(0,0));
-      sigmaBeta_ = sqrt(coeffs(1,1));
-
-      return true;
-   }
-   else
-   {
-      return false;
-   }
-} 
-
 void ABC::clear()
 {
    ETrueEnergies_.clear();
@@ -458,15 +322,9 @@ void ABC::clear()
    delete &a_;
    delete &b_;
    delete &c_;
-   delete &alpha_;
-   delete &beta_;
    delete &sigmaB_;
    delete &sigmaC_;
-   delete &sigmaAlpha_;
-   delete &sigmaBeta_;
 }
-
-
 
 class AlphaBeta
 {
@@ -2118,14 +1976,18 @@ void calibChrisDoublePrime()
          }
 
       }
-
-      }
+      
+   }
 
    ////////////////////////////////////////////////////////////////////////////
    //Add all the draw functions that you would like here, as well as any 
    //additional output you would like.
    ////////////////////////////////////////////////////////////////////////////
  
+
+
+
+
 
 }
 
