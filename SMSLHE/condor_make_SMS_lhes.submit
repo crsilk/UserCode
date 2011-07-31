@@ -1,0 +1,13 @@
+universe=vanilla
+Executable=condor_make_SMS_lhes.sh
+output = $(Process).out
+error =  $(Process).err
+log =    $(Process).log
+Requirements = Memory >= 199 && OpSys == "LINUX" && (Arch != "DUMMY")
+Should_Transfer_Files = YES
+Transfer_Input_Files = make_SMS_lhes.py,slhaTolhe_SMS_cfg.py, sorter_SMS.py
+Arguments = $(Process)
+WhenTOTransferOutput  = ON_EXIT
+environment = SCANDIR=UserCode/SusyAnalysis/SLHAFILES/T1Lh/;OFFSET=0;NEVENTS=10000;FILESPERPOINT=100;OUTPUTDIRECTORY=/uscmst1b_scratch/lpc1/3DayLifetime/crsilk/T1Lh/;
+Notification = error
+Queue 11
