@@ -1,0 +1,13 @@
+universe=vanilla
+Executable=condor_make_msugra_lhes.sh
+output = $(Process).out
+error =  $(Process).err
+log =    $(Process).log
+Requirements = Memory >= 199 && OpSys == "LINUX" && (Arch != "DUMMY")
+Should_Transfer_Files = YES
+Transfer_Input_Files = make_msugra_lhes.py,slhaTolhe_msugra_cfg.py, sorter_msugra.py
+Arguments = $(Process)
+WhenTOTransferOutput  = ON_EXIT
+environment = SCANDIR=UserCode/Summer11LHERuns/mSugraSLHA/test/msugra_m0_m12_10_0_1/;OFFSET=0;NEVENTS=10000;FILESPERPOINT=200;OUTPUTDIRECTORY=/uscmst1b_scratch/lpc1/3DayLifetime/crsilk/msugra_m0_m12_10_0_1/
+Notification = error
+Queue 1
