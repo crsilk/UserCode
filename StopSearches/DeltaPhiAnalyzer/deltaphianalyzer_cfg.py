@@ -71,18 +71,19 @@ readFiles.extend( ['/store/mc/Summer11/QCDContact_Pt-15to3000_L-2000_TuneD6T_Fla
 
 process.source = cms.Source("PoolSource",
     # replace 'myfile.root' with the source file you want to use
-#    fileNames = readFiles
-	 fileNames = cms.untracked.vstring("file:/uscmst1b_scratch/lpc1/3DayLifetime/crsilk/temp/06037E03-45CB-E011-A6F5-00261894384A.root")
+    fileNames = readFiles
+#	 fileNames = cms.untracked.vstring("file:/uscmst1b_scratch/lpc1/3DayLifetime/crsilk/temp/06037E03-45CB-E011-A6F5-00261894384A.root")
 )
 
 #process.load("CMGTools.Common.sources.SMS_T2tt_Mstop_225to1200_mLSP_50to1025_7TeV_Pythia6Z.Summer11_PU_START42_V11_FastSim_v1.AODSIM.source_cff")
 
 
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(20000) )
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
+process.TFileService = cms.Service("TFileService",
+	fileName = cms.string("deltaphianalyzer_QCD.root")
 
-process.deltaPhiAnalyzer.rootOutputFile = cms.untracked.string("deltaphianalyzer_T2tt.root")
-
+)
 process.p = cms.Path(process.deltaPhiAnalyzer)
