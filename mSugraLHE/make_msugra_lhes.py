@@ -32,9 +32,21 @@ def makeLhe(configFile, slhaFileDir, slhaFile, nEvents, randomNumberSeed):
 	os.system(slhaFileNameCommand)
 	os.system(nEventsCommand)
 	os.system(randomNumberCommand)
-	os.system('cmsRun ' + str(configFile))
-def insertModelName(lheFile, modelName):
+	os.system('cmsRun ' + str(configFile) + " > logFile.txt")
+def insertModelLine(lheFile, modelName, logFileName):
 
+	logFile = open(logFileName, 'r')
+	for line in logFile:
+		if line.find('All included sub') > -1:
+			numberStrings = line.split("I")
+			numberStrings[3] = numberStrings[3].replace('D','E')
+			xsection = str(float(numberStrings[3]))
+		if line.find('Fraction of') > -1:
+			numberStrings = line.split("=")
+			numberStrings = numberStrings[1].split()
+			efficiency =str(1.0 - float(numberStrings[0]))
+
+	
 	try:
 		xmldoc = minidom.parse(lheFile)
 	except IOError:
@@ -48,13 +60,14 @@ def insertModelName(lheFile, modelName):
 		if ref.nodeName=='header':
 			ref.appendChild(x)
 		if ref.nodeName=='event':
-			ref.firstChild.appendData("# model "+modelName+"\n")
+			ref.firstChild.appendData("# model " + modelName + " " + xsection +
+									  " " + efficiency + "\n")
 
 	t=xmldoc.toprettyxml(indent="",newl="")
 	f=open(lheFile,'w')
 	f.write(t)
 	f.close()
-
+	logFile.close()
 	f=open(lheFile,'r')
 	o=open(lheFile+".tmp",'w')
 
@@ -250,11 +263,17 @@ def checkLhe(lheFileName):
 
 	for line in file:
 		if line.find('1000022') == 1:
-			if line[11:13] != ' 1':
+			split = line.split(" ")
+			for char in split[2:]:
+				if char == '': continue
+				if char == '1': break
 				print "Unstable Chi_10"
 				return False
 		elif line.find('0000') == 2:
-			if line[11:13] == ' 1':
+			split = line.split(" ")
+			for char in line.split(" "):
+				if char =='': continue
+				if char != '1': break
 				print "Stable SUSY particle that isn't Chi_10"
 				return False
 	return True
@@ -300,7 +319,7 @@ if __name__ == '__main__':
 				eventsPerPoint, randomNumberSeed)
 		if glob.glob('fort.69') == []:
 			continue
-		insertModelName('fort.69', modelTag)
+		insertModelLine('fort.69', modelTag, 'logFile.txt')
 		if checkLhe('fort.69') == False :
 			os.system("rm fort.69")
 			os.system("rm slhaTolhe_temp_msugra_cfg.py")
@@ -310,6 +329,7 @@ if __name__ == '__main__':
 
 		os.system("rm fort.69")
 		os.system("rm slhaTolhe_temp_msugra_cfg.py")
+		os.system("rm logFile.txt")
 		
 	endOutputFile(outputFileName)
 
