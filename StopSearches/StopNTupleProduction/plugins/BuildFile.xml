@@ -1,0 +1,7 @@
+<export></export>
+<library name="CMGToolsStopNTupleProductionPlugins" file="*.cc">
+  <use name="CMGTools/StopNTupleProduction"/>
+  <use name="CMGTools/Common"/>
+  <use name ="SimDataFormats/GeneratorProducts"/>
+  <flags   EDM_PLUGIN="1"/>
+</library>
