@@ -1,7 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 
-modelFilter = cms.EDFilter('ModelFilter',
+modelSelector = cms.EDFilter('ModelSelector',
 					  source = cms.InputTag("source"),
 					  modelTag = cms.string(""),
-					  modelParameters = cms.vstring()
+					  parameterMins = cms.vdouble(-99999999),
+					  parameterMaxs = cms.vdouble(99999999)
 )

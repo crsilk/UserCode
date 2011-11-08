@@ -1,106 +1,28 @@
-// -*- C++ -*-
-//
-// Package:    ModelFilter
-// Class:      ModelFilter
-// 
-/**\class ModelFilter ModelFilter.cc UserCode/ModelFilter/src/ModelFilter.cc
-
- Description: [one line class summary]
-
- Implementation:
-     [Notes on implementation]
-*/
-//
-// Original Author:  Christopher Silkworth
-//         Created:  Wed Oct 26 07:23:44 CDT 2011
-// $Id$
-//
-//
-
-
-// system include files
-#include <memory>
-#include <string>
-#include <sstream>
-#include <stdlib.h>
-
-// user include files
-#include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDFilter.h"
-
-#include "FWCore/Framework/interface/Event.h"
-#include "FWCore/Framework/interface/MakerMacros.h"
-
+#include "UserCode/ModelFilter/interface/ModelFilter.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
-//
-// class declaration
-//
+
+#include <memory>
+#include <sstream>
+#include <stdlib.h>
 
 using namespace std;
 using namespace edm;
 
-class ModelFilter : public edm::EDFilter {
-   public:
-      explicit ModelFilter(const edm::ParameterSet&);
-      ~ModelFilter();
-
-      static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
-      vector<string> split(string fstring, string splitter);
-      typedef std::vector<std::string>::const_iterator comments_const_iterator;
-
-   private:
-      virtual void beginJob() ;
-      virtual bool filter(edm::Event&, const edm::EventSetup&);
-      virtual void endJob() ;
-      
-      virtual bool beginRun(edm::Run&, edm::EventSetup const&);
-      virtual bool endRun(edm::Run&, edm::EventSetup const&);
-      virtual bool beginLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
-      virtual bool endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
-
-      InputTag inputTagSource_;
-      string modelTag_;
-      vector<string> modelParameters_;
-      // ----------member data ---------------------------
-};
-
-//
-// constants, enums and typedefs
-//
-
-//
-// static data member definitions
-//
-
-//
-// constructors and destructor
-//
 ModelFilter::ModelFilter(const edm::ParameterSet& iConfig)
 {
-   //now do what ever initialization is needed
    inputTagSource_  = iConfig.getParameter<InputTag>("source");
    modelTag_ = iConfig.getParameter<string>("modelTag");
-   modelParameters_ = iConfig.getParameter<vector<string> >("modelParameters");
+   parameterMins_ = iConfig.getParameter<vector<double> >("parameterMins");
+   parameterMaxs_ = iConfig.getParameter<vector<double> >("parameterMaxs");
 }
 
 
 ModelFilter::~ModelFilter()
 {
- 
-   // do anything here that needs to be done at desctruction time
-   // (e.g. close files, deallocate resources etc.)
-
 }
 
-
-//
-// member functions
-//
-
-// ------------ method called on each new Event  ------------
-bool
-ModelFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
+bool ModelFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    Handle<LHEEventProduct> product;
    iEvent.getByLabel(inputTagSource_, product);
@@ -120,79 +42,69 @@ ModelFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
          tempString = tempString.substr(0, tempString.find(" "));
          parameters = split(tempString, "_");
 
-         if(parameters.size() - 1 != modelParameters_.size())
+         if(parameters.size() - 1 != parameterMins_.size())
          {
             cout<<"Error: number of modeParameters does not match number of parameters in file"<<endl;
             return false;
          }
+         else if(parameterMins_.size() != parameterMaxs_.size())
+         {
+            cout<<"Error: umber of parameter mins != number parameter maxes"<<endl;
+         }
          else
          {
-            for(unsigned i = 0; i < modelParameters_.size(); i++)
+            for(unsigned i = 0; i < parameterMins_.size(); i++)
             {
-               if(atof(modelParameters_[i].c_str()) != 
-                  atof(parameters[i +1].c_str()))
+               if(parameterMins_[i] > atof(parameters[i +1 ].c_str()) ||
+                  parameterMaxs_[i] < atof(parameters[i + 1].c_str()))
+               {
+                  cout<<"FAILED: "<<*comment<<endl;
                   return false;
+               }
             }
+            cout<<"PASSED: "<<*comment<<endl;
             return true;
          }
 
       }
    }
-   
+   cout<<"FAILED: "<<*comment<<endl; 
    return false;
 
 }
-
-// ------------ method called once each job just before starting event loop  ------------
-void 
-ModelFilter::beginJob()
+void ModelFilter::beginJob()
 {
 }
 
-// ------------ method called once each job just after ending the event loop  ------------
-void 
-ModelFilter::endJob() {
+void ModelFilter::endJob() {
 }
 
-// ------------ method called when starting to processes a run  ------------
-bool 
-ModelFilter::beginRun(edm::Run&, edm::EventSetup const&)
+bool ModelFilter::beginRun(edm::Run&, edm::EventSetup const&)
 { 
   return true;
 }
 
-// ------------ method called when ending the processing of a run  ------------
-bool 
-ModelFilter::endRun(edm::Run&, edm::EventSetup const&)
+bool ModelFilter::endRun(edm::Run&, edm::EventSetup const&)
 {
   return true;
 }
 
-// ------------ method called when starting to processes a luminosity block  ------------
-bool 
-ModelFilter::beginLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&)
+bool ModelFilter::beginLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&)
 {
   return true;
 }
 
-// ------------ method called when ending the processing of a luminosity block  ------------
-bool 
-ModelFilter::endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&)
+bool ModelFilter::endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&)
 {
   return true;
 }
 
-// ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
-void
-ModelFilter::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
-  //The following says we do not know what parameters are allowed so do no validation
-  // Please change this to state exactly what you do use, even if it is no parameters
+void ModelFilter::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   edm::ParameterSetDescription desc;
   desc.setUnknown();
   descriptions.addDefault(desc);
 }
-vector<string>
-ModelFilter::split(string fstring, string splitter)
+vector<string> ModelFilter::split(string fstring, string splitter)
 {
    vector<string> returnVector;
    size_t cursor;
@@ -221,5 +133,3 @@ ModelFilter::split(string fstring, string splitter)
       return returnVector;
    }
 }
-//define this as a plug-in
-DEFINE_FWK_MODULE(ModelFilter);
