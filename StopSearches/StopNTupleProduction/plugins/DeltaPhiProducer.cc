@@ -28,30 +28,25 @@ DeltaPhiProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    math::XYZTLorentzVector sumNVector(0, 0, 0, 0);
    math::XYZTLorentzVector deltaVector;
 
-   for(pfCandidate = pfCandidates->begin(); pfCandidate != pfCandidates->end();
-       pfCandidate++)
-   {     
-      if(pfCandidate->particleId() == 1 || pfCandidate->particleId() == 2 ||
-         pfCandidate->particleId() == 3)
-         sumCHVector = sumCHVector + pfCandidate->p4();
-      else
-         sumNVector = sumNVector + pfCandidate->p4();
+   if(neutralVsCharged_)
+   {
+      for(pfCandidate = pfCandidates->begin(); 
+          pfCandidate != pfCandidates->end();pfCandidate++)
+      {     
+         if(pfCandidate->particleId() == 1 || pfCandidate->particleId() == 2 ||
+            pfCandidate->particleId() == 3)
+            sumCHVector = sumCHVector + pfCandidate->p4();
+         else
+            sumNVector = sumNVector + pfCandidate->p4();
+      }
+      deltaVector = sumCHVector - sumNVector;
    }
-   deltaVector = sumCHVector - sumNVector;
    
+
    auto_ptr<DeltaPhi> pOut(new DeltaPhi(deltaVector));
    iEvent.put(pOut);
 
-/* This is an event example
-   //Read 'ExampleData' from the Event
-   Handle<ExampleData> pIn;
-   iEvent.getByLabel("example",pIn);
 
-   //Use the ExampleData to create an ExampleData2 which 
-   // is put into the Event
-   std::auto_ptr<ExampleData2> pOut(new ExampleData2(*pIn));
-   iEvent.put(pOut);
-*/
  
 }
 
