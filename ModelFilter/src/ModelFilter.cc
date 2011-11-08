@@ -58,11 +58,9 @@ bool ModelFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
                if(parameterMins_[i] > atof(parameters[i +1 ].c_str()) ||
                   parameterMaxs_[i] < atof(parameters[i + 1].c_str()))
                {
-                  cout<<"FAILED: "<<*comment<<endl;
                   return false;
                }
             }
-            cout<<"PASSED: "<<*comment<<endl;
             return true;
          }
 
@@ -133,3 +131,4 @@ vector<string> ModelFilter::split(string fstring, string splitter)
       return returnVector;
    }
 }
+DEFINE_FWK_MODULE(ModelFilter);
