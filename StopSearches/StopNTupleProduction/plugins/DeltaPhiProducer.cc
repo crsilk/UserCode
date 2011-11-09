@@ -12,6 +12,7 @@ DeltaPhiProducer::DeltaPhiProducer(const edm::ParameterSet& iConfig)
 {
   inputTagPFCandidates_ = iConfig.getParameter<InputTag>("PFCandidates");
   neutralVsCharged_ = iConfig.getParameter<bool>("neutralVsCharged");
+  produces<std::vector<DeltaPhi> >();
 }
 DeltaPhiProducer::~DeltaPhiProducer()
 {
@@ -42,8 +43,10 @@ DeltaPhiProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       deltaVector = sumCHVector - sumNVector;
    }
    
-
-   auto_ptr<DeltaPhi> pOut(new DeltaPhi(deltaVector));
+   std::vector<DeltaPhi> * deltaPhis = new std::vector<DeltaPhi>();
+   deltaPhis->push_back(DeltaPhi(deltaVector));
+   
+   auto_ptr<std::vector<DeltaPhi> > pOut(deltaPhis);
    iEvent.put(pOut);
 
 

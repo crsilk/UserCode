@@ -1,0 +1,18 @@
+<lcgdict>
+
+  <class name="reco::DeltaPhi"/>
+  <class name="std::vector<reco::DeltaPhi>"/>
+  <class name="edm::Wrapper<reco::DeltaPhi>"/>
+  <class name="edm::Wrapper<std::vector<reco::DeltaPhi> >"/>
+
+  <class name="pat::DeltaPhi"/>
+  <class name="std::vector<pat::DeltaPhi>"/>
+  <class name="edm::Wrapper<pat::DeltaPhi>"/>
+  <class name="edm::Wrapper<std::vector<pat::DeltaPhi> >"/>
+
+  <class name="cmg::DeltaPhi"/>
+  <class name="std::vector<cmg::DeltaPhi>"/>
+  <class name="edm::Wrapper<cmg::DeltaPhi>"/>
+  <class name="edm::Wrapper<std::vector<cmg::DeltaPhi> >"/>
+  
+</lcgdict>

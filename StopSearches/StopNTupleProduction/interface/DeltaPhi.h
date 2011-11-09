@@ -3,20 +3,25 @@
 
 #include "DataFormats/RecoCandidate/interface/RecoCandidate.h"
 #include "DataFormats/Math/interface/LorentzVectorFwd.h"
-#include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include <vector>
 
 namespace reco
 {
+  class DeltaPhi;
+
+  typedef std::vector<DeltaPhi> DeltaPhiCollection;
+
   class DeltaPhi : public RecoCandidate
   {
   public:
 	DeltaPhi();
 	DeltaPhi(const math::XYZTLorentzVector deltaVector);
 	DeltaPhi(const double deltaPhi, const double deltaPt);
-	math::XYZTLorentzVector deltaVector();
-	double deltaPhi();
-	double deltaPt();
+	DeltaPhi(const reco::DeltaPhi & deltaPhi);
+	DeltaPhi(const edm::Ptr<reco::DeltaPhi> & deltaPhi);
+	math::XYZTLorentzVector deltaVector() const;
+	double deltaPhi() const;
+	double deltaPt() const;
 
   private:
 	virtual bool overlap(const Candidate &) const; //required by RecoCandidate
