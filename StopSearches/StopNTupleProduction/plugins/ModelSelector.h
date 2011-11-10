@@ -30,8 +30,12 @@ namespace cmg
 
 	edm::InputTag inputTagSource_;
 	std::string modelTag_;
+	bool selectOnRange_;
+	bool selectOnSplitting_;
 	std::vector<double> parameterMins_;
 	std::vector<double> parameterMaxs_;
+	double minSplitting_;
+	double maxSplitting_;
   };
 }
 #endif /*ModelSelector_h_*/

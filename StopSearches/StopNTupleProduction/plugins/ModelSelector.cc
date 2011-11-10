@@ -14,8 +14,12 @@ ModelSelector::ModelSelector(const edm::ParameterSet& iConfig)
 {
    inputTagSource_  = iConfig.getParameter<InputTag>("source");
    modelTag_ = iConfig.getParameter<string>("modelTag");
+   selectOnRange_ = iConfig.getParameter<bool>("selectOnRange");
+   selectOnSplitting_ = iConfig.getParameter<bool>("selectOnSplitting");
    parameterMins_ = iConfig.getParameter<vector<double> >("parameterMins");
    parameterMaxs_ = iConfig.getParameter<vector<double> >("parameterMaxs");
+   minSplitting_ = iConfig.getParameter<double>("minSplitting");
+   maxSplitting_ = iConfig.getParameter<double>("maxSplitting");
 }
 
 
@@ -29,9 +33,9 @@ bool ModelSelector::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
    iEvent.getByLabel(inputTagSource_, product);
    comments_const_iterator comment;
 
-   size_t cursor;
    string tempString;
    vector<string> parameters;
+   double splitting;
 
    for(comment = product->comments_begin(); comment != product->comments_end();
        comment++)
@@ -43,33 +47,37 @@ bool ModelSelector::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
          tempString = tempString.substr(0, tempString.find(" "));
          parameters = split(tempString, "_");
 
-         if(parameters.size() - 1 != parameterMins_.size())
+         splitting = atof(parameters[1].c_str()) - 
+            atof(parameters[2].c_str());
+
+         if((parameters.size() - 1 != parameterMins_.size() ||
+            parameterMins_.size() != parameterMaxs_.size()) &&
+            selectOnRange_)
          {
             cout<<"Error: number of modeParameters does not match number of parameters in file"<<endl;
             return false;
          }
-         else if(parameterMins_.size() != parameterMaxs_.size())
-         {
-            cout<<"Error: umber of parameter mins != number parameter maxes"<<endl;
-         }
          else
          {
+            if((minSplitting_ > splitting || maxSplitting_ < splitting) &&
+               selectOnSplitting_)
+            {
+               return false;
+            }
             for(unsigned i = 0; i < parameterMins_.size(); i++)
             {
-               if(parameterMins_[i] > atof(parameters[i +1 ].c_str()) ||
-                  parameterMaxs_[i] < atof(parameters[i + 1].c_str()))
+               if((parameterMins_[i] > atof(parameters[i +1 ].c_str()) ||
+                   parameterMaxs_[i] < atof(parameters[i + 1].c_str())) &&
+                  selectOnRange_)
                {
-                  cout<<"FAILED: "<<*comment<<endl;
                   return false;
                }
             }
-            cout<<"PASSED: "<<*comment<<endl;
-            return true;
          }
+         return true;
 
       }
    }
-   cout<<"FAILED: "<<*comment<<endl; 
    return false;
 
 }
