@@ -781,7 +781,7 @@ class Calibration
       bool fitAlphasToFunction();
       bool fitBetasToFunction(TF1 *functionBetas);
       bool fitBetasToFunction();
-      void drawCoeffGraph(string graph);  //Makes and draws a graph of a 
+      void drawCoeffGraph(string graph, string tag);  //Makes and draws a graph of a 
       void drawSigmaGraph(string graph);  //coefficient. Takes in as an 
                                           //argument a, b, c, alpha, or beta.
       void printBs();
@@ -824,13 +824,14 @@ void Calibration::addGraphPoints(double ETrueAverage, double ETrueRMS,
 }
 void Calibration::addGraphPoints(ABC* abc)
 {
-   if(abc->isEmpty() || (abc->getSigmaB() == 0 && abc->getB() == 0)) return;
+   if(abc->isEmpty() || (abc->getSigmaC() == 0 && abc->getC() == 0)) return;
 
    ETrueMeansABC_.push_back(abc->getETrueAverage());
    ETrueRMSsABC_.push_back(abc->getETrueRMS());
    as_.push_back(abc->getA());
    bs_.push_back(abc->getB());
    cs_.push_back(abc->getC());
+
 
    sigmaBs_.push_back(abc->getSigmaB());
    sigmaCs_.push_back(abc->getSigmaC());
@@ -1045,11 +1046,12 @@ bool Calibration::fitBetasToFunction()
    graphBeta_->Fit(functionBeta_->GetName(), "Q", "", 2.0, ETrueMax_);
    return true;
 }
-void Calibration::drawCoeffGraph(string graph)
+void Calibration::drawCoeffGraph(string graph, string tag)
 {
   
+   string saveString;
    TCanvas* canvas = new TCanvas();
-   TH2F* histo = new TH2F("histo", "", 100, 0, 1000, 100,  -2.0, 2.0); 
+   TH2F* histo = new TH2F("histo", "", 100, 0, 100, 100,  -2.0, 2.0); 
 
    canvas->cd();
    histo->SetStats(0);
@@ -1067,7 +1069,8 @@ void Calibration::drawCoeffGraph(string graph)
       graphB_->SetMarkerStyle(22);
       graphB_->SetMarkerSize(1);
       graphB_->Draw("P");
-      canvas->SaveAs("BCoefficient.gif");
+      saveString = "BCoefficient" + tag + ".gif";
+      canvas->SaveAs(saveString.c_str());
    }
    else if(graph == "c" || graph == "C") 
    {
@@ -1076,7 +1079,8 @@ void Calibration::drawCoeffGraph(string graph)
       graphC_->SetMarkerSize(1);
       graphC_->SetMarkerColor(2);
       graphC_->Draw("P");
-      canvas->SaveAs("CCoefficient.gif");
+      saveString = "CCoefficient" + tag + ".gif";
+      canvas->SaveAs(saveString.c_str());
    }
    else if(graph == "alpha" || graph == "Alpha") 
    {
@@ -1085,7 +1089,8 @@ void Calibration::drawCoeffGraph(string graph)
       graphAlpha_->SetMarkerSize(1);
       graphAlpha_->SetMarkerColor(4);
       graphAlpha_->Draw("P");
-      canvas->SaveAs("AlphaCoefficient.gif");
+      saveString = "AlphaCoefficient" + tag + ".gif";
+      canvas->SaveAs(saveString.c_str());
    }
    else if(graph == "beta" || graph == "Beta") 
    {
@@ -1094,7 +1099,8 @@ void Calibration::drawCoeffGraph(string graph)
       graphBeta_->SetMarkerSize(1);
       graphBeta_->SetMarkerColor(3);
       graphBeta_->Draw("P");
-      canvas->SaveAs("BetaCoefficient.gif");
+      saveString = "BetaCoefficient" + tag + ".gif";
+      canvas->SaveAs(saveString.c_str());
    }  
    else cout << "No graph with that name" <<endl;
  
@@ -1663,7 +1669,8 @@ void calibChris()
 
    //Open the file, get the tree and fill of the vectors of values you need.
    //inputFile = TFile::Open("IsolatedChargedHadronsFromQCD.root");
-   inputFile = TFile::Open("pfcalibTestTag_all.root");
+   //inputFile = TFile::Open("pfcalibTestTag_all.root");
+   inputFile = TFile::Open("IsolatedChargedHadronsFromMinBias.root");
    sTree = (TTree*)inputFile->Get("s;1");
    getValuesFromTree(sTree, ETrueEnergies, ecalEnergies, 
                      hcalEnergies, etas, phis);
@@ -1864,17 +1871,7 @@ void calibChris()
             endcapABCHcal[bin]->getBinHighEdge());
       }
  
-/////////////////////////////////////////
-      if(bin == 30)
-      {
-         for( unsigned event = 0; event < barrelABCEcalHcal[bin]->getNEntries(); event++)
-         {            
-            cout<<"ETRUE: "<<barrelABCEcalHcal[bin]->getETrue(event);
-            cout<<"\tEcal: "<<barrelABCEcalHcal[bin]->getEcal(event);
-            cout<<"\tHcal: "<<barrelABCEcalHcal[bin]->getHcal(event)<<endl;
-         }
-      }
-/////////////////////////////////////////
+
       barrelWithEcalHcalCalib->addGraphPoints(barrelABCEcalHcal[bin]); 
       barrelWithEcalCalib->addGraphPoints(barrelABCEcal[bin]); 
       barrelWithHcalCalib->addGraphPoints(barrelABCHcal[bin]); 
@@ -2210,10 +2207,10 @@ void calibChris()
 //   drawGausFit(corrEta,response, resolution);
 //   drawCompare(responseRaw, response, resolutionRaw, resolution);
 
-   barrelWithEcalHcalCalib->drawCoeffGraph("B");
-   barrelWithEcalHcalCalib->drawCoeffGraph("C");
-   barrelWithEcalHcalCalib->drawCoeffGraph("Alpha");
-   barrelWithEcalHcalCalib->drawCoeffGraph("Beta");
+   //barrelWithHcalCalib->drawCoeffGraph("B","_barrelHcal");
+   barrelWithHcalCalib->drawCoeffGraph("C", "_barrelHcal");
+   barrelWithHcalCalib->drawCoeffGraph("Alpha","_barrelHcal");
+   barrelWithHcalCalib->drawCoeffGraph("Beta", "_barrelHcal");
 
 
    
