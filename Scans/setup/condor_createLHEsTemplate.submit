@@ -1,0 +1,13 @@
+universe=vanilla
+Executable=condor_createLHEs.sh
+output = _LOGFILESDIR__MODELTAG__$(Process).out
+error =  _LOGFILESDIR__MODELTAG__$(Process).err
+log =    _LOGFILESDIR__MODELTAG__$(Process).log
+Requirements = Memory >= 199 && OpSys == "LINUX" && (Arch != "DUMMY")
+Should_Transfer_Files = YES
+Transfer_Input_Files = createLHEs.py, SLHAToLHE_cfg.py
+Arguments = $(Process)
+WhenTOTransferOutput  = ON_EXIT
+environment = CREATESCANDIR=_CREATESCANDIR_; OUTPUTDIRECTORY=_OUTPUTDIRECTORY_; 
+Notification = error
+Queue _NUMBEROFJOBS_
