@@ -4,7 +4,6 @@ from Configuration.Generator.PythiaUESettings_cfi import *
 
 process = cms.Process('HLT')
 
-
 process.load('Configuration.StandardSequences.Services_cff')
 process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
 process.load('FWCore.MessageService.MessageLogger_cfi')
@@ -22,13 +21,12 @@ process.load('DQMOffline.Configuration.DQMOfflineMC_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
+process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(False))
 process.maxEvents = cms.untracked.PSet(
    input = cms.untracked.int32(-1)
 )
 
-
 process.load('LHESOURCEFILE')
-
 
 process.generator = cms.EDFilter("Pythia6HadronizerFilter",
    pythiaHepMCVerbosity = cms.untracked.bool(False),
@@ -49,17 +47,17 @@ process.generator = cms.EDFilter("Pythia6HadronizerFilter",
 )
 
 process.options.SkipEvent = cms.untracked.vstring('ProductNotFound')
+
 process.configurationMetadata = cms.untracked.PSet(
    version = cms.untracked.string('$Revision: 1.303 $'),
    annotation = cms.untracked.string('GEN-fragment nevts:1'),
    name = cms.untracked.string('PyReleaseValidation')
 )
 
-
 process.AODSIMoutput = cms.OutputModule("PoolOutputModule",
    eventAutoFlushCompressedSize = cms.untracked.int32(15728640),
    outputCommands = process.AODSIMEventContent.outputCommands,
-   fileName = cms.untracked.string(OUPTUTFILE),
+   fileName = cms.untracked.string(OUTPUTFILE),
    dataset = cms.untracked.PSet(
        filterName = cms.untracked.string(''),
        dataTier = cms.untracked.string('AODSIM')
@@ -83,6 +81,7 @@ process.generation_step = cms.Path(process.generator)
 process.reconstruction = cms.Path(process.reconstructionWithFamos)
 process.genfiltersummary_step = cms.EndPath(process.genFilterSummary)
 process.validation_step = cms.EndPath(process.validation_prod)
+
 process.endjob_step = cms.EndPath(process.endOfProcess)
 process.AODSIMoutput_step = cms.EndPath(process.AODSIMoutput)
 

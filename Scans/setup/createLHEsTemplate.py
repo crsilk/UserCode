@@ -52,9 +52,7 @@ def makeLHE(templateCfgName, slhaFile, jobNumber):
     oldFile.close()
     newFile.close()
     
-    subprocess.call("ls", shell=True)
-
-    subprocess.call("echo  \n \n#" + slhaFile.replace('.slha', '') + 
+    subprocess.call("echo  \n #" + slhaFile.replace('.slha', '') + 
                      "\n \n >> SLHAToLHETemp.log", shell=True)
     subprocess.call("cmsRun SLHAToLHETemp_cfg.py >> SLHAToLHETemp.log", shell=True)
     subprocess.call("rm SLHAToLHETemp_cfg.py", shell=True)
@@ -102,7 +100,7 @@ def makeLHEFileName(beginFileName, endFileName):
     return combinedFileName
 def startOutputFile(fileName, defaultHeader, templateCfgName, slhaFile, jobNumber):
     if defaultHeader:
-        header=str("<LesHouchesEvents>\n\
+	header=str("<LesHouchesEvents>\n\
 <!--\n\
 File generated with PYTHIA 6.424\n\
 -->\n\
@@ -123,91 +121,91 @@ DECAY   1000022   0.0E+00\n\
 </slha>\n\
 </header>\n\
 <init>\n\
-2212    2212  3.500000E+03  3.500000E+03     0     0 10042 10042     3    84\n\
-1.000000E+00  1.000000E+00  1.000000E+00   201\n\
-1.000000E+00  1.000000E+00  1.000000E+00   202\n\
-1.000000E+00  1.000000E+00  1.000000E+00   204\n\
-1.000000E+00  1.000000E+00  1.000000E+00   205\n\
-1.000000E+00  1.000000E+00  1.000000E+00   207\n\
-1.000000E+00  1.000000E+00  1.000000E+00   208\n\
-1.000000E+00  1.000000E+00  1.000000E+00   209\n\
-1.000000E+00  1.000000E+00  1.000000E+00   210\n\
-1.000000E+00  1.000000E+00  1.000000E+00   211\n\
-1.000000E+00  1.000000E+00  1.000000E+00   212\n\
-1.000000E+00  1.000000E+00  1.000000E+00   213\n\
-1.000000E+00  1.000000E+00  1.000000E+00   214\n\
-1.000000E+00  1.000000E+00  1.000000E+00   216\n\
-1.000000E+00  1.000000E+00  1.000000E+00   217\n\
-1.000000E+00  1.000000E+00  1.000000E+00   218\n\
-1.000000E+00  1.000000E+00  1.000000E+00   219\n\
-1.000000E+00  1.000000E+00  1.000000E+00   220\n\
-1.000000E+00  1.000000E+00  1.000000E+00   221\n\
-1.000000E+00  1.000000E+00  1.000000E+00   222\n\
-1.000000E+00  1.000000E+00  1.000000E+00   223\n\
-1.000000E+00  1.000000E+00  1.000000E+00   224\n\
-1.000000E+00  1.000000E+00  1.000000E+00   225\n\
-1.000000E+00  1.000000E+00  1.000000E+00   226\n\
-1.000000E+00  1.000000E+00  1.000000E+00   227\n\
-1.000000E+00  1.000000E+00  1.000000E+00   228\n\
-1.000000E+00  1.000000E+00  1.000000E+00   229\n\
-1.000000E+00  1.000000E+00  1.000000E+00   230\n\
-1.000000E+00  1.000000E+00  1.000000E+00   231\n\
-1.000000E+00  1.000000E+00  1.000000E+00   232\n\
-1.000000E+00  1.000000E+00  1.000000E+00   233\n\
-1.000000E+00  1.000000E+00  1.000000E+00   234\n\
-1.000000E+00  1.000000E+00  1.000000E+00   235\n\
-1.000000E+00  1.000000E+00  1.000000E+00   236\n\
-1.000000E+00  1.000000E+00  1.000000E+00   237\n\
-1.000000E+00  1.000000E+00  1.000000E+00   238\n\
-1.000000E+00  1.000000E+00  1.000000E+00   239\n\
-1.000000E+00  1.000000E+00  1.000000E+00   240\n\
-1.000000E+00  1.000000E+00  1.000000E+00   241\n\
-1.000000E+00  1.000000E+00  1.000000E+00   242\n\
-1.000000E+00  1.000000E+00  1.000000E+00   243\n\
-1.000000E+00  1.000000E+00  1.000000E+00   244\n\
-1.000000E+00  1.000000E+00  1.000000E+00   246\n\
-1.000000E+00  1.000000E+00  1.000000E+00   247\n\
-1.000000E+00  1.000000E+00  1.000000E+00   248\n\
-1.000000E+00  1.000000E+00  1.000000E+00   249\n\
-1.000000E+00  1.000000E+00  1.000000E+00   250\n\
-1.000000E+00  1.000000E+00  1.000000E+00   251\n\
-1.000000E+00  1.000000E+00  1.000000E+00   252\n\
-1.000000E+00  1.000000E+00  1.000000E+00   253\n\
-1.000000E+00  1.000000E+00  1.000000E+00   254\n\
-1.000000E+00  1.000000E+00  1.000000E+00   256\n\
-1.000000E+00  1.000000E+00  1.000000E+00   258\n\
-1.000000E+00  1.000000E+00  1.000000E+00   259\n\
-1.000000E+00  1.000000E+00  1.000000E+00   261\n\
-1.000000E+00  1.000000E+00  1.000000E+00   262\n\
-1.000000E+00  1.000000E+00  1.000000E+00   263\n\
-1.000000E+00  1.000000E+00  1.000000E+00   264\n\
-1.000000E+00  1.000000E+00  1.000000E+00   265\n\
-1.000000E+00  1.000000E+00  1.000000E+00   271\n\
-1.000000E+00  1.000000E+00  1.000000E+00   272\n\
-1.000000E+00  1.000000E+00  1.000000E+00   273\n\
-1.000000E+00  1.000000E+00  1.000000E+00   274\n\
-1.000000E+00  1.000000E+00  1.000000E+00   275\n\
-1.000000E+00  1.000000E+00  1.000000E+00   276\n\
-1.000000E+00  1.000000E+00  1.000000E+00   277\n\
-1.000000E+00  1.000000E+00  1.000000E+00   278\n\
-1.000000E+00  1.000000E+00  1.000000E+00   279\n\
-1.000000E+00  1.000000E+00  1.000000E+00   280\n\
-1.000000E+00  1.000000E+00  1.000000E+00   281\n\
-1.000000E+00  1.000000E+00  1.000000E+00   282\n\
-1.000000E+00  1.000000E+00  1.000000E+00   283\n\
-1.000000E+00  1.000000E+00  1.000000E+00   284\n\
-1.000000E+00  1.000000E+00  1.000000E+00   285\n\
-1.000000E+00  1.000000E+00  1.000000E+00   286\n\
-1.000000E+00  1.000000E+00  1.000000E+00   287\n\
-1.000000E+00  1.000000E+00  1.000000E+00   288\n\
-1.000000E+00  1.000000E+00  1.000000E+00   289\n\
-1.000000E+00  1.000000E+00  1.000000E+00   290\n\
-1.000000E+00  1.000000E+00  1.000000E+00   291\n\
-1.000000E+00  1.000000E+00  1.000000E+00   292\n\
-1.000000E+00  1.000000E+00  1.000000E+00   293\n\
-1.000000E+00  1.000000E+00  1.000000E+00   294\n\
-1.000000E+00  1.000000E+00  1.000000E+00   295\n\
-1.000000E+00  1.000000E+00  1.000000E+00   296\n\
+    2212    2212  3.500000E+03  3.500000E+03     0     0 10042 10042     3    84\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   201\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   202\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   204\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   205\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   207\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   208\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   209\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   210\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   211\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   212\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   213\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   214\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   216\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   217\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   218\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   219\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   220\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   221\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   222\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   223\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   224\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   225\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   226\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   227\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   228\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   229\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   230\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   231\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   232\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   233\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   234\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   235\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   236\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   237\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   238\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   239\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   240\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   241\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   242\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   243\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   244\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   246\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   247\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   248\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   249\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   250\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   251\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   252\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   253\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   254\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   256\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   258\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   259\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   261\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   262\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   263\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   264\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   265\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   271\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   272\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   273\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   274\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   275\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   276\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   277\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   278\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   279\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   280\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   281\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   282\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   283\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   284\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   285\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   286\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   287\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   288\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   289\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   290\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   291\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   292\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   293\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   294\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   295\n\
+  1.000000E+00  1.000000E+00  1.000000E+00   296\n\
 </init>\n")
     else:
         makeLHE(templateCfgName, slhaFile, jobNumber)
@@ -218,24 +216,37 @@ DECAY   1000022   0.0E+00\n\
     file.close()
 
 def addToLHESource(sourceFileName, outputDirectory, lheFileName):
-    sourceFile = open(sourceFileName, 'r+')
-    unedited = sourceFile.read()
-    sourceFile.write( unedited.replace('])', "'" + outputDirectory + "/" + lheFileName + "',\n])"))
+    oldFile = open(sourceFileName, 'r')
+    newFile = open(sourceFileName  + '.tmp', 'w')
+    if outputDirectory.find('/store/') > -1: 
+        prefix = ''
+        outputDirectory = outputDirectory[outputDirectory.find('/store'):]
+    elif outputDirectory.find('/pnfs/') > -1: prefix = 'dcap://'
+    else: prefix = 'file:'
 
+    for line in oldFile:
+        line = line.replace('])', "'" + prefix + outputDirectory + "/" + lheFileName + "',\n])")
+        newFile.write(line)
+    oldFile.close()
+    newFile.close()
+    
+    subprocess.call("mv " + sourceFileName + ".tmp " + sourceFileName, 
+                    shell = True)
 def addEventsToCrab(crabFileName, events):
     try:
         file = open(crabFileName, 'r')
     except:
-        sys.sdterr("** Could not find crab file. You must edit number of events " +
-                   "yourself **\n")
+        sys.sdterr("** Could not find crab file. You must edit number of "+
+                   "events yourself **\n")
         return
     for line in file:
         if line.find("total_number_of_events") > -1:
             oldNumber = int(line.split('=')[-1].replace('_', '').replace('\n', ''))
             newNumber = oldNumber + events
             break
-    subprocess.call('sed -i -e s,"' + line + '","' + 'total_number_of_events = '+ 
-                    str(newNumber) + '\n", ' + crabFileName, shell=True)
+    subprocess.call('sed -i -e s,"' + line.replace('\n', '') + 
+                    '","total_number_of_events = ' + str(newNumber) + '", ' + 
+                    crabFileName, shell=True)
 
 def endOutputFile(fileName):
     file = open(fileName, 'r')
@@ -273,6 +284,7 @@ if __name__ == '__main__':
 
     jobNumber = sys.argv[1]
     filesPerJob = FILESPERJOB
+    createScanDirectory = CREATESCANDIRECTORY
     useDefaultHeader = USEDEFAULTHEADER
     runLHECheck = RUNLHECHECK
     templateCfgName = TEMPLATECFG
@@ -280,7 +292,8 @@ if __name__ == '__main__':
     outputDir = OUTPUTDIR
     sourceFileName = SOURCEFILE
     crabFileName = CRABFILE
-
+    events = 0
+    
     allSlhas = glob.glob(slhaScanDir + '/*slha')
     for i in range(0,len(allSlhas)):
         allSlhas[i] = allSlhas[i].split('/')[-1]
@@ -290,7 +303,7 @@ if __name__ == '__main__':
     if int(filesPerJob)*(int(jobNumber) + 1)  > len(allSlhas): 
         slhaBunch = allSlhas[int(filesPerJob) * int(jobNumber): len(allSlhas)]
     slhaBunch = allSlhas[ int(filesPerJob) * int(jobNumber): 
-                          int(filesPerJob) *(int(jobNumber) + 1)]
+                          int(filesPerJob) * (int(jobNumber) + 1)]
 
     if slhaBunch[0] == slhaBunch[-1]:
         outputFileName = slhaBunch.replace('.slha', '.lhe')
@@ -307,12 +320,13 @@ if __name__ == '__main__':
 
     for i in range(slhaToStartOn, len(slhaBunch)):
         
-        makeLHE(templateCfgName, slhaBunch[i], jobNumber, lheDir)
+        makeLHE(templateCfgName, slhaBunch[i], jobNumber)
         if glob.glob('fort.69') == []:
             sys.stderr.write("No LHE file was created using slha file: " + 
-                             slhaBunch[i] + "something either went wrong with " + 
-                             "the cmsRun on that point or you do not have the " + 
-                             "correctly modified version of Pythia")
+                             slhaBunch[i] + "\nPossible causes:\n1) You" + 
+                             " need to cmsenv.\n2)Something went wrong with" + 
+                             " the cmsRun on that point.\n3) You do not have" +
+                             "the correctly modified version of Pythia")
             continue
         if runLHECheck and not checkStablesInLhe:
             continue
@@ -321,5 +335,9 @@ if __name__ == '__main__':
         insertComment('fort.69', slhaBunch[i].replace('.slha', '') + xsection)
         mergeEvents(['fort.69'], outputFileName)
     endOutputFile(outputFileName)
-    addToLHESource(SourceFileName, outputDir, outputFileName)
+    addToLHESource(sourceFileName, outputDir, outputFileName)
     addEventsToCrab(crabFileName, events)
+
+    subprocess.call('mv ' + outputFileName +' ' +outputDir, shell =True)
+    subprocess.call('rm fort.69', shell=True)
+    subprocess.call('scram b -j 4', shell=True, cwd = createScanDirectory)

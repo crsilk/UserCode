@@ -8,6 +8,6 @@ Should_Transfer_Files = YES
 Transfer_Input_Files = createLHEs.py, SLHAToLHE_cfg.py
 Arguments = $(Process)
 WhenTOTransferOutput  = ON_EXIT
-environment = CREATESCANDIR=_CREATESCANDIR_; OUTPUTDIRECTORY=_OUTPUTDIRECTORY_; 
+environment = CREATESCANDIR=_CREATESCANDIR_; 
 Notification = error
 Queue _NUMBEROFJOBS_
