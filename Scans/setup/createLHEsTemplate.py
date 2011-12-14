@@ -54,7 +54,7 @@ def makeLHE(templateCfgName, slhaFile, jobNumber):
     
     subprocess.call("echo  \n #" + slhaFile.replace('.slha', '') + 
                      "\n \n >> SLHAToLHETemp.log", shell=True)
-    subprocess.call("cmsRun SLHAToLHETemp_cfg.py >> SLHAToLHETemp.log", shell=True)
+    subprocess.call("cmsRun SLHAToLHETemp_cfg.py| tee SLHAToLHETemp.log", shell=True)
     subprocess.call("rm SLHAToLHETemp_cfg.py", shell=True)
 
 def insertComment(fileName,  comment):
