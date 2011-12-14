@@ -330,10 +330,14 @@ if __name__ == '__main__':
             continue
         if runLHECheck and not checkStablesInLhe:
             continue
+        
         xsection = grabXSection('SLHAToLHETemp.log')
         events = events + countEvents('fort.69')
+        
         insertComment('fort.69', slhaBunch[i].replace('.slha', '') + xsection)
         mergeEvents(['fort.69'], outputFileName)
+        
+        subprocess.call('rm SLHAToLHETemp.log', shell=True)
     endOutputFile(outputFileName)
     addToLHESource(sourceFileName, outputDir, outputFileName)
     addEventsToCrab(crabFileName, events)
