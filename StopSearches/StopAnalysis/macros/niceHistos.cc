@@ -15,9 +15,9 @@
 #include <math.h>
 #include <TFile.h>
 #include "TLatex.h"
+#include "THStack.h"
 
 using namespace std;
-
 void nice1DHisto(string fileName, string histoName, string histoTitle, string xAxisTitle)
 {
    gStyle->SetStatColor(0);
@@ -109,4 +109,58 @@ void compare2Histos(string file1Name,string file2Name,string histoName,string hi
    file1histo->Draw("HISTO SAME");
    legend1->Draw();
    compareHistoCanvas->Update();   
+}
+vector<THStack *> stackHistos( vector<string> fileNames, vector<string> histoNames, vector<string> legendNames, string tag , bool saveHistos)
+{
+  
+   gStyle->SetOptStat(0);
+   gStyle->SetStatColor(0);
+   gStyle->SetTitleFillColor(0);
+   gStyle->SetFrameBorderMode(0);
+
+   TH1F* histo;
+
+   TLegend * legend = new TLegend(0.5, 0.6, 0.89, 0.89);
+   legend->SetFillColor(0);
+
+   vector<THStack *> stacks;
+   vector<TCanvas *> canvases;
+   size_t position;
+   string tempString;
+
+   for(unsigned j = 0; j < histoNames.size();j++)
+     {
+       position = histoNames[j].find("/");
+       tempString = histoNames[j].substr(position + 1);
+       stacks.push_back(new THStack(histoNames[j].c_str(),tempString.c_str()));
+
+       canvases.push_back(new TCanvas(histoNames[j].c_str(),""));
+       canvases[j]->SetFillColor(0);
+       
+       for (unsigned i = 0; i < fileNames.size(); i++)
+	 {
+	   TFile * file = new TFile(fileNames[i].c_str());
+	   histo = (TH1F *)file->Get(histoNames[j].c_str());
+	   
+	   histo->SetFillColor(i + 1);
+	   histo->SetMarkerStyle(22);
+	   histo->SetMarkerColor(i);
+
+	   if(j == 0) legend->AddEntry(histo, legendNames[i].c_str());
+	   stacks[j]->Add(histo);
+	 }
+       canvases[j]->cd();
+       stacks[j]->Draw();
+       legend->Draw();
+       if(saveHistos)
+	 {
+	   position = histoNames[j].find("/");
+	   tempString = histoNames[j].substr(position + 1);
+	   tempString = tempString + "_" + tag +".gif";
+	   canvases[j]->SaveAs(tempString.c_str());
+	 }
+     }
+   
+
+   return stacks;
 }
