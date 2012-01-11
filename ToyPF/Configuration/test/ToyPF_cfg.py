@@ -11,7 +11,7 @@ process.maxEvents = cms.untracked.PSet(
 ######## input files #########################################
 process.source = cms.Source (
     "PoolSource",
-    fileNames = cms.untracked.vstring('file:/uscms/home/cavanaug/CMSDAS/dipion-gun-no-mat.root'),
+    fileNames = cms.untracked.vstring('file:/uscmst1b_scratch/lpc1/3DayLifetime/crsilk/temp/SinglePiPt25_cfi_py_GEN_FASTSIM_HLT_Display_1_1_bz9.root'),
     noEventSort = cms.untracked.bool(True),
     duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
     )
@@ -34,9 +34,9 @@ process.out = cms.OutputModule("PoolOutputModule",
                                fileName = cms.untracked.string('ToyPF.root'),
                                outputCommands = cms.untracked.vstring('keep recoPFCandidates_toyPFProducer__NEWNAME',
                                                                       'keep recoMETs_toyPFMETProducer__NEWNAME',
-                                                                      'keep recoPFCandidates_particleFlow__PROD',
-                                                                      'keep recoPFMETs_pfMet__PROD',
-                                                                      'keep recoCaloMETs_met__PROD')
+                                                                      'keep recoPFCandidates_particleFlow__HLT',
+                                                                      'keep recoPFMETs_pfMet__HLT',
+                                                                      'keep recoCaloMETs_met__HLT')
                                )
 
 
