@@ -334,7 +334,8 @@ if __name__ == '__main__':
         xsection = grabXSection('SLHAToLHETemp.log')
         events = events + countEvents('fort.69')
         
-        insertComment('fort.69', slhaBunch[i].replace('.slha', '') + xsection)
+#        insertComment('fort.69', slhaBunch[i].replace('.slha', '') + xsection)
+        insertComment('fort.69', slhaBunch[i].replace('.slha', ''))
         mergeEvents(['fort.69'], outputFileName)
         
         subprocess.call('rm SLHAToLHETemp.log', shell=True)
