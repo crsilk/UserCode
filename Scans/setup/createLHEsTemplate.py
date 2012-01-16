@@ -58,7 +58,7 @@ def makeLHE(templateCfgName, slhaFile, jobNumber):
     subprocess.call("rm SLHAToLHETemp_cfg.py", shell=True)
 
 def insertComment(fileName,  comment):
-    subprocess.call('sed -i -e s,"</event>","#' + comment +'\\n</event>", ' + 
+    subprocess.call('sed -i -e s,"</event>","# model ' + comment +'\\n</event>", ' + 
                     fileName, shell=True)
 
 def mergeEvents(inFileList, outFileName):
