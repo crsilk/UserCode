@@ -6,9 +6,6 @@
 import subprocess, re, glob, os, sys, ConfigParser
 
 
-
-
-
 def ntabs(n):
     tab = ''
     for i in range (0, n):
@@ -72,7 +69,13 @@ def stringToArray(string):
     for i in range(0,deletes):
         array.remove('')
     return array
+def stringToArrayN(string, delimiter):
+	array = string.split(delimiter)
+	deletes = array.count('')
     
+	for i in range(0,deletes):
+		array.remove('')
+	return array
 def stringToArrays(string):
     lines = string.split('\n')
     array = []
@@ -101,7 +104,7 @@ subprocesses, otherPythiaCommands, slhaDirectory, randomSeed):
             for subpro in subprocesses:
                 line = line + "'MSUB(" + subpro + ") = 1',\n"
             for command in otherPythiaCommands:
-                line = line + "'" + command + "',\n"
+                line = line +"'" + command + "',\n"
         if line.find("SLHADIRECTORY") > -1:
             line = line.replace("SLHADIRECTORY", slhaDirectory)
         
@@ -318,7 +321,7 @@ if __name__ == '__main__':
     except:
         lheInputDir = createScanDir + '/' + modelTag + '/SLHA/files/'
     try:
-        otherPythias = stringToArray(parser.get("LHE", "other_pythia_commands"))
+        otherPythias = stringToArrayN(parser.get("LHE", "other_pythia_commands"),'\n')
     except:
         otherPythias = []
     try:
@@ -359,7 +362,7 @@ if __name__ == '__main__':
     
     for i in range(0, len(scanParameterNames)):
         nSlhasFiles = nSlhaFiles * (float(scanParameterMaxs[i]) - float(scanParameterMins[i]) )/float(scanParameterSteps[i])
-    numberOfJobs = int(nSlhasFiles/float(pointsPerFile)) + 1
+    numberOfJobs = int(nSlhasFiles/int(pointsPerFile)) + 1
 
     if scheduler.find('condor') > -1:
         useServer = 0
