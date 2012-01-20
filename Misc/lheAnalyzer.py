@@ -7,7 +7,7 @@ from ROOT import gSystem, gROOT, gStyle, TH1F, TH2F, TCanvas, TFile, TLatex
 sys.argv = tmpargv
 from optparse import OptionParser
 #### ROOT stuff #####
-gStyle.SetOptStat(111111)
+gStyle.SetOptStat(111)
 gStyle.SetStatColor(0);
 gStyle.SetTitleFillColor(0);
 gStyle.SetFrameBorderMode(0);
@@ -22,6 +22,12 @@ def splitLine(line):
     return lineArray
 def ptSort(particle1, particle2):
     return cmp(particle1.pt(), particle2.pt())
+def average(array):
+    value = 0
+    for element in array:
+        value = value + element
+
+    return value/len(array)
 def pdgIdToLatex(pdgId):
     pdgIdList = [1, 2, 3, 4, 5, 6, 11, 12, 13, 14, 15, 16, 21, 22, 23, 24, 
                  1000001, 1000002, 1000003, 1000004, 1000005, 1000006, 1000011,
@@ -33,11 +39,11 @@ def pdgIdToLatex(pdgId):
                  'W', '#tilde{d}_{L}', '#tilde{u}_{L}', '#tilde{s}_{L}', 
                  '#tilde{c}_{L}', '#tilde{b}_{L}', '#tilde{t}_{1}', 
                  '#tilde{e}_{L}', '#tilde{#nu}_{eL}',  '#tilde{#mu}_{L}', 
-                 '#tilde{#nu}_{#mu L}', 'tilde{#tau}_{L}', 
+                 '#tilde{#nu}_{#mu L}', '#tilde{#tau}_{L}', 
                  '#tilde{nu}_{#tau L}','#tilde{d}_{R}', '#tilde{u}_{R}', 
                  '#tilde{s}_{R}', '#tilde{c}_{R}', '#tilde{b}_{R}', 
-                 '#tilde{t}_{2}','tilde{e}_{R}', '#tilde{#mu}_{R}', 
-                 'tilde{#tau}_{R}', '#tilde{g}', '#tilde{#chi}^{0}_{1}', 
+                 '#tilde{t}_{2}','#tilde{e}_{R}', '#tilde{#mu}_{R}', 
+                 '#tilde{#tau}_{R}', '#tilde{g}', '#tilde{#chi}^{0}_{1}', 
                  '#tilde{#chi}^{0}_{2}', '#tilde{#chi}^{#pm}_{1}']
     string = str(pdgId)
     for i in range(0, len(pdgIdList)):
@@ -53,6 +59,25 @@ def shrink1DHisto(histo):
             break
     if maxI > 1:
         histo.GetXaxis().SetRange(0, maxI+1)
+def shrink2DHisto(histo):
+    maxI = 0
+    maxJ = 0
+    for i in range(histo.GetNbinsX(), 1, -1):
+        if maxI != 0:
+            break
+        for j in range(histo.GetNbinsY(), 1, -1):
+            if histo.GetBinContent(i, j) != 0:
+                maxI = i + 1
+                break
+
+    for j in range(histo.GetNbinsY(), 1, -1):
+        for i in range(histo.GetNbinsX(), 1, -1):
+            if histo.GetBinContent(i, j) != 0:
+                maxJ = j + 1
+    if maxI > 1:
+        histo.GetXaxis().SetRange(0, maxI + 1)
+    if maxJ > 1:
+        histo.GetYaxis.SetRange(0, maxJ + 1)
 
 class Particle:
     def __init__(self, lheLineArray):
@@ -85,7 +110,10 @@ class Particle:
     def eta(self):
         return 0.5 * math.log( ( self.p() + self.pz() )/( self.p() - self.pz() ) )
     def phi(self):
-        return math.atan( self.py()/self.px() )
+        if self.py() > 0:
+            return math.acos( self.px()/self.pt() )
+        else:
+            return -math.acos(self.px()/self.pt())
 class Event:
     def __init__(self, particles, modelParameters, otherParameters):
         self.particles_ = particles
@@ -115,11 +143,11 @@ class Event:
             px = px + particle.px()
             py = py + particle.py()
         return math.sqrt(px*px + py*py)
-    def grabParticles(self, pdgIdList, status = 1):
+    def grabParticles(self, pdgIdList, statusCheck = True):
         particles = []
         for particle in self.particles_:
             if pdgIdList.count(abs(particle.pdgId())) > 0:
-                if particle.status() == status:
+                if statusCheck  and particle.status() == 1:
                     particles.append(particle)
 
         return particles
@@ -148,20 +176,27 @@ class ParticleHistos:
         if latex == "":
             latex = pdgIdToLatex(pdgId)
         
-        self.histograms.append(TH1F(tag +"Number", "Number of " + latex, 20, 0 , 20))
+        self.histograms.append(TH1F(tag +"Number", "Number of " + latex, 20, 
+                                    0 , 20))
         self.histograms[-1].GetXaxis().SetTitle("Number")
-        self.histograms.append(TH1F(tag + "Pt", latex + " p_{t}", 2000, 0, 2000))
+        self.histograms.append(TH1F(tag + "Pt", latex + " p_{t}", 2000, 0, 
+                                    2000))
         self.histograms[-1].GetXaxis().SetTitle("p_{t} (GeV)")
-        self.histograms.append(TH1F(tag + "1Pt", "1st " + latex + " p_{t}", 2000, 0, 2000))
+        self.histograms.append(TH1F(tag + "1Pt", "1st " + latex + " p_{t}", 
+                                    2000, 0, 2000))
         self.histograms[-1].GetXaxis().SetTitle("p_{t} (GeV)")
-        self.histograms.append(TH1F(tag + "2Pt", "2nd " + latex + " p_{t}", 2000, 0, 2000))
+        self.histograms.append(TH1F(tag + "2Pt", "2nd " + latex + " p_{t}", 
+                                    2000, 0, 2000))
         self.histograms[-1].GetXaxis().SetTitle("p_{t} (GeV)")
         self.histograms.append(TH1F(tag + "Eta", latex + " #eta", 100, -5, 5))
         self.histograms[-1].GetXaxis().SetTitle("#eta")
-        self.histograms.append(TH1F(tag + "Phi", latex + " #phi", 100, -math.pi, math.pi))
+        self.histograms.append(TH1F(tag + "Phi", latex + " #phi", 100, 
+                                    -math.pi, math.pi))
         self.histograms[-1].GetXaxis().SetTitle("#phi")
-        self.histograms.append(TH1F(tag +"Mass", latex + " mass", 2000, 0, 2000))
+        self.histograms.append(TH1F(tag +"Mass", latex + " mass", 2000, 0, 
+                                    2000))
         self.histograms[-1].GetXaxis().SetTitle("Mass (GeV)")
+        
     def Fill(self,particleList):
         self.histograms[0].Fill(len(particleList))
         if len(particleList) > 0:
@@ -185,22 +220,68 @@ class ParticleHistos:
         for histogram in self.histograms:
             histogram.Write()
         
-    def SaveAsGif(self):
+    def SaveAsGif(self, tag):
         canvas = TCanvas()
         canvas.SetFillColor(0)
         canvas.cd()
         
         for histogram in self.histograms:
             histogram.Draw()
-            canvas.SaveAs("temp_" + histogram.GetName() + ".gif")
+            canvas.SaveAs(tag+ "_" + histogram.GetName() + ".gif")
+class ModelPoint:
+    def __init__(self,parameters, particleNames = [], particlePdgIds = [], 
+                 otherParameterNames = []):
+        self.parameters_ = parameters
+        self.nEvents_ = 0
+        self.particleNames_ = particleNames
+        self.particlePdgIds_ = particlePdgIds
+        self.particleNumbers_ = []
+        self.particleMasses_ = []
+        for particle in self.particleNames_:
+            self.particleNumbers_.append(0)
+            self.particleMasses_.append(0)
+        self.otherParameterNames_ = otherParameterNames
+        self.otherParameterValues_ = []
+        for otherParameter in self.otherParameterNames_:
+            otherParameterValues_.append(0)
+        
 
+    def addEvent(self, event):
+        self.nEvents_ = self.nEvents_ + 1
+        for particle in event.particles_:
+            for i in range(0, len(self.particlePdgIds_)):
+                if abs(self.particlePdgIds_[i]) == abs(particle.pdgId()):
+                    self.particleMasses_[i] = ((self.particleMasses_[i] * 
+                                                self.particleNumbers_[i] + 
+                                                particle.mass()) /
+                                               (self.particleNumbers_[i] + 1))
+                    
+                    self.particleNumbers_[i] = self.particleNumbers_[i] + 1
 
+    def setOtherParameters(self, otherParameters):
+        for i in range(0, len(otherParameters)):
+            self.otherParameterValues_[i] = otherParameters[i]
+    def getParameters(self):
+        return self.parameters_
+    def particleNames(self):
+        return self.particleNames_
+    def particlePdgIds(self):
+        return self.particlePdgIds_
+    def particleMasses(self):
+        return self.particleMasses_
+    def otherParameterNames(self):
+        return self.otherParticleNames_
+    def otherParameterValues(self):
+        return self.otherParameterValues_
+    def nEvents(self):
+        return self.nEvents_
+                                                              
+            
+        
 if __name__=="__main__":
     parser = OptionParser()
 
     parser.add_option('-n', "--nEvents", dest = "nEvents", default = -1, type = "int", help = 'Number of events to run over.', metavar ="INT")
-
-    parser.add_option("-o", "--outputFile", dest = "outputFileName",default = "lheAnalyzer.root", help="output root file name.",metavar="FILE")
 
     parser.add_option("-s", "--singlePoint", dest = "singlePoint", action = "store_true", default=False, help = "Create plots for single point (default creates a different set of plots for the entire scan).")
 
@@ -210,13 +291,38 @@ if __name__=="__main__":
 
     parser.add_option("-t", "--parameterTags", dest="parameterTags", help="Name of the parameters you are scanning over (just to put in the histograms).", default = ("parameter1", "parmeter2"), type="string", nargs = 2, metavar="PARAMETERNAMES")
 
-    parser.add_option("-c", "--saveCanvases", dest="saveCanvases", action = "store_true", default = True, help = "Save the histogram Canvases")
+    parser.add_option("-c", "--saveCanvases", dest="saveCanvases", action = "store_true", default = False, help = "Save the histogram Canvases")
     (options, args) = parser.parse_args()
     if len(args) == 0:
         sys.stderr.write('No input lhe file given\n')
         sys.exit(0)
+    
+    
+    outputFileName = ''
+    eventCounter = 0
+    inEvent = False
+    particles = []
+    modelParameters =[]
+    otherParameters = []
+    susyParticleNames = ["Sdown", "Sup", "Sstrange", "Scharm", "Sbottom", "Stop", "Selectron", "ElectronSneutrino", "Smuon", "MuonSneutrino", "Stau", "TauSneutrino", "Gluino", "Neutralino1", "Neutralino2", "Chargino1"]
+    susyPdgIds = [1000001, 1000002, 1000003, 1000004, 1000005, 1000006, 1000011,1000012, 1000013, 1000014, 1000015, 1000016, 1000021, 1000022, 1000023, 1000024 ]
+    jetPdgIds = [1, 2, 3, 4, 5, 21]
+    squarkPdgIds = [1000001, 1000002, 1000003, 1000004, 2000001, 2000002, 
+                    2000003, 2000004]
+    sleptonPdgIds = [1000011, 1000013, 1000015, 2000011, 2000013, 1000015]
+    sneutrinoPdgIds = [1000012, 1000014, 1000016]
 
-    outputRootFile = TFile(options.outputFileName, 'RECREATE')
+    existingModelPoints =[]
+    modelPoints = []
+    tag = args[0].split('/')[-1].replace('.lhe', '').split('_')[0] 
+
+    if options.singlePoint:
+        outputFileName = (tag + '_' + str(options.parameterPoint[0]) + '_' + 
+                          str(options.parameterPoint[1]) + '.root')
+    else:
+        outputFileName = (tag + '_fullScan.root')
+    outputRootFile = TFile(outputFileName, 'RECREATE')
+
     if options.singlePoint:
         outputRootFile.cd()
         outputRootFile.mkdir("GeneralHistograms")
@@ -238,13 +344,6 @@ if __name__=="__main__":
         outputRootFile.mkdir("Neutralino1Histograms")
         outputRootFile.mkdir("Neutralino2Histograms")
         outputRootFile.mkdir("Chargino1Histograms")
-    
-    count = 0
-    inEvent = False
-    particles = []
-    modelParameters = []
-    otherParameters = []
-    eventCounter = 0
     
     metHistogram = TH1F("MET", "MET", 2000, 0, 2000)
     metHistogram.GetXaxis().SetTitle("MET (GeV)")
@@ -268,7 +367,7 @@ if __name__=="__main__":
     neutralino1Histograms = ParticleHistos(1000022, "neutralino1")
     neutralino2Histograms = ParticleHistos(1000023, "neutralino2")
     chargino1Histograms = ParticleHistos(1000024, "chargino1")
-
+    
     for inputFileName in args:
         lheFile = open(inputFileName, 'r')
 
@@ -295,29 +394,39 @@ if __name__=="__main__":
 
                         metHistogram.Fill(event.met())
                         sumPtHistogram.Fill(event.sumPt())
-                        jetHistograms.Fill(event.grabParticles([1, 2, 3, 4, 5, 21]))
+                        jetHistograms.Fill(event.grabParticles(jetPdgIds))
                         bHistograms.Fill(event.grabParticles([5]))
                         tHistograms.Fill(event.grabParticles([5]))
                         electronHistograms.Fill(event.grabParticles([11]))
                         muonHistograms.Fill(event.grabParticles([13]))
                         tauHistograms.Fill(event.grabParticles([15]))
-                        zHistograms.Fill(event.grabParticles([22], status = 2))
-                        photonHistograms.Fill(event.grabParticles([23], status = 2))
-                        wHistograms.Fill(event.grabParticles([24], status = 2))
-                        squarkHistograms.Fill(event.grabParticles([1000001, 1000002, 1000003, 1000004, 2000001, 2000002, 2000003, 2000004]))
-                        sbottomHistograms.Fill(event.grabParticles([1000005], status = 2))
-                        stopHistograms.Fill(event.grabParticles([1000006], status = 2))
-                        sleptonHistograms.Fill(event.grabParticles([1000011, 1000013, 1000015, 2000011, 2000013, 1000015], status = 2))
-                        sneutrinoHistograms.Fill(event.grabParticles([1000012, 1000014, 1000016], status = 2))
-                        gluinoHistograms.Fill(event.grabParticles([1000021], status = 2))
-                        neutralino1Histograms.Fill(event.grabParticles([1000022], status = 2))
-                        neutralino2Histograms.Fill(event.grabParticles([1000023], status = 2))
-                        chargino1Histograms.Fill(event.grabParticles([1000024], status = 2))
+                        zHistograms.Fill(event.grabParticles([22], statusCheck = False))
+                        photonHistograms.Fill(event.grabParticles([23], statusCheck = False))
+                        wHistograms.Fill(event.grabParticles([24], statusCheck = False))
+                        squarkHistograms.Fill(event.grabParticles(squarkPdgIds))
+                        sbottomHistograms.Fill(event.grabParticles([1000005], statusCheck = False))
+                        stopHistograms.Fill(event.grabParticles([1000006], statusCheck = False))
+                        sleptonHistograms.Fill(event.grabParticles(sleptonPdgIds, statusCheck = False))
+                        sneutrinoHistograms.Fill(event.grabParticles(sneutrinoPdgIds, statusCheck = False))
+                        gluinoHistograms.Fill(event.grabParticles([1000021], statusCheck = False))
+                        neutralino1Histograms.Fill(event.grabParticles([1000022], statusCheck =False))
+                        neutralino2Histograms.Fill(event.grabParticles([1000023], statusCheck = False))
+                        chargino1Histograms.Fill(event.grabParticles([1000024], statusCheck = False))
                                                  
                                                                    
                 else:
-                    continue
- 
+                    eventModelPoint = event.modelParameters()
+
+                    if existingModelPoints.count(eventModelPoint) > 0:
+
+                        index = existingModelPoints.index(eventModelPoint)
+                        modelPoints[index].addEvent(event)
+
+                    else:
+                        existingModelPoints.append(eventModelPoint)
+                        modelPoints.append(ModelPoint(eventModelPoint, particleNames = susyParticleNames, particlePdgIds = susyPdgIds))
+                        modelPoints[-1].addEvent(event)
+                                           
                 ##############
                 inEvent = False
                 particles = []
@@ -331,17 +440,24 @@ if __name__=="__main__":
                 continue
 
             if lineArray[0] == '#':
-                modelArray = lineArray[2].split('_')
-                modelParameters = [float(modelArray[options.whichParameters[0]]), float(modelArray[options.whichParameters[1]])]
+                modelArray = lineArray[2].split('_')[1:]
+                modelParameters = []
+                for string in modelArray:
+                    modelParameters.append(float(string))
+                    
+
                 otherParamters = lineArray[3:]
                 continue
             
             if len(lineArray) < 9:
-                sys.stderr("Something wrong with this line, too short: " + 
+                sys.stderr.write("Something wrong with this line, too short: " + 
                            line + "\n")
                 sys.exit(0)
             
             particles.append(Particle(lineArray))
+
+
+    
     if options.singlePoint:
         outputRootFile.cd("GeneralHistograms")
         metHistogram.Write()
@@ -400,6 +516,102 @@ if __name__=="__main__":
         outputRootFile.cd("Chargino1Histograms")
         chargino1Histograms.ShrinkHistos()
         chargino1Histograms.Write()
+    else:
+        massHistograms = []
+        
+        minX = 100000000000
+        maxX =-100000000000
+        stepX = 10000000000
+        nBinsX = 0
+        nBinsY = 0
+        minY = 100000000000
+        maxY = -100000000000
+        stepY = 100000000000
+        
+        arrayIndex1 = options.whichParameters[0]
+        arrayIndex2 = options.whichParameters[1]
+        
+        for i  in range(0, len(existingModelPoints)):
+            iparameter1 = existingModelPoints[i][arrayIndex1]
+            iparameter2 = existingModelPoints[i][arrayIndex2]
+            
+            if minX > iparameter1:
+                minX = iparameter1
+            if maxX < iparameter1:
+                maxX = iparameter1
+            if minY > iparameter2:
+                minY = iparameter2
+            if maxY < iparameter2:
+                maxY = iparameter2
+            
+            for j in range(0, len(existingModelPoints)):
+
+                jparameter1 = existingModelPoints[j][arrayIndex1]
+                jparameter2 = existingModelPoints[j][arrayIndex2]
+
+                if (abs(iparameter1 - jparameter1) < stepX and
+                    abs(iparameter1 - jparameter1) != 0 ) :
+                    stepX = abs(iparameter1 - jparameter1)
+                    
+                if (abs(iparameter2 - jparameter2) < stepY and
+                    abs(iparameter2 - jparameter2) != 0 ) :
+                    stepY = abs(iparameter2 - jparameter2)
+        
+        if stepX == 10000000000 or stepY == 10000000000:
+            sys.stderr.write("Not a scan, need at least four model points with  (x1, y1),...,  (xn,yn) such that xi != xj and yi != yj for all i and j\n")
+            sys.exit(0)
+
+        print minX
+        print maxX
+        print stepX
+        print " " 
+        print minY
+        print maxY
+        print stepY
+        maxX = maxX + 2* stepX
+        maxY = maxY + 2* stepY
+        if minX -  stepX >= 0:
+            minX = minX  - stepX
+        if minY -  stepY >= 0:
+            minY = minY - stepY
+        nBinsX = int((maxX - minX)/stepX)
+        nBinsY = int((maxY - minY)/stepY)
+        
+        nEventsHistogram = TH2F("NEvents", "Number of Events", nBinsX, minX, maxX, nBinsY, minY, maxY)
+        for modelPoint in modelPoints:
+            nEventsHistogram.Fill(modelPoint.getParameters()[arrayIndex1],
+                                  modelPoint.getParameters()[arrayIndex2],
+                                  modelPoint.nEvents())
+        nEventsHistogram.Write()
+
+        for i in range(0, len(modelPoints[0].particleNames())):
+
+            particleName = modelPoints[0].particleNames()[i]
+            particlePdgId = modelPoints[0].particlePdgIds()[i]
+            massHistograms.append(TH2F(particleName + "MassScan",
+                                       pdgIdToLatex(particlePdgId) + " mass",
+                                       nBinsX, minX, maxX,
+                                       nBinsY, minY, maxY))
+            massHistograms[-1].GetXaxis().SetTitle(options.parameterTags[0])
+            massHistograms[-1].GetYaxis().SetTitle(options.parameterTags[1])
+            for modelPoint in modelPoints:
+                
+                massHistograms[-1].Fill(modelPoint.getParameters()[arrayIndex1],
+                                        modelPoint.getParameters()[arrayIndex2],
+                                        modelPoint.particleMasses()[i])
+        for massHistogram in massHistograms:
+
+            massHistogram.Write()
+
         if options.saveCanvases:
-            chargino1Histograms.ShrinkHistos()
-            chargino1Histograms.SaveAsGif()
+            canvas = TCanvas()
+            canvas.SetFillColor(0)
+            canvas.cd()
+            nEventsHistogram.Draw("colz")
+            canvas.SaveAs(tag + "_" +nEventsHistogram.GetName() + ".gif")
+            for massHistogram in massHistograms:
+                massHistogram.Draw("colz")
+                canvas.SaveAs(tag + "_" +massHistogram.GetName() + ".gif")
+#        if options.saveCanvases:
+#            neutralino1Histograms.ShrinkHistos()
+#            neutralino1Histograms.SaveAsGif(tag)
