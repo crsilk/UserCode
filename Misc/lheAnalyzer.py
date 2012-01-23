@@ -33,7 +33,7 @@ def pdgIdToLatex(pdgId):
                  1000001, 1000002, 1000003, 1000004, 1000005, 1000006, 1000011,
                  1000012, 1000013, 1000014, 1000015, 1000016, 2000001, 2000002,
                  2000003, 2000004, 2000005, 2000006, 2000011, 2000013, 2000015,
-                 1000021, 1000022, 1000023, 1000024]
+                 1000021, 1000022, 1000023, 1000024, 1000025]
     latexList = ['d', 'u', 's', 'c', 'b', 't', 'e', '#nu_{e}', '#mu', 
                  '#nu_{#mu}', '#tau', '#nu_{#tau}', 'g', '#gamma', 'Z_{0}', 
                  'W', '#tilde{d}_{L}', '#tilde{u}_{L}', '#tilde{s}_{L}', 
@@ -44,7 +44,16 @@ def pdgIdToLatex(pdgId):
                  '#tilde{s}_{R}', '#tilde{c}_{R}', '#tilde{b}_{R}', 
                  '#tilde{t}_{2}','#tilde{e}_{R}', '#tilde{#mu}_{R}', 
                  '#tilde{#tau}_{R}', '#tilde{g}', '#tilde{#chi}^{0}_{1}', 
-                 '#tilde{#chi}^{0}_{2}', '#tilde{#chi}^{#pm}_{1}']
+                 '#tilde{#chi}^{0}_{2}', '#tilde{#chi}^{#pm}_{1}', 
+                 '#tilde{#chi}^{0}_{3}']
+    nameList = ['down,', 'up', 'strange', 'charm', 'bottom', 'top', 'electron',
+                'electronNeutrino', 'muon', 'muonNeutrino', 'tau', 
+                'tauNeutrino', 'gluon', 'photon', 'Z', 'W', 'sdownL', 'supL', 
+                'sstrangeL', 'scharmL', 'sbottomL', 'stopL', 'selectronL', 
+                'electronSneutrino', 'smuonL', 'muonSneutrino', 'stauL', 
+                'stauNeutrino','sdownR', 'supR', 'sstrangeR', 'scharmR', 
+                'sbottomR', 'stopR', 'selectronR', 'smuonR', 'stauR', 'gluino',
+                'neutralino1', 'neutralino2', 'chargino1', 'neutralino3']
     string = str(pdgId)
     for i in range(0, len(pdgIdList)):
         if pdgIdList[i] == pdgId:
@@ -108,8 +117,13 @@ class Particle:
     def pt(self):
         return math.sqrt( self.px()*self.px() + self.py()*self.py() )
     def eta(self):
+        if abs(self.p() - self.pz()) < 0.00000001: return 6
+        if abs(self.p() + self.pz()) < 0.00000001: return -6
+
         return 0.5 * math.log( ( self.p() + self.pz() )/( self.p() - self.pz() ) )
     def phi(self):
+        if self.pt() < 0.000001: return 0
+
         if self.py() > 0:
             return math.acos( self.px()/self.pt() )
         else:
@@ -147,8 +161,8 @@ class Event:
         particles = []
         for particle in self.particles_:
             if pdgIdList.count(abs(particle.pdgId())) > 0:
-                if statusCheck  and particle.status() == 1:
-                    particles.append(particle)
+                if statusCheck  and particle.status() == 1: continue
+                particles.append(particle)
 
         return particles
     def nParticles(self, pdgIdList):
@@ -304,8 +318,14 @@ if __name__=="__main__":
     particles = []
     modelParameters =[]
     otherParameters = []
-    susyParticleNames = ["Sdown", "Sup", "Sstrange", "Scharm", "Sbottom", "Stop", "Selectron", "ElectronSneutrino", "Smuon", "MuonSneutrino", "Stau", "TauSneutrino", "Gluino", "Neutralino1", "Neutralino2", "Chargino1"]
-    susyPdgIds = [1000001, 1000002, 1000003, 1000004, 1000005, 1000006, 1000011,1000012, 1000013, 1000014, 1000015, 1000016, 1000021, 1000022, 1000023, 1000024 ]
+    susyParticleNames = ["Sdown", "Sup", "Sstrange", "Scharm", "Sbottom", 
+                         "Stop", "Selectron", "ElectronSneutrino", "Smuon", 
+                         "MuonSneutrino", "Stau", "TauSneutrino", "Gluino", 
+                         "Neutralino1", "Neutralino2", "Neutralino3", 
+                         "Chargino1"]
+    susyPdgIds = [1000001, 1000002, 1000003, 1000004, 1000005, 1000006, 1000011,
+                  1000012, 1000013, 1000014, 1000015, 1000016, 1000021, 1000022,
+                  1000023, 1000025, 1000024 ]
     jetPdgIds = [1, 2, 3, 4, 5, 21]
     squarkPdgIds = [1000001, 1000002, 1000003, 1000004, 2000001, 2000002, 
                     2000003, 2000004]
@@ -343,6 +363,7 @@ if __name__=="__main__":
         outputRootFile.mkdir("GluinoHistograms")
         outputRootFile.mkdir("Neutralino1Histograms")
         outputRootFile.mkdir("Neutralino2Histograms")
+        outputRootFile.mkdir("Neutralino3Histograms")
         outputRootFile.mkdir("Chargino1Histograms")
     
     metHistogram = TH1F("MET", "MET", 2000, 0, 2000)
@@ -366,6 +387,7 @@ if __name__=="__main__":
     gluinoHistograms = ParticleHistos(1000021, "gluino")
     neutralino1Histograms = ParticleHistos(1000022, "neutralino1")
     neutralino2Histograms = ParticleHistos(1000023, "neutralino2")
+    neutralino2Histograms = ParticleHistos(1000025, "neutralino3")
     chargino1Histograms = ParticleHistos(1000024, "chargino1")
     
     for inputFileName in args:
@@ -400,8 +422,8 @@ if __name__=="__main__":
                         electronHistograms.Fill(event.grabParticles([11]))
                         muonHistograms.Fill(event.grabParticles([13]))
                         tauHistograms.Fill(event.grabParticles([15]))
-                        zHistograms.Fill(event.grabParticles([22], statusCheck = False))
-                        photonHistograms.Fill(event.grabParticles([23], statusCheck = False))
+                        photonHistograms.Fill(event.grabParticles([22], statusCheck = False))
+                        zHistograms.Fill(event.grabParticles([23], statusCheck = False))
                         wHistograms.Fill(event.grabParticles([24], statusCheck = False))
                         squarkHistograms.Fill(event.grabParticles(squarkPdgIds))
                         sbottomHistograms.Fill(event.grabParticles([1000005], statusCheck = False))
@@ -411,6 +433,7 @@ if __name__=="__main__":
                         gluinoHistograms.Fill(event.grabParticles([1000021], statusCheck = False))
                         neutralino1Histograms.Fill(event.grabParticles([1000022], statusCheck =False))
                         neutralino2Histograms.Fill(event.grabParticles([1000023], statusCheck = False))
+                        neutralino3Histograms.Fill(event.grabParticles([1000025], statusCheck = False))
                         chargino1Histograms.Fill(event.grabParticles([1000024], statusCheck = False))
                                                  
                                                                    
@@ -513,6 +536,9 @@ if __name__=="__main__":
         outputRootFile.cd("Neutralino2Histograms")
         neutralino2Histograms.ShrinkHistos()
         neutralino2Histograms.Write()
+        outputRootFile.cd("Neutralino3Histograms")
+        neutralino3Histograms.ShrinkHistos()
+        neutralino3Histograms.Write()
         outputRootFile.cd("Chargino1Histograms")
         chargino1Histograms.ShrinkHistos()
         chargino1Histograms.Write()
@@ -558,7 +584,9 @@ if __name__=="__main__":
                     stepY = abs(iparameter2 - jparameter2)
         
         if stepX == 10000000000 or stepY == 10000000000:
-            sys.stderr.write("Not a scan, need at least four model points with  (x1, y1),...,  (xn,yn) such that xi != xj and yi != yj for all i and j\n")
+            sys.stderr.write("Not a scan, need at least four model points " + 
+                             "with  (x1, y1),...,  (xn,yn) such that xi != xj"+
+                             "and yi != yj for all i and j\n")
             sys.exit(0)
 
         print minX
