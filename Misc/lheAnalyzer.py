@@ -28,7 +28,7 @@ def average(array):
         value = value + element
 
     return value/len(array)
-def pdgIdToLatex(pdgId):
+def pdgIdToString(pdgId, type):
     pdgIdList = [1, 2, 3, 4, 5, 6, 11, 12, 13, 14, 15, 16, 21, 22, 23, 24, 
                  1000001, 1000002, 1000003, 1000004, 1000005, 1000006, 1000011,
                  1000012, 1000013, 1000014, 1000015, 1000016, 2000001, 2000002,
@@ -46,7 +46,7 @@ def pdgIdToLatex(pdgId):
                  '#tilde{#tau}_{R}', '#tilde{g}', '#tilde{#chi}^{0}_{1}', 
                  '#tilde{#chi}^{0}_{2}', '#tilde{#chi}^{#pm}_{1}', 
                  '#tilde{#chi}^{0}_{3}']
-    nameList = ['down,', 'up', 'strange', 'charm', 'bottom', 'top', 'electron',
+    tagList = ['down', 'up', 'strange', 'charm', 'bottom', 'top', 'electron',
                 'electronNeutrino', 'muon', 'muonNeutrino', 'tau', 
                 'tauNeutrino', 'gluon', 'photon', 'Z', 'W', 'sdownL', 'supL', 
                 'sstrangeL', 'scharmL', 'sbottomL', 'stopL', 'selectronL', 
@@ -54,11 +54,16 @@ def pdgIdToLatex(pdgId):
                 'stauNeutrino','sdownR', 'supR', 'sstrangeR', 'scharmR', 
                 'sbottomR', 'stopR', 'selectronR', 'smuonR', 'stauR', 'gluino',
                 'neutralino1', 'neutralino2', 'chargino1', 'neutralino3']
+	
     string = str(pdgId)
     for i in range(0, len(pdgIdList)):
         if pdgIdList[i] == pdgId:
-            string = latexList[i]
-            break
+            if type == "latex":
+                string = latexList[i]
+                break
+            if type == "tag":
+                string = tagList[i]
+                break
     return string
 def shrink1DHisto(histo):
     maxI = 0
@@ -161,7 +166,7 @@ class Event:
         particles = []
         for particle in self.particles_:
             if pdgIdList.count(abs(particle.pdgId())) > 0:
-                if statusCheck  and particle.status() == 1: continue
+                if statusCheck  and particle.status() != 1: continue
                 particles.append(particle)
 
         return particles
@@ -185,31 +190,43 @@ class Event:
         return p
 class ParticleHistos:
 
-    def __init__(self, pdgId, tag, latex = ""):
+    def __init__(self, pdgId, tag = "", latex = ""):
         self.histograms = []
-        if latex == "":
-            latex = pdgIdToLatex(pdgId)
-        
-        self.histograms.append(TH1F(tag +"Number", "Number of " + latex, 20, 
-                                    0 , 20))
+        self.pdgId = pdgId
+        self.tag = ""
+        self.latex = ""
+
+        if tag == "": 
+            self.tag = pdgIdToString(pdgId, "tag")
+        else: 
+            self.tag = tag
+        if latex == "": 
+            self.latex = pdgIdToString(pdgId, "latex")
+        else: 
+            self.latex = latex
+
+        self.histograms.append(TH1F(self.tag +"Number", "Number of " + 
+                                    self.latex, 20, 0 , 20))
         self.histograms[-1].GetXaxis().SetTitle("Number")
-        self.histograms.append(TH1F(tag + "Pt", latex + " p_{t}", 2000, 0, 
-                                    2000))
-        self.histograms[-1].GetXaxis().SetTitle("p_{t} (GeV)")
-        self.histograms.append(TH1F(tag + "1Pt", "1st " + latex + " p_{t}", 
+        self.histograms.append(TH1F(self.tag + "Pt", self.latex + " p_{t}", 
                                     2000, 0, 2000))
         self.histograms[-1].GetXaxis().SetTitle("p_{t} (GeV)")
-        self.histograms.append(TH1F(tag + "2Pt", "2nd " + latex + " p_{t}", 
-                                    2000, 0, 2000))
+        self.histograms.append(TH1F(self.tag + "1Pt", "1st " + self.latex + 
+                                    " p_{t}", 2000, 0, 2000))
         self.histograms[-1].GetXaxis().SetTitle("p_{t} (GeV)")
-        self.histograms.append(TH1F(tag + "Eta", latex + " #eta", 100, -5, 5))
+        self.histograms.append(TH1F(self.tag + "2Pt", "2nd " + self.latex + 
+                                    " p_{t}", 2000, 0, 2000))
+        self.histograms[-1].GetXaxis().SetTitle("p_{t} (GeV)")
+        self.histograms.append(TH1F(self.tag + "Eta", self.latex + " #eta", 
+                                    100, -5, 5))
         self.histograms[-1].GetXaxis().SetTitle("#eta")
-        self.histograms.append(TH1F(tag + "Phi", latex + " #phi", 100, 
-                                    -math.pi, math.pi))
+        self.histograms.append(TH1F(self.tag + "Phi", self.latex + " #phi", 
+                                    100,-math.pi, math.pi))
         self.histograms[-1].GetXaxis().SetTitle("#phi")
-        self.histograms.append(TH1F(tag +"Mass", latex + " mass", 2000, 0, 
-                                    2000))
+        self.histograms.append(TH1F(self.tag +"Mass", self.latex + " mass", 
+                                    2000, 0,  2000))
         self.histograms[-1].GetXaxis().SetTitle("Mass (GeV)")
+        
         
     def Fill(self,particleList):
         self.histograms[0].Fill(len(particleList))
@@ -243,15 +260,16 @@ class ParticleHistos:
             histogram.Draw()
             canvas.SaveAs(tag+ "_" + histogram.GetName() + ".gif")
 class ModelPoint:
-    def __init__(self,parameters, particleNames = [], particlePdgIds = [], 
+    def __init__(self,parameters, particlePdgIds = [], 
                  otherParameterNames = []):
         self.parameters_ = parameters
         self.nEvents_ = 0
-        self.particleNames_ = particleNames
         self.particlePdgIds_ = particlePdgIds
+        self.particleNames_ = []
         self.particleNumbers_ = []
         self.particleMasses_ = []
-        for particle in self.particleNames_:
+        for pdgId in particlePdgIds:
+            self.particleNames_.append(pdgIdToString(pdgId, "tag"))
             self.particleNumbers_.append(0)
             self.particleMasses_.append(0)
         self.otherParameterNames_ = otherParameterNames
@@ -318,22 +336,25 @@ if __name__=="__main__":
     particles = []
     modelParameters =[]
     otherParameters = []
-    susyParticleNames = ["Sdown", "Sup", "Sstrange", "Scharm", "Sbottom", 
-                         "Stop", "Selectron", "ElectronSneutrino", "Smuon", 
-                         "MuonSneutrino", "Stau", "TauSneutrino", "Gluino", 
-                         "Neutralino1", "Neutralino2", "Neutralino3", 
-                         "Chargino1"]
+    particleHistograms = []
+    allPdgIds = [1, 2, 3, 4, 5, 6, 11, 12, 13, 14, 15, 16, 21, 22, 23, 24, 
+                 1000001, 1000002, 1000003, 1000004, 1000005, 1000006, 1000011,
+                 1000012, 1000013, 1000014, 1000015, 1000016, 2000001, 2000002,
+                 2000003, 2000004, 2000005, 2000006, 2000011, 2000013, 2000015,
+                 1000021, 1000022, 1000023, 1000024, 1000025]
     susyPdgIds = [1000001, 1000002, 1000003, 1000004, 1000005, 1000006, 1000011,
-                  1000012, 1000013, 1000014, 1000015, 1000016, 1000021, 1000022,
-                  1000023, 1000025, 1000024 ]
+                  1000012, 1000013, 1000014, 1000015, 1000016, 2000001, 2000002,
+                  2000003, 2000004, 2000005, 2000006, 2000011, 2000013, 2000015,
+                  1000021, 1000022, 1000023, 1000025, 1000024 ]
     jetPdgIds = [1, 2, 3, 4, 5, 21]
-    squarkPdgIds = [1000001, 1000002, 1000003, 1000004, 2000001, 2000002, 
-                    2000003, 2000004]
+    leptonPdgIds = [11, 13, 15]
+    lightSquarkPdgIds = [1000001, 1000002, 1000003, 1000004, 2000001, 2000002, 
+                         2000003, 2000004]
     sleptonPdgIds = [1000011, 1000013, 1000015, 2000011, 2000013, 1000015]
     sneutrinoPdgIds = [1000012, 1000014, 1000016]
-
     existingModelPoints =[]
     modelPoints = []
+
     tag = args[0].split('/')[-1].replace('.lhe', '').split('_')[0] 
 
     if options.singlePoint:
@@ -345,51 +366,35 @@ if __name__=="__main__":
 
     if options.singlePoint:
         outputRootFile.cd()
-        outputRootFile.mkdir("GeneralHistograms")
-        outputRootFile.mkdir("JetHistograms")
-        outputRootFile.mkdir("BottomHistograms")
-        outputRootFile.mkdir("TopHistograms")
-        outputRootFile.mkdir("ElectronHistograms")
-        outputRootFile.mkdir("MuonHistograms")
-        outputRootFile.mkdir("TauHistograms")
-        outputRootFile.mkdir("ZHistograms")
-        outputRootFile.mkdir("WHistograms")
-        outputRootFile.mkdir("PhotonHistograms")
-        outputRootFile.mkdir("SquarkHistograms")
-        outputRootFile.mkdir("SbottomHistograms")
-        outputRootFile.mkdir("StopHistograms")
-        outputRootFile.mkdir("SleptonHistograms")
-        outputRootFile.mkdir("SneutrinoHistograms")
-        outputRootFile.mkdir("GluinoHistograms")
-        outputRootFile.mkdir("Neutralino1Histograms")
-        outputRootFile.mkdir("Neutralino2Histograms")
-        outputRootFile.mkdir("Neutralino3Histograms")
-        outputRootFile.mkdir("Chargino1Histograms")
+        outputRootFile.mkdir("generalHistograms")
+        outputRootFile.mkdir("jetHistograms")
+        outputRootFile.mkdir("leptonHistograms")
+        outputRootFile.mkdir("lightSquarkHistograms")
+        outputRootFile.mkdir("sleptonHistograms")
+        outputRootFile.mkdir("sneutrinoHistograms")
+
+        for pdgId in allPdgIds:
+            outputRootFile.mkdir(pdgIdToString(pdgId, "tag") + "Histograms")
+            
     
     metHistogram = TH1F("MET", "MET", 2000, 0, 2000)
     metHistogram.GetXaxis().SetTitle("MET (GeV)")
     sumPtHistogram = TH1F("SumPt", "#Sigma P_{T}", 2000, 0, 4000)
     sumPtHistogram.GetXaxis().SetTitle("#Sigma P_{T} (GeV)")
-    jetHistograms = ParticleHistos(-1, "Jet", latex = "'jet'(unhadronized partons)")
-    bHistograms = ParticleHistos(5, "Bottom")
-    tHistograms = ParticleHistos(6, "Top")
-    electronHistograms = ParticleHistos(11, "Electron")
-    muonHistograms = ParticleHistos(13, "Muon")
-    tauHistograms = ParticleHistos(15, "Tau")
-    zHistograms = ParticleHistos(23, "Z")
-    photonHistograms = ParticleHistos(22, "Photon")
-    wHistograms = ParticleHistos(24, "W")
-    squarkHistograms = ParticleHistos(-1, "Squark", latex= "#tilde{q}")
-    sbottomHistograms = ParticleHistos(1000005, "Sbottom")
-    stopHistograms = ParticleHistos(1000006, "Stop")
-    sleptonHistograms = ParticleHistos(-1, "Slepton", latex = "#tilde{l}")
-    sneutrinoHistograms = ParticleHistos(-1, "Sneutrino", latex = "#tilde{#nu}")
-    gluinoHistograms = ParticleHistos(1000021, "gluino")
-    neutralino1Histograms = ParticleHistos(1000022, "neutralino1")
-    neutralino2Histograms = ParticleHistos(1000023, "neutralino2")
-    neutralino2Histograms = ParticleHistos(1000025, "neutralino3")
-    chargino1Histograms = ParticleHistos(1000024, "chargino1")
-    
+
+    jetHistograms = ParticleHistos(-1, tag = "jet", 
+                                    latex = " 'jet'(unhadronized partons)")
+    leptonHistograms = ParticleHistos(-1, tag = "lepton", 
+                                       latex = "lepton")
+    lightSquarkHistograms = ParticleHistos(-1, tag = "lightSquark", 
+                                            latex = "#tilde{q}")
+    sleptonHistograms = ParticleHistos(-1, tag = "slepton", latex = "#tilde{l}")
+    sneutrinoHistograms = ParticleHistos(-1, tag ="sneutrinos", 
+                                          latex = "#tilde{#nu}")
+    for pdgId in allPdgIds:
+        particleHistograms.append(ParticleHistos(pdgId))
+
+        
     for inputFileName in args:
         lheFile = open(inputFileName, 'r')
 
@@ -409,7 +414,7 @@ if __name__=="__main__":
                 continue
             if lineArray[0].find("</event>") > -1:
                 event = Event(particles, modelParameters, otherParameters)
-                ##############
+                #################Begin Analyzing Event####################
                 if options.singlePoint:
                     if (event.modelParameter(0) == options.parameterPoint[0] and
                         event.modelParameter(1) == options.parameterPoint[1]):
@@ -417,26 +422,20 @@ if __name__=="__main__":
                         metHistogram.Fill(event.met())
                         sumPtHistogram.Fill(event.sumPt())
                         jetHistograms.Fill(event.grabParticles(jetPdgIds))
-                        bHistograms.Fill(event.grabParticles([5]))
-                        tHistograms.Fill(event.grabParticles([5]))
-                        electronHistograms.Fill(event.grabParticles([11]))
-                        muonHistograms.Fill(event.grabParticles([13]))
-                        tauHistograms.Fill(event.grabParticles([15]))
-                        photonHistograms.Fill(event.grabParticles([22], statusCheck = False))
-                        zHistograms.Fill(event.grabParticles([23], statusCheck = False))
-                        wHistograms.Fill(event.grabParticles([24], statusCheck = False))
-                        squarkHistograms.Fill(event.grabParticles(squarkPdgIds))
-                        sbottomHistograms.Fill(event.grabParticles([1000005], statusCheck = False))
-                        stopHistograms.Fill(event.grabParticles([1000006], statusCheck = False))
+                        leptonHistograms.Fill(event.grabParticles(leptonPdgIds))
+                        lightSquarkHistograms.Fill(event.grabParticles(lightSquarkPdgIds, statusCheck = False))
                         sleptonHistograms.Fill(event.grabParticles(sleptonPdgIds, statusCheck = False))
                         sneutrinoHistograms.Fill(event.grabParticles(sneutrinoPdgIds, statusCheck = False))
-                        gluinoHistograms.Fill(event.grabParticles([1000021], statusCheck = False))
-                        neutralino1Histograms.Fill(event.grabParticles([1000022], statusCheck =False))
-                        neutralino2Histograms.Fill(event.grabParticles([1000023], statusCheck = False))
-                        neutralino3Histograms.Fill(event.grabParticles([1000025], statusCheck = False))
-                        chargino1Histograms.Fill(event.grabParticles([1000024], statusCheck = False))
-                                                 
-                                                                   
+
+                        for i in range(0, len(allPdgIds)):
+                            check = True
+
+                            if allPdgIds[i] > 1000000: 
+                                check = False
+
+                            particleHistograms[i].Fill(event.grabParticles([allPdgIds[i]], statusCheck = check))
+                            
+                                                    
                 else:
                     eventModelPoint = event.modelParameters()
 
@@ -447,10 +446,10 @@ if __name__=="__main__":
 
                     else:
                         existingModelPoints.append(eventModelPoint)
-                        modelPoints.append(ModelPoint(eventModelPoint, particleNames = susyParticleNames, particlePdgIds = susyPdgIds))
+                        modelPoints.append(ModelPoint(eventModelPoint, particlePdgIds = susyPdgIds))
                         modelPoints[-1].addEvent(event)
                                            
-                ##############
+                ####################End Analyzing Event ######################
                 inEvent = False
                 particles = []
                 modelParameters = []
@@ -482,66 +481,29 @@ if __name__=="__main__":
 
     
     if options.singlePoint:
-        outputRootFile.cd("GeneralHistograms")
+        outputRootFile.cd("generalHistograms")
         metHistogram.Write()
         sumPtHistogram.Write()
-        outputRootFile.cd("JetHistograms")
+        outputRootFile.cd("jetHistograms")
         jetHistograms.ShrinkHistos()
         jetHistograms.Write()
-        outputRootFile.cd("BottomHistograms")
-        bHistograms.ShrinkHistos()
-        bHistograms.Write()
-        outputRootFile.cd("TopHistograms")
-        tHistograms.ShrinkHistos()
-        tHistograms.Write()
-        outputRootFile.cd("ElectronHistograms")
-        electronHistograms.ShrinkHistos()
-        electronHistograms.Write()
-        outputRootFile.cd("MuonHistograms")
-        muonHistograms.ShrinkHistos()
-        muonHistograms.Write()
-        outputRootFile.cd("TauHistograms")
-        tauHistograms.ShrinkHistos()
-        tauHistograms.Write()
-        outputRootFile.cd("ZHistograms")
-        zHistograms.ShrinkHistos()
-        zHistograms.Write()
-        outputRootFile.cd("WHistograms")
-        wHistograms.ShrinkHistos()
-        wHistograms.Write()
-        outputRootFile.cd("PhotonHistograms")
-        photonHistograms.ShrinkHistos()
-        photonHistograms.Write()
-        outputRootFile.cd("SquarkHistograms")
-        squarkHistograms.ShrinkHistos()
-        squarkHistograms.Write()
-        outputRootFile.cd("SbottomHistograms")
-        sbottomHistograms.ShrinkHistos()
-        sbottomHistograms.Write()
-        outputRootFile.cd("StopHistograms")
-        stopHistograms.ShrinkHistos()
-        stopHistograms.Write()
-        outputRootFile.cd("SleptonHistograms")
+        outputRootFile.cd("leptonHistograms")
+        leptonHistograms.ShrinkHistos()
+        leptonHistograms.Write()
+        outputRootFile.cd("lightSquarkHistograms")
+        lightSquarkHistograms.ShrinkHistos()
+        lightSquarkHistograms.Write()
+        outputRootFile.cd("sleptonHistograms")
         sleptonHistograms.ShrinkHistos()
         sleptonHistograms.Write()
-        outputRootFile.cd("SneutrinoHistograms")
+        outputRootFile.cd("sneutrinoHistograms")
         sneutrinoHistograms.ShrinkHistos()
         sneutrinoHistograms.Write()
-        outputRootFile.cd("GluinoHistograms")
-        gluinoHistograms.ShrinkHistos()
-        gluinoHistograms.Write()
-        outputRootFile.cd("Neutralino1Histograms")
-        neutralino1Histograms.ShrinkHistos()
-        neutralino1Histograms.Write()
-        outputRootFile.cd("Neutralino2Histograms")
-        neutralino2Histograms.ShrinkHistos()
-        neutralino2Histograms.Write()
-        outputRootFile.cd("Neutralino3Histograms")
-        neutralino3Histograms.ShrinkHistos()
-        neutralino3Histograms.Write()
-        outputRootFile.cd("Chargino1Histograms")
-        chargino1Histograms.ShrinkHistos()
-        chargino1Histograms.Write()
+        
+        for i in range(0, len(allPdgIds)):
+            outputRootFile.cd(pdgIdToString(allPdgIds[i], "tag") + "Histograms")
+            particleHistograms[i].ShrinkHistos()
+            particleHistograms[i].Write()
     else:
         massHistograms = []
         
@@ -617,9 +579,9 @@ if __name__=="__main__":
             particleName = modelPoints[0].particleNames()[i]
             particlePdgId = modelPoints[0].particlePdgIds()[i]
             massHistograms.append(TH2F(particleName + "MassScan",
-                                       pdgIdToLatex(particlePdgId) + " mass",
-                                       nBinsX, minX, maxX,
-                                       nBinsY, minY, maxY))
+                                       pdgIdToString(particlePdgId, "latex") + 
+                                       " mass", nBinsX, minX, maxX, nBinsY, 
+                                       minY, maxY))
             massHistograms[-1].GetXaxis().SetTitle(options.parameterTags[0])
             massHistograms[-1].GetYaxis().SetTitle(options.parameterTags[1])
             for modelPoint in modelPoints:
