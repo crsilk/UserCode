@@ -69,7 +69,6 @@ if __name__== "__main__":
 
     inputFileNames = args
     inputFiles = []
-    outputFile = TFile(options.outputFileName, "RECREATE")
     directories = []
     histograms = []
     stacks = []
@@ -103,33 +102,28 @@ if __name__== "__main__":
             getAllHistogramsFromDirectory(inputFiles[i], directory, 
                                           histograms[i], options.tag)
 
-    for histogram in histograms[0]:
-        stacks.append(THStack("Stack" + histogram.GetName(), histogram.GetTitle()))
-    for i in range(0, len(stacks)):
-        for j in range(0, len(histograms)):
-            
-            stacks[i].Add(histograms[j][i])
-
-            stacks[i].GetHists()[j].SetFillColor(j + 1)
-            stacks[i].GetHists()[j].SetLineColor(j+1)
-            stacks[i].GetHists()[j].SetMarkerStyle(22)
-
-            if i == 0:     
-                legend.AddEntry(stacks[i].GetHists()[j], legendNames[j])
-
-
-    for i in range(0, len(stacks)):
+    for i in range(0, len(histograms[0])):
         canvases.append(TCanvas())
         canvases[-1].cd()
         canvases[-1].SetFillColor(0)
 
-        stacks[i].Draw()
+        for j in range(0, len(histograms)):
+            histograms[j][i].SetLineColor(j + 1)
+            histograms[j][i].SetMarkerStyle(22)
+            
+            if i == 0:
+                legend.AddEntry(histograms[j][i], legendNames[j])
+            if j == 0:
+                histograms[j][i].Draw()
+            else:
+                histograms[j][i].Draw("SAME")
         legend.Draw()
 
         if options.pause:
             raw_input("Make any last minute adjustments to " + 
-                      stacks[i].GetName() + " before saving the canvas. "  +
-                      "Then press Enter")
+                      histograms[0][i].GetName() + 
+                      " before saving the canvas. "  + "Then press Enter")
         if options.saveCanvases:
-            canvases[-1].SaveAs(options.outputDirectory + stacks[i].GetName() + ".gif")
+            canvases[-1].SaveAs(options.outputDirectory + 
+                                histograms[0][i].GetName() + ".gif")
 
