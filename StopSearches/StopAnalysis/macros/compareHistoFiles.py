@@ -11,7 +11,7 @@ gStyle.SetStatColor(0)
 gStyle.SetTitleFillColor(0)
 gStyle.SetFrameBorderMode(0)
 gStyle.SetPalette(1)
-
+gStyle.SetOptStat(0)
 def lineno():
     """Returns the current line number in our program."""
     return inspect.currentframe().f_back.f_lineno
@@ -59,7 +59,7 @@ def getAllHistogramsFromDirectory(inputFile, directoryName, histograms,
 if __name__== "__main__":
 
     parser = OptionParser()
-    parser.add_option("-l", "--legendNames", dest = "legendNames", default = "", help = 'Put in a list of names that you want to appear in the legend(put the list in ""). If not enough names are givent the the file names will be used.' , metavar = "STRING")
+    parser.add_option("-l", "--legendNames", dest = "legendNames", default = "", help = 'Put in a list of names that you want to appear in the legend(put the list in ""). If not enough names are given the the file names will be used.' , metavar = "STRING")
     parser.add_option("-c", "--saveCanvases" , dest = "saveCanvases", action="store_true", default = False, help = "Save the canvases as .gif files.")
     parser.add_option("-p", "--pause", dest = "pause", action="store_true", default=False, help = "Pause before closing (and/or saving) canvas, in order to make any final adjustments.")
     parser.add_option("-t", "--tag", dest = "tag", default = "", help = "Tag to insert into the name of the .gif files that are made")
@@ -71,8 +71,6 @@ if __name__== "__main__":
     inputFiles = []
     directories = []
     histograms = []
-    stacks = []
-    ranges = []
     canvases = []
     legendNames = []
     legend = TLegend(0.65, 0.75, 0.89, 0.89)
@@ -82,7 +80,7 @@ if __name__== "__main__":
         for inputFileName in inputFileNames:
             legendNames.append(inputFileName.split("/")[-1].split("_")[0])
     else:
-        legendNames = options.legendNames.split(" ")
+        legendNames = options.legendNames.split(",")
         if len(legendNames) != len(inputFileNames):
             sys.stderr.write("Number of legend names does not equal number of" +
                              "input files. Using default names.")
@@ -117,6 +115,7 @@ if __name__== "__main__":
                 histograms[j][i].Draw()
             else:
                 histograms[j][i].Draw("SAME")
+        
         legend.Draw()
 
         if options.pause:
@@ -124,6 +123,7 @@ if __name__== "__main__":
                       histograms[0][i].GetName() + 
                       " before saving the canvas. "  + "Then press Enter")
         if options.saveCanvases:
-            canvases[-1].SaveAs(options.outputDirectory + 
-                                histograms[0][i].GetName() + ".gif")
-
+            canvases[-1].SaveAs(options.outputDirectory + histograms[0][i].GetName() + ".eps")
+    for inputFile in inputFiles:
+        inputFile.Close()
+        
