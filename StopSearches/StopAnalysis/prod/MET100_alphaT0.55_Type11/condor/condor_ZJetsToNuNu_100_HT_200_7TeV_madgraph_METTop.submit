@@ -1,0 +1,13 @@
+universe=vanilla
+Executable=condor_METTop.sh
+output = ZJetsToNuNu_100_HT_200_7TeV_madgraph_METTop_$(Process).out
+error =  ZJetsToNuNu_100_HT_200_7TeV_madgraph_METTop_$(Process).err
+log =    ZJetsToNuNu_100_HT_200_7TeV_madgraph_METTop_$(Process).log
+Requirements = Memory >= 199 && OpSys == "LINUX" && (Arch != "DUMMY")
+Should_Transfer_Files = YES
+Transfer_Input_Files = 
+Arguments = $(Process)
+WhenTOTransferOutput  = ON_EXIT
+environment = CMSSW=/uscms_data/d2/csilkw2/CMSSW_4_2_4/; CFG=ZJetsToNuNu_100_HT_200_7TeV_madgraph_METTop_cfg.py;
+Notification = error
+Queue 1
