@@ -146,9 +146,9 @@ if __name__== "__main__":
         canvases[-1].cd()
         canvases[-1].SetFillColor(0)
         ##########TEMPORARY#############
-        canvases[-1].SetLogy()
-        stacks[i].SetMinimum(0.00001)
-        stacks[i].SetMaximum(10000)
+#        canvases[-1].SetLogy()
+#        stacks[i].SetMinimum(0.00001)
+#        stacks[i].SetMaximum(10000)
         ################################
         stacks[i].Draw()
         canvases[-1].cd()
@@ -160,12 +160,12 @@ if __name__== "__main__":
                               " canvas. 'L' to set log y, 'Q' to quit. " +
                               "Then press Enter: ")
 
-#            if input == 'l' or input == 'L':
-#            canvases[-1].SetLogy()
-#            canvases[-1].Update()
-#            input =raw_input("Make any last minute adjustments to " + 
-#                             stacks[i].GetName() + " before saving"+  
-#                             " canvas. Then press Enter: ")
+            if input == 'l' or input == 'L':
+                canvases[-1].SetLogy()
+                canvases[-1].Update()
+                input =raw_input("Make any last minute adjustments to " + 
+                                 stacks[i].GetName() + " before saving"+  
+                                 " canvas. Then press Enter: ")
             
             if input == 'q' or input == 'Q':
                 break
