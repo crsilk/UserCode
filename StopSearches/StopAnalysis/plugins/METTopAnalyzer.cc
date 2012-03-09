@@ -45,6 +45,7 @@ class METTopAnalyzer : public edm::EDAnalyzer {
       InputTag jetsP4Src_;
       InputTag muonsP4Src_;
       InputTag topCandP4Src_;
+      InputTag genJetsP4Src_;
       InputTag topCandMassSrc_;
       InputTag topCandMinMassSrc_;
       InputTag topCandNSubjetsSrc_;
@@ -52,6 +53,13 @@ class METTopAnalyzer : public edm::EDAnalyzer {
       InputTag eventWeightSrc_;
       InputTag pdfWeightSrc_;
       InputTag modelParametersSrc_;
+      InputTag alphaTSrc_;
+      InputTag HTSrc_;
+      InputTag MHTSrc_;
+      InputTag metTopDeltaPhiSrc_;
+      InputTag metTopMtSrc_;
+      InputTag topTagMatchMatrixSrc_;
+      InputTag wTagMatchMatrixSrc_;
 
       bool useEDMEventWeight_;
       double eventWeight_;
@@ -116,7 +124,7 @@ METTopAnalyzer::METTopAnalyzer(const edm::ParameterSet& iConfig)
    METP4Src_ = iConfig.getParameter<InputTag>("METP4Src");
    jetsP4Src_ = iConfig.getParameter<InputTag>("jetsP4Src");
    muonsP4Src_ = iConfig.getParameter<InputTag>("muonsP4Src");
-
+   genJetsP4Src_  = iConfig.getParameter<InputTag>("genJetsP4Src");
    topCandP4Src_ = iConfig.getParameter<InputTag>("topCandP4Src");
    topCandMassSrc_ = iConfig.getParameter<InputTag>("topCandMassSrc");
    topCandMinMassSrc_ = iConfig.getParameter<InputTag>("topCandMinMassSrc");
@@ -172,9 +180,9 @@ METTopAnalyzer::METTopAnalyzer(const edm::ParameterSet& iConfig)
    muonEta_ = fileService->make<TH1F>("muonEta", "Muon #eta", 1000, -5.0, 5.0);
    
    top0Mass_ = fileService->make<TH1F>("top0Mass", 
-                                            "Top0 mass", 5000, 0, 5000); 
+                                            "Top0 mass", 500, 0, 500); 
    top0MinMass_ = fileService->make<TH1F>("top0MinMass", 
-                                               "Top0 Min Mass", 5000,0, 5000);  
+                                               "Top0 Min Mass", 500,0, 500);  
    top0Pt_ = fileService->make<TH1F>("top0Pt", "Top0 p_{T}", 
                                              5000, 0, 5000); 
    top0Eta_ = fileService->make<TH1F>("top0Eta", "Top0 #eta", 
@@ -182,9 +190,9 @@ METTopAnalyzer::METTopAnalyzer(const edm::ParameterSet& iConfig)
    METAndTop0DeltaPhi_ = fileService->make<TH1F>("METAndTop0DeltaPhi",  "mE_{T} and Top 0 #Delta #phi", 1000, 0,  2 * TMath::Pi());
    muonAndTop0DeltaR_ = fileService->make<TH1F>("muonAndTop0DeltaR",  "muon and Top 0 #Delta R", 1000, 0, 2 * TMath::Pi());
    top1Mass_ = fileService->make<TH1F>("top1Mass", "Top1 mass", 
-                                            5000, 0, 5000); 
+                                            500, 0, 500); 
    top1MinMass_ = fileService->make<TH1F>("top1MinMass", 
-                                               "Top1 Min Mass", 5000,  0, 5000); 
+                                               "Top1 Min Mass", 500,  0, 500); 
    top1Eta_ = fileService->make<TH1F>("top1Eta", "Top1 #eta", 
                                            1000, -5.0, 5.0); 
    top1Pt_ = fileService->make<TH1F>("top1Pt", "Top1 p_{T}", 
@@ -217,7 +225,7 @@ METTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //////////////////////////
    Handle<vector<Candidate::PolarLorentzVector> > h_METP4;
    iEvent.getByLabel(METP4Src_, h_METP4);
-   vector<Candidate::PolarLorentzVector> METP4 = *h_METP4;
+   Candidate::PolarLorentzVector METP4 = h_METP4->front();
 
    Handle<vector<Candidate::PolarLorentzVector> > h_jetsP4;
    iEvent.getByLabel(jetsP4Src_, h_jetsP4);
@@ -226,6 +234,10 @@ METTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    Handle<vector<Candidate::PolarLorentzVector> > h_muonsP4;
    iEvent.getByLabel(muonsP4Src_, h_muonsP4);
    vector<Candidate::PolarLorentzVector> muonsP4 = *h_muonsP4;
+
+   Handle<vector<Candidate::PolarLorentzVector> > h_genJetsP4;
+   iEvent.getByLabel(genJetsP4Src_, h_genJetsP4);
+   vector<Candidate::PolarLorentzVector> genJetsP4 = *h_genJetsP4;
 
    Handle<vector<Candidate::PolarLorentzVector> > h_topCandP4;
    iEvent.getByLabel(topCandP4Src_ , h_topCandP4);
@@ -249,7 +261,6 @@ METTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    Handle<double> h_eventWeight;
    iEvent.getByLabel(eventWeightSrc_, h_eventWeight);
-   
 
    Handle<double> h_pdfWeight;
    iEvent.getByLabel(pdfWeightSrc_, h_pdfWeight);
@@ -258,8 +269,33 @@ METTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    bool findModelParameters = iEvent.getByLabel(modelParametersSrc_, h_modelParameters);
    vector<double>::const_iterator modelParameter;
 
-   int nTopCand = 0;
+   Handle<double> h_alphaT;
+   iEvent.getByLabel(alphaTSrc_, h_alphaT);
+   double alphaT = *h_alphaT;
+
+   Handle<double> h_HT;
+   iEvent.getByLabel(HTSrc_, h_HT);
+   double HT = *h_HT;
+
+   Handle<vector<Candidate::PolarLorentzVector> > h_MHTP4;
+   iEvent.getByLabel(MHTSrc_, h_MHTP4);
+   Candidate::PolarLorentzVector MHTP4 = h_MHTP4->front();
+
+   Handle<vector<double> > h_metTopDeltaPhi;
+   iEvent.getByLabel(metTopDeltaPhiSrc_, h_metTopDeltaPhi);
    vector<double> metTopDeltaPhi;
+
+   Handle<vector<double> > h_metTopMt;
+   iEvent.getByLabel(metTopMtSrc_, h_metTopMt);
+   vector<double> metTopMt;
+
+   Handle<vector<vector<int> > > h_topTagMatchMatrix;
+   iEvent.getByLabel(topTagMatchMatrixSrc_, h_topTagMatchMatrix);
+   vector<vector<int> >::const_iterator topTagMatchMatrixRow;
+
+   
+
+   int nTopCand = 0;
    vector<double> topTopDeltaPhi;
    vector<double> jetsPt;
    vector<double> jetsEta;
@@ -269,13 +305,10 @@ METTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    vector<double> muonsEta;
    
    vector<double> Mt;
-   double alphaT = 0;
    unsigned tempCount = 0;
-   double HT = 0;
    double tempDeltaPhi = 0;
    int jetNumber = 0;
    int muonNumber = 0;
-   Candidate::PolarLorentzVector MHTP4(0, 0, 0, 0);
    
    ///////////////////////////////////////////
    //Preliminary stuff before cuts are made///
@@ -284,9 +317,6 @@ METTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    {
       eventWeight_ = *h_eventWeight;
    }
-
-   if(h_METP4->size() != 1)
-      cout<<"MET size does not equal one!!!"<<endl;
 
    if(findModelParameters)
    {
@@ -315,15 +345,14 @@ METTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       cutFlow_->Fill(1.5, eventWeight_);
       
       //met cut
-      if(h_METP4->begin()->pt() < METCut_) return;
+      if(METP4.pt() < METCut_) return;
       cutFlow_->Fill(2.5,eventWeight_);
       
       //alphaT cut
-      if(topCandP4.size() > 1)
+      if(alphaT > -1.0)
       {
-         alphaT = topCandP4[1].Et()/(topCandP4[0] + topCandP4[1]).mt();      
          if(alphaT < alphaTCut_) return;
-      }   
+      }
       cutFlow_->Fill(3.5, eventWeight_);
       
       
@@ -344,16 +373,6 @@ METTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       cutFlow_->Fill(5.5, eventWeight_);
       
       //met and top delta phi cuts
-      for(unsigned i = 0; i < topCandP4.size(); i++) 
-      {
-         tempDeltaPhi =  fabs(METP4[0].phi() - topCandP4[i].phi());
-         if (tempDeltaPhi > 3.14159)
-            tempDeltaPhi = 2 * 3.14159 - tempDeltaPhi;
-         
-         metTopDeltaPhi.push_back(tempDeltaPhi);
-         Mt.push_back( (METP4[0] + topCandP4[i]).Mt());
-         
-      }
       for(int i = 0; i < nTopCandCut_; i++)
          if(metTopDeltaPhi_MinCuts_[i] > metTopDeltaPhi[i] || 
             metTopDeltaPhi_MaxCuts_[i] < metTopDeltaPhi[i]) 
@@ -366,8 +385,8 @@ METTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       
       //top candidate mass cuts
       for(int i = 0; i < nTopCandCut_; i++)
-         if(topMass_MinCuts_[i] > topCandP4[i].mass() || 
-            topMass_MaxCuts_[i] < topCandP4[i].mass()) return;   
+         if(topMass_MinCuts_[i] > topCandMass[i] || 
+            topMass_MaxCuts_[i] < topCandMass[i]) return;   
       cutFlow_->Fill(7.5, eventWeight_);
       
       //number of subjets in top candidate cut
@@ -387,9 +406,6 @@ METTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    /////////////////////////////////
    for( unsigned i = 0; i < jetsP4.size(); i++)
    {
-      HT = HT + jetsP4[i].pt();
-      MHTP4 = MHTP4 + jetsP4[i];
-
       if(jetsP4[i].pt() < jetPtCut_) continue;
       jetNumber++;      
 
@@ -400,7 +416,7 @@ METTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    nJets_->Fill(jetNumber, eventWeight_);
    HT_->Fill(HT, eventWeight_);
    MHT_->Fill(MHTP4.pt(), eventWeight_);
-   MET_->Fill(METP4[0].pt(), eventWeight_);
+   MET_->Fill(METP4.pt(), eventWeight_);
 
    for( unsigned i = 0; i < muonsP4.size(); i++)
    {
@@ -427,29 +443,18 @@ METTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    if(topCandP4.size() > 0)
    {
-      tempDeltaPhi =  fabs(METP4[0].phi() - topCandP4[0].phi());
-
-      if (tempDeltaPhi > 3.14159)
-         tempDeltaPhi = 2 * 3.14159 - tempDeltaPhi;
-
-      METAndTop0Mt_->Fill((topCandP4[0] + METP4[0]).mt(), eventWeight_);
-      METAndTop0DeltaPhi_->Fill(tempDeltaPhi, eventWeight_);
-      top0Mass_->Fill(topCandP4[0].mass(),eventWeight_);
+      METAndTop0Mt_->Fill(metTopMt[0], eventWeight_);
+      METAndTop0DeltaPhi_->Fill(metTopDeltaPhi[0], eventWeight_);
+      top0Mass_->Fill(topCandMass[0],eventWeight_);
       top0MinMass_->Fill(topCandMinMass[0],eventWeight_);
       top0Pt_->Fill(topCandP4[0].pt(),eventWeight_);
       top0Eta_->Fill(topCandP4[0].eta(),eventWeight_);
    }
    if(topCandP4.size() > 1) 
    {
-
-      tempDeltaPhi =  fabs(METP4[0].phi() - topCandP4[1].phi());
-
-      if (tempDeltaPhi > 3.14159)
-         tempDeltaPhi = 2 * 3.14159 - tempDeltaPhi;
-
-      METAndTop1Mt_->Fill((topCandP4[1] + METP4[0]).mt(), eventWeight_);
-      METAndTop1DeltaPhi_->Fill(tempDeltaPhi, eventWeight_);
-      top1Mass_->Fill(topCandP4[1].mass(),eventWeight_);
+      METAndTop1Mt_->Fill(metTopMt[1], eventWeight_);
+      METAndTop1DeltaPhi_->Fill(metTopDeltaPhi[1], eventWeight_);
+      top1Mass_->Fill(topCandMass[1],eventWeight_);
       top1MinMass_->Fill(topCandMinMass[1],eventWeight_);
       top1Pt_->Fill(topCandP4[1].pt(),eventWeight_);
       top1Eta_->Fill(topCandP4[1].eta(),eventWeight_);
@@ -459,7 +464,6 @@ METTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
          tempDeltaPhi = 2 * 3.14159 - tempDeltaPhi;
       top0AndTop1DeltaPhi_->Fill(tempDeltaPhi, eventWeight_);
       
-      alphaT = topCandP4[1].Et()/(topCandP4[0] + topCandP4[1]).mt();      
       top0AndTop1AlphaT_->Fill(alphaT, eventWeight_);
 
    }

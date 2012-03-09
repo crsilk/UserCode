@@ -1,6 +1,6 @@
 import os, sys, glob, subprocess
 
-directories = glob.glob("*")
+directories = glob.glob(sys.argv[1] + "*")
 files =[]
 
 for directory in directories:
