@@ -70,7 +70,7 @@ class METTopAnalyzer : public edm::EDAnalyzer {
       double muonPtCut_;
       
       vector<double> modelParameters_;
-      int nTopCandCut_;
+      double nTopCandCut_;
       vector<double> pt_MinCuts_;
       vector<double> pt_MaxCuts_;
       vector<double> eta_MinCuts_;
@@ -79,6 +79,7 @@ class METTopAnalyzer : public edm::EDAnalyzer {
       vector<double> metTopDeltaPhi_MaxCuts_;
       vector<double> topMass_MinCuts_;
       vector<double> topMass_MaxCuts_;
+
       vector<int> nSubjets_MinCuts_;
       vector<int> nSubjets_MaxCuts_;
       vector<double> minMass_MinCuts_;
@@ -134,13 +135,20 @@ METTopAnalyzer::METTopAnalyzer(const edm::ParameterSet& iConfig)
    eventWeightSrc_ = iConfig.getParameter<InputTag>("eventWeightSrc");
    pdfWeightSrc_ = iConfig.getParameter<InputTag>("pdfWeightSrc");
    modelParametersSrc_ = iConfig.getParameter<InputTag>("modelParametersSrc");
+   alphaTSrc_ = iConfig.getParameter<InputTag>("alphaTSrc");
+   HTSrc_ = iConfig.getParameter<InputTag>("HTSrc");
+   MHTSrc_ = iConfig.getParameter<InputTag>("MHTSrc");
+   metTopDeltaPhiSrc_ = iConfig.getParameter<InputTag>("metTopDeltaPhiSrc");
+   metTopMtSrc_ = iConfig.getParameter<InputTag>("metTopMtSrc");
+   topTagMatchMatrixSrc_ = iConfig.getParameter<InputTag>("topTagMatchMatrixSrc");
+   wTagMatchMatrixSrc_ = iConfig.getParameter<InputTag>("wTagMatchMatrixSrc");
    useEDMEventWeight_ = iConfig.getParameter<bool>("useEDMEventWeight");
    eventWeight_ = iConfig.getParameter<double>("eventWeight");
    topCandPtDef_ = iConfig.getParameter<double>("topCandPtDef");   
    enactCuts_ = iConfig.getParameter<bool>("enactCuts");
-   /////////////////////////////////////////////////////////////////////
-   //Grab all the cut parameters (in order in which they will be used)//
-   /////////////////////////////////////////////////////////////////////
+   ///////////////////////////////
+   //Grab all the cut parameters//
+   ///////////////////////////////
    modelParameters_ = iConfig.getParameter<vector<double> >("modelParameters");
    jetPtCut_ = iConfig.getParameter<double>("jetPtCut");
    muonPtCut_ = iConfig.getParameter<double>("muonPtCut");
@@ -168,7 +176,6 @@ METTopAnalyzer::METTopAnalyzer(const edm::ParameterSet& iConfig)
    
    //Directories
 
-   //BeforeCuts
    HT_ = fileService->make<TH1F>("HT", "HT", 2000, 0, 2000);
    MHT_ = fileService->make<TH1F>("MHT", "MHT", 2000, 0, 2000);
    MET_ = fileService->make<TH1F>("MET", "mE_{T}", 2000, 0, 2000);
@@ -283,17 +290,17 @@ METTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    Handle<vector<double> > h_metTopDeltaPhi;
    iEvent.getByLabel(metTopDeltaPhiSrc_, h_metTopDeltaPhi);
-   vector<double> metTopDeltaPhi;
+   vector<double> metTopDeltaPhi = *h_metTopDeltaPhi;
 
    Handle<vector<double> > h_metTopMt;
    iEvent.getByLabel(metTopMtSrc_, h_metTopMt);
-   vector<double> metTopMt;
+   vector<double> metTopMt = *h_metTopMt;
 
    Handle<vector<vector<int> > > h_topTagMatchMatrix;
    iEvent.getByLabel(topTagMatchMatrixSrc_, h_topTagMatchMatrix);
    vector<vector<int> >::const_iterator topTagMatchMatrixRow;
 
-   
+
 
    int nTopCand = 0;
    vector<double> topTopDeltaPhi;
