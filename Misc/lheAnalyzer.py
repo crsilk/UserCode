@@ -204,18 +204,18 @@ class ParticleHistos:
             self.latex = pdgIdToString(pdgId, "latex")
         else: 
             self.latex = latex
-
+#########These graphs were rebinned to 5 GeV##########
         self.histograms.append(TH1F(self.tag +"Number", "Number of " + 
                                     self.latex, 20, 0 , 20))
         self.histograms[-1].GetXaxis().SetTitle("Number")
         self.histograms.append(TH1F(self.tag + "Pt", self.latex + " p_{t}", 
-                                    2000, 0, 2000))
+                                    400, 0, 2000))
         self.histograms[-1].GetXaxis().SetTitle("p_{t} (GeV)")
         self.histograms.append(TH1F(self.tag + "1Pt", "1st " + self.latex + 
-                                    " p_{t}", 2000, 0, 2000))
+                                    " p_{t}", 400, 0, 2000))
         self.histograms[-1].GetXaxis().SetTitle("p_{t} (GeV)")
         self.histograms.append(TH1F(self.tag + "2Pt", "2nd " + self.latex + 
-                                    " p_{t}", 2000, 0, 2000))
+                                    " p_{t}", 400, 0, 2000))
         self.histograms[-1].GetXaxis().SetTitle("p_{t} (GeV)")
         self.histograms.append(TH1F(self.tag + "Eta", self.latex + " #eta", 
                                     100, -5, 5))
@@ -224,7 +224,7 @@ class ParticleHistos:
                                     100,-math.pi, math.pi))
         self.histograms[-1].GetXaxis().SetTitle("#phi")
         self.histograms.append(TH1F(self.tag +"Mass", self.latex + " mass", 
-                                    2000, 0,  2000))
+                                    400, 0,  2000))
         self.histograms[-1].GetXaxis().SetTitle("Mass (GeV)")
         
         
@@ -377,9 +377,9 @@ if __name__=="__main__":
             outputRootFile.mkdir(pdgIdToString(pdgId, "tag") + "Histograms")
             
     
-    metHistogram = TH1F("MET", "MET", 2000, 0, 2000)
+    metHistogram = TH1F("MET", "MET", 400, 0, 2000)
     metHistogram.GetXaxis().SetTitle("MET (GeV)")
-    sumPtHistogram = TH1F("SumPt", "#Sigma P_{T}", 2000, 0, 4000)
+    sumPtHistogram = TH1F("SumPt", "#Sigma P_{T}", 400, 0, 4000)
     sumPtHistogram.GetXaxis().SetTitle("#Sigma P_{T} (GeV)")
 
     jetHistograms = ParticleHistos(-1, tag = "jet", 
@@ -416,8 +416,10 @@ if __name__=="__main__":
                 event = Event(particles, modelParameters, otherParameters)
                 #################Begin Analyzing Event####################
                 if options.singlePoint:
-                    if (event.modelParameter(0) == options.parameterPoint[0] and
-                        event.modelParameter(1) == options.parameterPoint[1]):
+                    if (event.modelParameter(options.whichParameters[0]) ==
+						options.parameterPoint[0] and
+                        event.modelParameter(options.whichParameters[1]) ==
+						options.parameterPoint[1]):
 
                         metHistogram.Fill(event.met())
                         sumPtHistogram.Fill(event.sumPt())
