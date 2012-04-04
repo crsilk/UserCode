@@ -3,6 +3,8 @@
 date
 source /uscmst1/prod/sw/cms/shrc prod
 
+SCRAM_ARCH=SCRAMARCH
+
 workerspace=$PWD
 cd $CREATESCANDIR
 

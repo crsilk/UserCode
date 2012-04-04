@@ -26,7 +26,7 @@ process.generator = cms.EDFilter("Pythia6GeneratorFilter",
     pythiaHepMCVerbosity = cms.untracked.bool(False),
     maxEventsToPrint = cms.untracked.int32(0),
     pythiaPylistVerbosity = cms.untracked.int32(1),
-    comEnergy = cms.double(7000.0),
+    comEnergy = cms.double(ENERGY),
     pythiaToLHE = cms.bool(True),
     PythiaParameters = cms.PSet(
         pythiaUESettingsBlock,
