@@ -14,7 +14,7 @@ cd $workerspace
 python createLHEs.py $1
 
 rm *.py
-rm *lhe
+
 pwd
 date
 
