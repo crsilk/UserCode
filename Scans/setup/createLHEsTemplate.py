@@ -306,7 +306,7 @@ if __name__ == '__main__':
                           int(filesPerJob) * (int(jobNumber) + 1)]
 
     if slhaBunch[0] == slhaBunch[-1]:
-        outputFileName = slhaBunch.replace('.slha', '.lhe')
+        outputFileName = slhaBunch[0].replace('.slha', '.lhe')
     else:
         outputFileName = makeLHEFileName(slhaBunch[0],slhaBunch[-1]) 
     
