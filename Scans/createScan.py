@@ -88,7 +88,7 @@ def stringToArrays(string):
     return array
         
 def makeSLHAToLHECfg(templateFileName, newFileName, numberOfEvents, 
-subprocesses, otherPythiaCommands, slhaDirectory, randomSeed):
+subprocesses, otherPythiaCommands, slhaDirectory, energy, randomSeed):
 
     oldFile = open(templateFileName, 'r')
     newFile = open(newFileName, 'w')
@@ -108,6 +108,9 @@ subprocesses, otherPythiaCommands, slhaDirectory, randomSeed):
         if line.find("SLHADIRECTORY") > -1:
             line = line.replace("SLHADIRECTORY", slhaDirectory)
         
+        if line.find("ENERGY") > -1:
+            line = line.replace("ENERGY", energy)
+
         if line.find("RANDOMSEED") > -1:
             line = line.replace("RANDOMSEED", randomSeed)
         newFile.write(line)
@@ -170,7 +173,7 @@ def makeCreateSLHAs( SLHATemplateName, newFileName, outputDir, modelTag, scanNam
 
     return newFileName
 
-def makeCreateLHEs( oldFileName, newFileName, createScanDirectory, templateCfgName, filesPerJob, useDefaultHeader, runLheCheck, slhaScanDir, outputDir, sourceFileName, crabFile):
+def makeCreateLHEs( oldFileName, newFileName, createScanDirectory, templateCfgName, filesPerJob, useDefaultHeader, runLheCheck, slhaScanDir, outputDir, sourceFileName, crabFile, insertXSection):
     oldFile = open(oldFileName, 'r')
     newFile = open(newFileName, 'w')
 
@@ -185,6 +188,7 @@ def makeCreateLHEs( oldFileName, newFileName, createScanDirectory, templateCfgNa
         line = line.replace('OUTPUTDIR', "'" + outputDir + "'")
         line = line.replace('SOURCEFILE', "'" + sourceFileName + "'")
         line = line.replace('CRABFILE', "'" + crabFile + "'")
+        line = line.replace('INSERTXSECTION', insertXSection)
         newFile.write(line)
     oldFile.close()
     newFile.close()
@@ -202,7 +206,18 @@ def makeCondorCreateLHEsSubmit(templateFileName, newFileName, modelTag,logFilesD
     oldFile.close()
     newFile.close()
     return newFileName
-def makeLHEToAODSIMCfg(templateFileName, newFileName, cmsswDir, lheSourceFile, outputFileName):
+def makeCondorCreateLHEsSh(templateFileName, newFileName, scramArch):
+    oldFile = open(templateFileName, 'r')
+    newFile = open(newFileName, 'w')
+    
+    for line in oldFile:
+        line = line.replace('SCRAMARCH', scramArch)
+        newFile.write(line)
+
+    oldFile.close()
+    newFile.close()
+    return newFileName
+def makeLHEToAODSIMCfg(templateFileName, newFileName, cmsswDir, lheSourceFile, outputFileName, cmEnergy):
     oldFile = open(templateFileName, 'r')
     newFile = open(newFileName, 'w')
     
@@ -211,6 +226,8 @@ def makeLHEToAODSIMCfg(templateFileName, newFileName, cmsswDir, lheSourceFile, o
         if line.find('LHESOURCEFILE') > -1:
             line = line.replace('LHESOURCEFILE', lheSourceFile)
             line = line.replace('.py','').replace(cmsswDir + '/src/', '').replace('python/', '').replace('/', '.')
+        if line.find('CMENERGY') > -1:
+            line = line.replace('CMENERGY', cmEnergy)
         newFile.write(line)
     oldFile.close()
     newFile.close()
@@ -251,6 +268,9 @@ if __name__ == '__main__':
     if cmsDir == '':
         sys.stderr.write("** Please run cmsenv before running createScan **\n")
         sys.exit(0)
+    scramArchCommand = subprocess.Popen("echo $SCRAM_ARCH", stdout=subprocess.PIPE,shell=True)
+    scramArch = scramArchCommand.stdout.read().replace('/n', '')
+
     pwd = subprocess.Popen("pwd", stdout=subprocess.PIPE)
     createScanDir = pwd.stdout.read().replace('\n', '')
 
@@ -263,7 +283,14 @@ if __name__ == '__main__':
     modelTag = parser.get("General", "model_tag") 
     eventsPerPoint = parser.get("General", "events_per_point")
     pointsPerFile = parser.get("General", "points_per_file")
+    try:
+        energy = parser.get("General","energy")
+    except:
+        energy = "7000.0"
+        print "default energy = " + energy
 
+    if float(pointsPerFile) < 1:
+        eventsPerPoint = str(int(float(pointsPerFile)*int(eventsPerPoint)))
     #[SLHA]
     involvedParticles = stringToArray(parser.get("SLHA", 
                                                  "involved_susy_pdgIds"))
@@ -332,24 +359,34 @@ if __name__ == '__main__':
         useDefaultHeader = parser.get("LHE", "use_default_header")
     except:
         useDefaultHeader = "True"
-
-
+    try:
+        insertXSection = parser.get("LHE", "insert_cross_section")
+    except:
+        insertXSection = "False"
+    
     #[AODSIM]
     scheduler = parser.get("AODSIM", "crab_scheduler")
     nCrabJobs = parser.get("AODSIM", "crab_number_of_jobs")
     storagePath = parser.get("AODSIM", "crab_storage_path")
     userRemoteDir = parser.get("AODSIM", "crab_user_remote_directory")
-    
+    LHEToAODSIM_cfgTemplateName = 'LHEToAODSIMTemplate_4_2_3_cfg.py'
+    if cmsDir.split('/')[-1] == 'CMSSW_5_2_2':
+        LHEToAODSIM_cfgTemplateName = 'LHEToAODSIMTemplate_5_2_2_cfg.py'
+    elif msDir.split('/')[-1] == 'CMSSW_4_2_3':
+        pass
+    else:
+        sys.stderr.write('Your cms environment is not set to either' + 
+                         ' CMSSW_4_2_3 or CMSSW_5_2_2. Using 4_2_3 cfg ' + 
+                         'files...\n')
 
     slhaTemplateName = 'SLHATemplate.slha'
     createSLHAsName = 'createSLHAs.py'
-    SLHAToLHE_cfgTemplateName = 'SLHAToLHETemplate_cfg.py'
     createLHEsTemplateName = 'createLHEsTemplate.py'
-    condor_createLHEsName = 'condor_createLHEs.sh'
+    SLHAToLHE_cfgTemplateName = 'SLHAToLHETemplate_cfg.py'
+    condor_createLHEsShTemplateName = 'condor_createLHEsTemplate.sh'
     condor_createLHEsSubmitTemplateName = 'condor_createLHEsTemplate.submit'
     templateSourceFileName = 'source_cff.py'
     sourceFileName = modelTag + '_source_cff.py'
-    LHEToAODSIM_cfgTemplateName = 'LHEToAODSIMTemplate_cfg.py'
     crab_LHEToAODSIMTemplateName = 'crab_LHEToAODSIMTemplate.cfg'
     
     pythonDir = createScanDir + "/python/"
@@ -362,7 +399,7 @@ if __name__ == '__main__':
     
     for i in range(0, len(scanParameterNames)):
         nSlhasFiles = nSlhaFiles * (float(scanParameterMaxs[i]) - float(scanParameterMins[i]) )/float(scanParameterSteps[i])
-    numberOfJobs = int(nSlhasFiles/int(pointsPerFile)) + 1
+    numberOfJobs = int(nSlhasFiles/float(pointsPerFile)) + 1
 
     if scheduler.find('condor') > -1:
         useServer = 0
@@ -382,10 +419,6 @@ if __name__ == '__main__':
                     shell=True)
     subprocess.call("cp " + setupDir + templateSourceFileName + " " + 
                     pythonDir + sourceFileName, shell=True)
-    subprocess.call("cp " + setupDir + condor_createLHEsName + " " + lheDir + 
-                    condor_createLHEsName, shell=True)
-    
-
 
 
     
@@ -396,12 +429,14 @@ if __name__ == '__main__':
 
     makeCreateSLHAs( slhaTemplateName.replace('Template','') , slhaDir + createSLHAsName, slhaDir + 'files', modelTag, scanParameterNames, scanParameterMins, scanParameterMaxs, scanParameterSteps, masses, massDefs, cuts)
     
-    makeSLHAToLHECfg(setupDir + SLHAToLHE_cfgTemplateName, lheDir + SLHAToLHE_cfgTemplateName.replace('Template', ''), eventsPerPoint, allowedSubprocesses, otherPythias, slhaOutputDir.replace(cmsDir + '/src/', ''), randomSeed)
+    makeSLHAToLHECfg(setupDir + SLHAToLHE_cfgTemplateName, lheDir + SLHAToLHE_cfgTemplateName.replace('Template', ''), eventsPerPoint, allowedSubprocesses, otherPythias, slhaOutputDir.replace(cmsDir + '/src/', ''), energy, randomSeed)
 
-    makeCreateLHEs( setupDir + createLHEsTemplateName, lheDir + createLHEsTemplateName.replace('Template', ''), createScanDir, lheDir + SLHAToLHE_cfgTemplateName.replace('Template', ''), pointsPerFile, useDefaultHeader, runLheCheck, lheInputDir, lheOutputDir, pythonDir + sourceFileName, aodsimDir + crab_LHEToAODSIMTemplateName.replace('Template', ''))
+    makeCreateLHEs( setupDir + createLHEsTemplateName, lheDir + createLHEsTemplateName.replace('Template', ''), createScanDir, lheDir + SLHAToLHE_cfgTemplateName.replace('Template', ''), pointsPerFile, useDefaultHeader, runLheCheck, lheInputDir, lheOutputDir, pythonDir + sourceFileName, aodsimDir + crab_LHEToAODSIMTemplateName.replace('Template', ''), insertXSection)
 
     makeCondorCreateLHEsSubmit(setupDir + condor_createLHEsSubmitTemplateName, lheDir + condor_createLHEsSubmitTemplateName.replace('Template', ''), modelTag, logFilesDir, createScanDir, lheOutputDir, str(numberOfJobs))
+    
+    makeCondorCreateLHEsSh(setupDir + condor_createLHEsShTemplateName, lheDir + condor_createLHEsShTemplateName.replace('Template', ''), scramArch)
 
-    makeLHEToAODSIMCfg(setupDir + LHEToAODSIM_cfgTemplateName,  aodsimDir + LHEToAODSIM_cfgTemplateName.replace('Template', ''), cmsDir, pythonDir + sourceFileName, modelTag + "_AODSIM.root")
+    makeLHEToAODSIMCfg(setupDir + LHEToAODSIM_cfgTemplateName,  aodsimDir + LHEToAODSIM_cfgTemplateName.replace('Template', '').replace('_5_2_2','').replace('_4_2_3', ''), cmsDir, pythonDir + sourceFileName, modelTag + "_AODSIM.root", energy)
 
     makeCrabLHEToAODSIM(setupDir + crab_LHEToAODSIMTemplateName, aodsimDir + crab_LHEToAODSIMTemplateName.replace('Template', ''), scheduler, str(useServer), '0', nCrabJobs, storagePath, userRemoteDir + "/" + modelTag, modelTag)

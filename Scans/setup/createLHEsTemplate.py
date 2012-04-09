@@ -292,21 +292,36 @@ if __name__ == '__main__':
     outputDir = OUTPUTDIR
     sourceFileName = SOURCEFILE
     crabFileName = CRABFILE
+    insertXSection = INSERTXSECTION
     events = 0
-    
+    slhaBunch = []
+    outputFileName =''
+
     allSlhas = glob.glob(slhaScanDir + '/*slha')
     for i in range(0,len(allSlhas)):
         allSlhas[i] = allSlhas[i].split('/')[-1]
 
     allSlhas.sort(SLHASort)
-    
-    if int(filesPerJob)*(int(jobNumber) + 1)  > len(allSlhas): 
-        slhaBunch = allSlhas[int(filesPerJob) * int(jobNumber): len(allSlhas)]
-    slhaBunch = allSlhas[ int(filesPerJob) * int(jobNumber): 
-                          int(filesPerJob) * (int(jobNumber) + 1)]
+
+    if filesPerJob < 1:
+        slhaBunch = allSlhas[int(filesPerJob * int(jobNumber)):
+                                 int(filesPerJob * int(jobNumber)) + 1]
+    else:
+        if int(filesPerJob)*(int(jobNumber) + 1)  > len(allSlhas): 
+            slhaBunch = allSlhas[int(filesPerJob) * int(jobNumber): 
+                                 len(allSlhas)]
+        else:
+            slhaBunch = allSlhas[ int(filesPerJob) * int(jobNumber): 
+                                  int(filesPerJob) * (int(jobNumber) + 1)]
 
     if slhaBunch[0] == slhaBunch[-1]:
-        outputFileName = slhaBunch[0].replace('.slha', '.lhe')
+        if filesPerJob < 1:
+            whichOne = int(jobNumber) % int(1/filesPerJob)
+            outputFileName = slhaBunch[0].replace('.slha', 
+                                                  '_' + str(whichOne) + '.lhe')
+        else:
+            outputFileName = slhaBunch[0].replace('.slha', '.lhe')
+
     else:
         outputFileName = makeLHEFileName(slhaBunch[0],slhaBunch[-1]) 
     
@@ -333,9 +348,11 @@ if __name__ == '__main__':
         
         xsection = grabXSection('SLHAToLHETemp.log')
         events = events + countEvents('fort.69')
-        
-#        insertComment('fort.69', slhaBunch[i].replace('.slha', '') + xsection)
-        insertComment('fort.69', slhaBunch[i].replace('.slha', ''))
+        if insertXSection:
+            insertComment('fort.69', slhaBunch[i].replace('.slha', '') + 
+                          xsection)
+        else:
+            insertComment('fort.69', slhaBunch[i].replace('.slha', ''))
         mergeEvents(['fort.69'], outputFileName)
         
         subprocess.call('rm SLHAToLHETemp.log', shell=True)
