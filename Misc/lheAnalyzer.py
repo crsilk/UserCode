@@ -409,6 +409,8 @@ if __name__=="__main__":
                 if options.nEvents != -1 and eventCounter >= int(options.nEvents):
                     break
                 eventCounter = eventCounter + 1
+                if eventCounter/10000.0 == eventCounter/10000:
+                    print eventCounter
                 inEvent = True
                 inFirstLine = True
                 continue
