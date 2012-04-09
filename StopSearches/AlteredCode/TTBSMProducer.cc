@@ -48,6 +48,7 @@
 
 //////////////////////<ADDED BY CHRIS>/////////////////////
 #include "DataFormats/PatCandidates/interface/MET.h"
+#include "DataFormats/Math/interface/deltaR.h"
 /////////////////////</ADDED BY CHRIS>/////////////////////
 
 namespace LHAPDF {
@@ -85,13 +86,15 @@ class TTBSMProducer : public edm::EDFilter {
       edm::InputTag             rhoSrc_;          /// mean pt per unit area
       edm::InputTag             pvSrc_;           /// primary vertex
       //////////////////////<ADDED BY CHRIS>/////////////////////
+//      edm::InputTag             pfCandidateSrc_;
       edm::InputTag             jetSrc_;
       edm::InputTag             electronSrc_;
-      edm::InputTag             muonSrc_;
-   
+      edm::InputTag             muonSrc_;   
       edm::InputTag             lheProdSrc_;
       edm::InputTag             metSrc_;
-      edm::InputTag             eventWeightSrc_;
+//      edm::InputTag             subJetSrc_;
+      edm::InputTag             genJetSrc_;
+//      edm::InputTag             genSubJetSrc_;
       //////////////////////<ADDED BY CHRIS>/////////////////////
       std::vector<std::string>  trigs_;
       std::string               topTagName_;
@@ -132,12 +135,15 @@ TTBSMProducer::TTBSMProducer(const edm::ParameterSet& iConfig) :
   rhoSrc_       ( iConfig.getParameter<edm::InputTag>("rhoSrc")),
   pvSrc_        ( iConfig.getParameter<edm::InputTag>("pvSrc")),
   //////////////////////<ADDED BY CHRIS>//////////////////////
+//  pfCandidateSrc_( iConfig.getParameter<edm::InputTag>("pfCandidateSrc")),
   jetSrc_( iConfig.getParameter<edm::InputTag>("jetSrc")),
   electronSrc_( iConfig.getParameter<edm::InputTag>("electronSrc")),
   muonSrc_( iConfig.getParameter<edm::InputTag>("muonSrc")),
   lheProdSrc_( iConfig.getParameter<edm::InputTag>("lheProdSrc")),
-  metSrc_       (iConfig.getParameter<edm::InputTag>("metSrc")),
-  eventWeightSrc_     (iConfig.getParameter<edm::InputTag>("eventWeightSrc")),
+  metSrc_ (iConfig.getParameter<edm::InputTag>("metSrc")),
+//  subJetSrc_(iConfig.getParameter<edm::InputTag>("subJetSrc")),
+  genJetSrc_(iConfig.getParameter<edm::InputTag>("genJetSrc")),
+//  genSubJetSrc_(iConfig.getParameter<edm::InputTag>("genSubJetSrc")),
   //////////////////////<\ADDED BY CHRIS>/////////////////////
   trigs_        (iConfig.getParameter<std::vector<std::string> > ("trigs") ),
   topTagName_   (iConfig.getParameter<edm::ParameterSet>("topTagParams").getParameter<std::string>("tagName") ),
@@ -211,12 +217,20 @@ TTBSMProducer::TTBSMProducer(const edm::ParameterSet& iConfig) :
 
   //////////////////////<ADDED BY CHRIS>/////////////////////
   produces<std::vector<double> > ("modelParameters");
-  produces<double> ("eventWeight");
+//  produces<std::vector<reco::Candidate::PolarLorentzVector> >("pfCandP4");
   produces<std::vector<reco::Candidate::PolarLorentzVector> >("metP4");
   produces<std::vector<reco::Candidate::PolarLorentzVector> >("jetP4");
   produces<std::vector<reco::Candidate::PolarLorentzVector> >("electronP4");
   produces<std::vector<reco::Candidate::PolarLorentzVector> >("muonP4");
-
+//  produces<std::vector<reco::Candidate::PolarLorentzVector> >("subJetP4");
+  produces<std::vector<reco::Candidate::PolarLorentzVector> >("genJetP4");
+//  produces<std::vector<reco::Candidate::PolarLorentzVector> >("genSubJetP4");
+  produces<double> ("alphaT");
+//  produces<double> ("chargeNeutralDeltaPhi");
+  produces<std::vector<double> > ("metTopDeltaPhi");
+  produces<std::vector<double> > ("metTopMt");
+  produces<double> ("HT");
+  produces<std::vector<reco::Candidate::PolarLorentzVector> > ("MHTP4");
   //////////////////////<\ADDED BY CHRIS>////////////////////
 
   if ( pdfSet_ != "" )
@@ -289,11 +303,20 @@ TTBSMProducer::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   //////////////////////<ADDED BY CHRIS>/////////////////////
   std::auto_ptr<std::vector<double> > modelParameters( new std::vector<double>());
+//  std::auto_ptr<p4_vector> pfCandP4( new p4_vector());
   std::auto_ptr<p4_vector> metP4( new p4_vector());
   std::auto_ptr<p4_vector> jetP4( new p4_vector());
   std::auto_ptr<p4_vector> electronP4( new p4_vector());
   std::auto_ptr<p4_vector> muonP4( new p4_vector());
-  std::auto_ptr<double> eventWeight(new double());
+  std::auto_ptr<double> alphaT (new double( -1.0));
+  std::auto_ptr<double> HT (new double( 0.0));
+  std::auto_ptr<p4_vector> MHTP4 (new p4_vector());
+  std::auto_ptr<double> chargeNeutralDeltaPhi(new double( 0.0));
+  std::auto_ptr<std::vector<double> >metTopDeltaPhi(new std::vector<double>());
+  std::auto_ptr<std::vector<double> >metTopMt(new std::vector<double>());
+  std::auto_ptr<p4_vector> subJetP4( new p4_vector());
+  std::auto_ptr<p4_vector> genJetP4( new p4_vector());
+  std::auto_ptr<p4_vector> genSubJetP4( new p4_vector());
   //////////////////////<\ADDED BY CHRIS>/////////////////////
 
   // Number of reconstructed PV's
@@ -633,6 +656,18 @@ TTBSMProducer::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
 
   //////////////////////<ADDED BY CHRIS>/////////////////////
+  //pfCandidates//
+/*  edm::Handle<std::vector<reco::PFCandidate> >  h_pfcandidate;
+  iEvent.getByLabel(pfCandidateSrc_, h_pfcandidate);
+  std::vector<reco::PFCandidate>::const_iterator pfcandidate;
+
+  for( pfcandidate = h_pfcandidate->begin(); 
+       pfcandidate != h_pfcandidate->end(); pfcandidate++)
+  {
+     pfCandP4->push_back(reco::Candidate::PolarLorentzVector(pfcandidate->pt(), pfcandidate->eta(), pfcandidate->phi(), pfcandidate->mass()));
+  }
+*/
+  //met//
   edm::Handle<std::vector<pat::MET> > h_met;
   iEvent.getByLabel(metSrc_, h_met);
   
@@ -642,17 +677,25 @@ TTBSMProducer::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   reco::Candidate::PolarLorentzVector  metVector(h_met->begin()->pt(), h_met->begin()->eta(), h_met->begin()->phi(), h_met->begin()->mass());
   metP4->push_back(metVector);
 
+  //jetP4, HT, MHT//
   edm::Handle<std::vector<pat::Jet> >  h_jet;
   iEvent.getByLabel(jetSrc_, h_jet);
   std::vector<pat::Jet>::const_iterator jet;
 
+  reco::Candidate::PolarLorentzVector tempMHT(0, 0, 0, 0)
+;
   for( jet = h_jet->begin(); jet != h_jet->end(); jet++)
   {
      jetP4->push_back(reco::Candidate::PolarLorentzVector(jet->pt(), jet->eta(),
                                                           jet->phi(), 
                                                           jet->mass()));
+     *HT = *HT + jet->et();
+     tempMHT = tempMHT + jet->polarP4();
+     
   }
   
+  MHTP4->push_back(tempMHT);
+  //electronP4
   edm::Handle<std::vector<pat::Electron> >  h_electron;
   iEvent.getByLabel(electronSrc_, h_electron);
   std::vector<pat::Electron>::const_iterator electron;
@@ -666,7 +709,7 @@ TTBSMProducer::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
                                                                electron->mass()));
   }
 
-
+  //muonP4//
   edm::Handle<std::vector<pat::Muon> >  h_muon;
   iEvent.getByLabel(muonSrc_, h_muon);
   std::vector<pat::Muon>::const_iterator muon;
@@ -680,11 +723,45 @@ TTBSMProducer::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
                                                                muon->mass()));
   }
 
+  //subJets//
+/*  edm::Handle<std::vector<reco::PFJet> >  h_subJet;
+  iEvent.getByLabel(jetSrc_, h_subJet);
+  std::vector<reco::PFJet>::const_iterator subJet;
+  for( subJet = h_subJet->begin(); subJet != h_subJet->end(); 
+       subJet++)
+  {
+     subJetP4->push_back(reco::Candidate::PolarLorentzVector(subJet->pt(), 
+                                                           subJet->eta(),
+                                                           subJet->phi(),
+                                                           subJet->mass()));
+  }
+*/
  
-  //////ptHat///////
-  edm::Handle<GenEventInfoProduct> genProd;
-  bool findGenProd = iEvent.getByLabel(eventWeightSrc_, genProd);
-  if(findGenProd) *eventWeight = genProd->weight();
+  //genJets//
+  edm::Handle<std::vector<reco::GenJet> >  h_genJet;
+  iEvent.getByLabel(genJetSrc_, h_genJet);
+  std::vector<reco::GenJet>::const_iterator genJet;
+  for( genJet = h_genJet->begin(); genJet != h_genJet->end(); 
+       genJet++)
+  {
+     genJetP4->push_back(reco::Candidate::PolarLorentzVector(genJet->pt(), 
+                                                             genJet->eta(),
+                                                             genJet->phi(),
+                                                             genJet->mass()));
+  }
+  
+  //genSubJets//
+/*  edm::Handle<std::vector<reco::GenJet> >  h_genSubJet;
+  iEvent.getByLabel(jetSrc_, h_genSubJet);
+  std::vector<reco::GenJet>::const_iterator genSubJet;
+  for( genSubJet = h_genSubJet->begin(); genSubJet != h_genSubJet->end(); 
+       genSubJet++)
+  {
+     genSubJetP4->push_back(reco::Candidate::PolarLorentzVector(genSubJet->pt(), genSubJet->eta(), genSubJet->phi(), genSubJet->mass()));
+  }
+*/
+
+
   //modelParamters//
   edm::Handle<LHEEventProduct> lheProd;
   bool findLheProd = iEvent.getByLabel(lheProdSrc_, lheProd);
@@ -703,12 +780,70 @@ TTBSMProducer::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
                                         comment->size());
            parameters = split(tempString, "_");
            modelParameters->push_back(atof(parameters[1].c_str()));
-           modelParameters->push_back(atof(parameters[2].c_str()));                
+           modelParameters->push_back(atof(parameters[2].c_str()));
         }
      }
   }
 
+  //alphaT//
+  reco::Candidate::PolarLorentzVector jet1p4(0, 0, 0, 0);
+  reco::Candidate::PolarLorentzVector jet2p4(0, 0, 0, 0);
   
+  for( jet = h_jet->begin(); jet != h_jet->end(); jet++)
+  {
+     if(h_jet->size() < 2) break;
+     if(jet->et() < 100 || abs(jet->eta()) > 2.5) continue;
+
+     if(jet->pt() > jet1p4.pt())
+     {
+        jet2p4 = jet1p4;
+        jet1p4 = jet->polarP4();
+     }
+     else
+     {
+        if(jet->pt() > jet2p4.pt())
+           jet2p4 = jet->polarP4();
+     }
+  }
+
+  if( jet1p4.pt() > 0 && jet2p4.pt() > 0)
+  {
+     *alphaT = jet2p4.Et()/(jet1p4 + jet2p4).mt();
+  }
+  double tempDeltaPhi = 0.0;
+  //charge and neutral deltaPhi
+/*  reco::Candidate::PolarLorentzVector chargep4(0, 0, 0, 0);
+  reco::Candidate::PolarLorentzVector neutralp4(0, 0, 0, 0);
+
+  for( pfcandidate = h_pfcandidate->begin(); 
+       pfcandidate != h_pfcandidate->end(); pfcandidate++)
+  {
+     if(pfcandidate->particleId() == 1 || 
+        pfcandidate->particleId() == 2 ||
+        pfcandidate->particleId() == 3)
+        chargep4= chargep4 + pfcandidate->p4();
+     if(pfcandidate->particleId() == 4 || 
+        pfcandidate->particleId() == 5)
+        neutralp4 = neutralp4 + pfcandidate->p4();
+  }
+
+  tempDeltaPhi = fabs(chargep4.phi() - neutralp4.phi());
+  if(tempDeltaPhi > TMath::Pi())
+     tempDeltaPhi = 2 * TMath::Pi() - tempDeltaPhi;
+  *chargeNeutralDeltaPhi = tempDeltaPhi;
+  */
+  //metTopDeltaPhi, metTopMt//
+  p4_vector::const_iterator topTag;
+  for(topTag = topTagP4->begin(); topTag != topTagP4->end(); topTag++)
+  {
+     tempDeltaPhi = fabs(metP4->begin()->phi() - topTag->phi());
+     if(tempDeltaPhi > TMath::Pi())
+        tempDeltaPhi = 2 * TMath::Pi() - tempDeltaPhi;
+
+     metTopDeltaPhi->push_back(tempDeltaPhi);
+     metTopMt->push_back( (*metP4->begin() + *topTag).mt());
+  }
+   
   //////////////////////<\ADDED BY CHRIS>////////////////////
 
 
@@ -750,11 +885,19 @@ TTBSMProducer::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put( npvTrue, "npvTrue");
   iEvent.put( pdf_weights, "pdfWeights");
   //////////////////////<ADDED BY CHRIS>/////////////////////
+//  iEvent.put(pfCandP4    ,"pfCandP4");
   iEvent.put(metP4       ,"metP4");
   iEvent.put(jetP4       ,"jetP4");
-  iEvent.put(electronP4      , "electronP4");
+  iEvent.put(electronP4  , "electronP4");
   iEvent.put(muonP4      , "muonP4");
-  if(findGenProd) iEvent.put(eventWeight       ,"eventWeight");
+  iEvent.put(genJetP4    , "genJetP4");
+//  iEvent.put(chargeNeutralDeltaPhi, "chargeNeutralDeltaPhi");
+  iEvent.put(alphaT      , "alphaT");
+  iEvent.put(HT      , "HT");
+  iEvent.put(MHTP4      , "MHTP4");
+  
+  iEvent.put(metTopDeltaPhi, "metTopDeltaPhi");
+  iEvent.put(metTopMt, "metTopMt");
   if(findLheProd) iEvent.put(modelParameters   ,"modelParameters");
   /////////////////////<\ADDED BY CHRIS>/////////////////////
 
