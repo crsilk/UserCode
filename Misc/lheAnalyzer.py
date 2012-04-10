@@ -522,10 +522,9 @@ if __name__=="__main__":
         
         arrayIndex1 = options.whichParameters[0]
         arrayIndex2 = options.whichParameters[1]
-        
         for i  in range(0, len(existingModelPoints)):
-            iparameter1 = existingModelPoints[i][arrayIndex1]
-            iparameter2 = existingModelPoints[i][arrayIndex2]
+            iparameter1 = existingModelPoints[i][0]
+            iparameter2 = existingModelPoints[i][1]
             
             if minX > iparameter1:
                 minX = iparameter1
@@ -538,8 +537,8 @@ if __name__=="__main__":
             
             for j in range(0, len(existingModelPoints)):
 
-                jparameter1 = existingModelPoints[j][arrayIndex1]
-                jparameter2 = existingModelPoints[j][arrayIndex2]
+                jparameter1 = existingModelPoints[j][0]
+                jparameter2 = existingModelPoints[j][1]
 
                 if (abs(iparameter1 - jparameter1) < stepX and
                     abs(iparameter1 - jparameter1) != 0 ) :
@@ -573,8 +572,9 @@ if __name__=="__main__":
         
         nEventsHistogram = TH2F("NEvents", "Number of Events", nBinsX, minX, maxX, nBinsY, minY, maxY)
         for modelPoint in modelPoints:
-            nEventsHistogram.Fill(modelPoint.getParameters()[arrayIndex1],
-                                  modelPoint.getParameters()[arrayIndex2],
+            print modelPoint.getParameters()
+            nEventsHistogram.Fill(modelPoint.getParameters()[0],
+                                  modelPoint.getParameters()[1],
                                   modelPoint.nEvents())
         nEventsHistogram.Write()
 
@@ -590,8 +590,8 @@ if __name__=="__main__":
             massHistograms[-1].GetYaxis().SetTitle(options.parameterTags[1])
             for modelPoint in modelPoints:
                 
-                massHistograms[-1].Fill(modelPoint.getParameters()[arrayIndex1],
-                                        modelPoint.getParameters()[arrayIndex2],
+                massHistograms[-1].Fill(modelPoint.getParameters()[0],
+                                        modelPoint.getParameters()[1],
                                         modelPoint.particleMasses()[i])
         for massHistogram in massHistograms:
 
