@@ -7,6 +7,7 @@
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 #include "DataFormats/JetReco/interface/PFJetCollection.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
+#include "DataFormats/METReco/interface/PFMET.h"
 #include "DataFormats/METReco/interface/PFMETCollection.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/JetReco/interface/GenJet.h"
@@ -49,6 +50,7 @@ private:
 
   InputTag inputTagSource_;
   InputTag inputTagPFJets_;
+  InputTag inputTagPFMET_;
   InputTag inputTagPFCandidates_;
   InputTag inputTagGenParticles_;
   InputTag inputTagGenJets_;
@@ -67,14 +69,18 @@ private:
   TH1F * GenMET_histo;
   TH1F * GenNJets_histo;
   TH1F * GenJet1Pt_histo;
-  TH1F * GenNLeptons_histo;
-  TH1F * GenLepton1Pt_histo;
+  TH1F * GenNElectrons_histo;
+  TH1F * GenElectron1Pt_histo;
+  TH1F * GenNMuons_histo;
+  TH1F * GenMuon1Pt_histo;
   TH1F * HT_histo;
   TH1F * NJets_histo;
   TH1F * Jet1Pt_histo;
   TH1F * PFMET_histo;
-  TH1F * NLeptons_histo;
-  TH1F * Lepton1Pt_histo;
+  TH1F * NElectrons_histo;
+  TH1F * Electron1Pt_histo;
+  TH1F * NMuons_histo;
+  TH1F * Muon1Pt_histo;
 };
 
 
@@ -83,6 +89,7 @@ ScanValidator::ScanValidator(const edm::ParameterSet& iConfig)
 {
    inputTagSource_  = iConfig.getParameter<InputTag>("source");
    inputTagPFJets_ =  iConfig.getParameter<InputTag>("pfjets");
+   inputTagPFMET_ = iConfig.getParameter<InputTag>("pfmet");
    inputTagPFCandidates_ =  iConfig.getParameter<InputTag>("pfcandidates");
    inputTagGenParticles_ = iConfig.getParameter<InputTag>("genparticles");
    inputTagGenJets_ = iConfig.getParameter<InputTag>("genjets");
@@ -103,14 +110,18 @@ ScanValidator::ScanValidator(const edm::ParameterSet& iConfig)
    GenMET_histo = rootFile->make<TH1F>("GenMET_histo", "Gen MET", 300, 0, 3000);
    GenNJets_histo = rootFile->make<TH1F>("GenNJets_histo", "Gen NJets", 50, 0, 50);
    GenJet1Pt_histo = rootFile->make<TH1F>("GenJet1Pt_histo", "1st Gen jet pt", 200, 0, 2000);
-   GenNLeptons_histo =rootFile->make<TH1F>("GenNLeptons_histo", "Gen NLeptons", 20, 0, 20);
-   GenLepton1Pt_histo = rootFile->make<TH1F>("GenLepton1Pt_histo", "1st Gen lepton pt", 200, 0, 2000);
+   GenNElectrons_histo =rootFile->make<TH1F>("GenNElectrons_histo", "Gen NElectrons", 20, 0, 20);
+   GenNMuons_histo =rootFile->make<TH1F>("GenNMuons_histo", "Gen NMuons", 20, 0, 20);
+   GenElectron1Pt_histo = rootFile->make<TH1F>("GenElectron1Pt_histo", "1st Gen electron pt", 200, 0, 2000);
+   GenMuon1Pt_histo = rootFile->make<TH1F>("GenMuon1Pt_histo", "1st Gen muon pt", 200, 0, 2000);
    HT_histo = rootFile->make<TH1F>("HT_histo", "HT", 300, 0, 3000);
    PFMET_histo = rootFile->make<TH1F>("PFMET_histo", "MET", 300, 0, 3000);
    NJets_histo = rootFile->make<TH1F>("NJets_histo", "NJets", 50, 0, 50);
    Jet1Pt_histo = rootFile->make<TH1F>("Jet1Pt_histo", "1st jet pt", 200, 0, 2000);
-   NLeptons_histo =rootFile->make<TH1F>("NLeptons_histo", "NLeptons", 20, 0, 20);
-   Lepton1Pt_histo = rootFile->make<TH1F>("Lepton1Pt_histo", "1st lepton pt", 200, 0, 2000);
+   NElectrons_histo =rootFile->make<TH1F>("NElectrons_histo", "NElectrons", 20, 0, 20);
+   Electron1Pt_histo = rootFile->make<TH1F>("Electron1Pt_histo", "1st electron pt", 200, 0, 2000);
+   NMuons_histo =rootFile->make<TH1F>("NMuons_histo", "NMuons", 20, 0, 20);
+   Muon1Pt_histo = rootFile->make<TH1F>("Muon1Pt_histo", "1st muon pt", 200, 0, 2000);
 }
 
 
@@ -160,7 +171,11 @@ ScanValidator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   Handle<PFJetCollection> pfjets;
   iEvent.getByLabel(inputTagPFJets_, pfjets);
   PFJetCollection::const_iterator pfjet;
-  
+
+  Handle<PFMETCollection> pfmets;
+  iEvent.getByLabel(inputTagPFMET_, pfmets);
+  PFMETCollection::const_iterator pfmet = pfmets->begin();
+
   Handle<PFCandidateCollection> pfcandidates;
   iEvent.getByLabel(inputTagPFCandidates_, pfcandidates);
   PFCandidateCollection::const_iterator pfcandidate;
@@ -190,30 +205,41 @@ ScanValidator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   bool commentIsThere = false;
   double genHT = 0;
   double maxGenJetPt = 0;
-  int nGenLeptons = 0;
+  int nGenElectrons = 0;
+  int nGenMuons = 0;
   int nGenJets = 0;
-  double maxGenPt = 0;
+  double maxGenElectronPt = 0;
+  double maxGenMuonPt = 0;
   double maxJetPt = 0;
-  double maxLeptonPt = 0;
-  double nLeptons = 0;
+  double maxElectronPt = 0;
+  double nElectrons = 0;
+  double maxMuonPt = 0;
+  double nMuons = 0;
   double nTaus = 0;
 
   for(genparticle = genparticles->begin(); 
       genparticle != genparticles->end(); genparticle++)
   {
-     if (genparticle->status() == 1)
+     if( genparticle->status() == 1)
      {
-     }
+        if(abs(genparticle->pdgId()) != 12 && 
+           abs(genparticle->pdgId()) != 14 && 
+           abs(genparticle->pdgId()) != 16 &&
+           abs(genparticle->pdgId()) != 1000022) 
+           genparticleP4 = genparticleP4 + genparticle->p4();
 
-     if((abs(genparticle->pdgId()) == 11 || 
-         abs(genparticle->pdgId()) == 13 ||
-         abs(genparticle->pdgId()) == 15) &&
-        genparticle->status() == 3 )
-        nGenLeptons++;
-        genparticleP4 = genparticleP4 + genparticle->p4();
-     if(genparticle->pt() > maxGenPt)
-     {
-        maxGenPt = genparticle->pt();
+        if(abs(genparticle->pdgId()) == 11)
+        {
+           nGenElectrons++;
+           if(genparticle->pt() > maxGenElectronPt)
+              maxGenElectronPt = genparticle->pt();
+        }
+        if(abs(genparticle->pdgId()) == 13)
+        {
+           nGenMuons++;
+           if(genparticle->pt() > maxGenMuonPt)
+              maxGenMuonPt = genparticle->pt();
+        }
      }
   }
       
@@ -230,18 +256,22 @@ ScanValidator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        pfcandidate++)
     {      
       pfcandP4 = pfcandP4 + pfcandidate->p4();
-      if(abs(pfcandidate->pdgId()) == 11 ||  
-	 abs(pfcandidate->pdgId()) == 13 ||  
-	 abs(pfcandidate->pdgId()) == 15) 
-	{
+
 	  if (pfcandidate->pt() < leptonCut_) continue;
-	  
-	  nLeptons++;
-	  if(pfcandidate->pt() > maxLeptonPt)
-	    {
-	      maxLeptonPt = pfcandidate->pt();
-	    }
-	}
+
+	  if(abs(pfcandidate->pdgId()) ==11)
+      {
+         nElectrons++;
+         if(pfcandidate->pt() > maxElectronPt)
+            maxElectronPt = pfcandidate->pt();
+      }
+
+	  if(abs(pfcandidate->pdgId()) ==11)
+      {
+         nMuons++;
+         if(pfcandidate->pt() > maxMuonPt)
+            maxMuonPt = pfcandidate->pt();
+      }
     }
 
   for( pftau = pftaus->begin(); pftau != pftaus->end();pftau++)
@@ -252,7 +282,7 @@ ScanValidator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
   
 
-  if(dileptonFilter_ && nGenLeptons < 2) return;
+  if(dileptonFilter_ && nGenMuons + nGenElectrons < 2) return;
   
   if(getComment_)
     {
@@ -270,16 +300,16 @@ ScanValidator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	      param1 = atof(parameters[1].c_str());
 	      param2 = atof(parameters[2].c_str());
 	      
-	      strings = split(*comment, " ");
-	      crossSection = atof(strings[2].c_str());
-	  
+	      strings = split(comment->substr(0, comment->size()), " ");
+	      crossSection = atof(strings[4].c_str());
+
 	      tempString = comment->substr(comment->find_last_of(" "),
 					   comment->find("\n"));
-	      efficiency = atof(tempString.c_str());
+//	      efficiency = atof(tempString.c_str());
 	      
 	      NEvents_histo->Fill( param1, param2);
-	      Efficiency_histo->Fill( param1, param2, efficiency/NEvents_);
-	      crossSection_histo->Fill(param1, param2, crossSection/NEvents_);
+//	      Efficiency_histo->Fill( param1, param2, efficiency/NEvents_);
+	      crossSection_histo->Fill(param1, param2, crossSection);
 	    }
 	}
     }
@@ -290,12 +320,13 @@ ScanValidator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   double njets = 0;
   for (pfjet = pfjets->begin(); pfjet != pfjets->end(); pfjet++)
     {
-      if (pfjet->pt() < jetCut_)
-         continue;
-      if(pfjet->pt() > maxJetPt)
-         maxJetPt = pfjet->pt();
-      njets++;
        ht = ht + pfjet->et();
+       if (pfjet->pt() < jetCut_)
+          continue;
+       if(pfjet->pt() > maxJetPt)
+          maxJetPt = pfjet->pt();
+       njets++;
+
     }
   
   GenHT_histo->Fill(genHT);
@@ -305,21 +336,27 @@ ScanValidator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   if (nGenJets != 0)
      GenJet1Pt_histo->Fill(maxGenJetPt);
 
-  GenNLeptons_histo->Fill(nGenLeptons);
-  if (nGenLeptons != 0)
-     GenLepton1Pt_histo->Fill(maxGenPt);
+  GenNElectrons_histo->Fill(nGenElectrons);
+  if (nGenElectrons != 0)
+     GenElectron1Pt_histo->Fill(maxGenElectronPt);
+  GenNMuons_histo->Fill(nGenMuons);
+  if (nGenMuons != 0)
+     GenMuon1Pt_histo->Fill(maxGenMuonPt);
 
 
 
   HT_histo->Fill(ht);
   NJets_histo->Fill(njets);
-  NLeptons_histo->Fill(nLeptons);
+  NElectrons_histo->Fill(nElectrons);
+  NMuons_histo->Fill(nMuons);
   if (njets != 0)
      Jet1Pt_histo->Fill(maxJetPt);
-  if( nLeptons != 0.0)
-    Lepton1Pt_histo->Fill(maxLeptonPt);
+  if( nElectrons != 0.0)
+    Electron1Pt_histo->Fill(maxElectronPt);
+  if( nMuons != 0.0)
+    Muon1Pt_histo->Fill(maxMuonPt);
   
-  PFMET_histo->Fill(pfcandP4.pt());
+  PFMET_histo->Fill(pfmet->pt());
   
 
 }
