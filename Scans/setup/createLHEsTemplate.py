@@ -98,7 +98,7 @@ def makeLHEFileName(beginFileName, endFileName):
     '.lhe' )
 
     return combinedFileName
-def startOutputFile(fileName, defaultHeader, templateCfgName, slhaFile, jobNumber):
+def startOutputFile(fileName, defaultHeader, templateCfgName, slhaFile, jobNumber, halfOfBeamEnergy):
     if defaultHeader:
 	header=str("<LesHouchesEvents>\n\
 <!--\n\
@@ -121,7 +121,7 @@ DECAY   1000022   0.0E+00\n\
 </slha>\n\
 </header>\n\
 <init>\n\
-    2212    2212  3.500000E+03  3.500000E+03     0     0 10042 10042     3    84\n\
+    2212    2212  " + halfOfBeamEnergy + "  " + halfOfBeamEnergy + "     0     0 10042 10042     3    84\n\
   1.000000E+00  1.000000E+00  1.000000E+00   201\n\
   1.000000E+00  1.000000E+00  1.000000E+00   202\n\
   1.000000E+00  1.000000E+00  1.000000E+00   204\n\
@@ -293,11 +293,14 @@ if __name__ == '__main__':
     sourceFileName = SOURCEFILE
     crabFileName = CRABFILE
     insertXSection = INSERTXSECTION
+    energy = ENERGY
     events = 0
     slhaBunch = []
     outputFileName =''
-
     allSlhas = glob.glob(slhaScanDir + '/*slha')
+
+    halfOfBeamEnergy = '%(#)E' % {"#":energy/2.0}
+	
     for i in range(0,len(allSlhas)):
         allSlhas[i] = allSlhas[i].split('/')[-1]
 
@@ -331,7 +334,7 @@ if __name__ == '__main__':
         slhaToStartOn = 1
     
     startOutputFile(outputFileName, useDefaultHeader, templateCfgName, 
-                    slhaBunch[0], jobNumber)
+                    slhaBunch[0], jobNumber, halfOfBeamEnergy)
 
     for i in range(slhaToStartOn, len(slhaBunch)):
         
