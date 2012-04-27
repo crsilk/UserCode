@@ -62,6 +62,7 @@ private:
   double leptonCut_;
   double tauCut_;
   double jetCut_;
+  double jetEtaCut_;
   TH2F * NEvents_histo;
   TH2F * crossSection_histo;
   TH2F * Efficiency_histo;
@@ -101,9 +102,10 @@ ScanValidator::ScanValidator(const edm::ParameterSet& iConfig)
    leptonCut_ = iConfig.getParameter<double>("leptonCut");
    tauCut_ = iConfig.getParameter<double>("tauCut");
    jetCut_ = iConfig.getParameter<double>("jetCut");
+   jetEtaCut_ = iConfig.getParameter<double>("jetEtaCut");
 
    Service<TFileService> rootFile;
-   NEvents_histo = rootFile->make<TH2F>("NEvents_histo", "NEvents", 150, 0, 3000, 50, 0, 1000);
+   NEvents_histo = rootFile->make<TH2F>("NEvents_histo", "NEvents", 120, 0, 3000, 40, 0, 1000);
    crossSection_histo = rootFile->make<TH2F>("crossSection_histo", "Cross Section", 150, 0, 3000, 50, 0, 1000);
    Efficiency_histo =rootFile->make<TH2F>("Efficiency_histo", "Efficiency", 150, 0, 3000, 50, 0, 1000);
    GenHT_histo = rootFile->make<TH1F>("GenHT_histo", "Gen HT", 300, 0, 3000);
@@ -320,9 +322,13 @@ ScanValidator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   double njets = 0;
   for (pfjet = pfjets->begin(); pfjet != pfjets->end(); pfjet++)
     {
-       ht = ht + pfjet->et();
+
        if (pfjet->pt() < jetCut_)
           continue;
+       if (abs(pfjet->eta()) > jetEtaCut_)
+          continue;
+       ht = ht + pfjet->et();
+
        if(pfjet->pt() > maxJetPt)
           maxJetPt = pfjet->pt();
        njets++;
