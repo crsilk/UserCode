@@ -17,7 +17,6 @@ process.source = cms.Source("PoolSource",
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.MessageLogger.cerr.FwkReport.reportEvery = 10000
 
-process.modelfilter.modelTag = cms.string("T1tttt")
 process.modelfilter.selectOnRange = cms.bool(True)
 process.modelfilter.parameterMins = cms.vdouble(0.0, 600, 175)
 process.modelfilter.parameterMaxs = cms.vdouble(0.0, 600, 175)

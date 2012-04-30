@@ -12,7 +12,6 @@ using namespace edm;
 ModelFilter::ModelFilter(const edm::ParameterSet& iConfig)
 {
    inputTagSource_  = iConfig.getParameter<InputTag>("source");
-   modelTag_ = iConfig.getParameter<string>("modelTag");
    selectOnRange_ = iConfig.getParameter<bool>("selectOnRange");
    selectOnSplitting_ = iConfig.getParameter<bool>("selectOnSplitting");
    parameterMins_ = iConfig.getParameter<vector<double> >("parameterMins");

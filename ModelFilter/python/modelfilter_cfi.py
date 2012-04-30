@@ -2,7 +2,6 @@ import FWCore.ParameterSet.Config as cms
 
 modelfilter = cms.EDFilter('ModelFilter',
     source = cms.InputTag("source"),
-    modelTag = cms.string("T2tt"),
     selectOnRange = cms.bool(False),
     selectOnSplitting = cms.bool(False),
     minSplitting = cms.double(0),
