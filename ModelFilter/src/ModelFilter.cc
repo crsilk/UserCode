@@ -29,22 +29,22 @@ ModelFilter::~ModelFilter()
 bool ModelFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    Handle<LHEEventProduct> product;
-   iEvent.getByLabel(inputTagSource_, product);
+   bool commentIsThere = iEvent.getByLabel(inputTagSource_, product);
    comments_const_iterator comment;
 
    string tempString;
+   vector<string> tempStrings;
    vector<string> parameters;
    double splitting;
 
    for(comment = product->comments_begin(); comment != product->comments_end();
        comment++)
    {
-      if(comment->find(modelTag_) != string::npos)
+      if(commentIsThere)
       {
-         tempString = comment->substr(comment->find(modelTag_),
-                                      comment->size());
-         tempString = tempString.substr(0, tempString.find(" "));
-         parameters = split(tempString, "_");
+         tempString = comment->substr(0,comment->size());
+         tempStrings = split(tempString," ");
+         parameters = split(tempStrings[2], "_");
 
          splitting = atof(parameters[1].c_str()) - 
             atof(parameters[2].c_str());
@@ -53,7 +53,7 @@ bool ModelFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
             parameterMins_.size() != parameterMaxs_.size()) &&
             selectOnRange_)
          {
-            cout<<"Error: number of modeParameters does not match number of parameters in file"<<endl;
+            cout<<"Error: number of modelParameters does not match number of parameters in file"<<endl;
             return false;
          }
          else
