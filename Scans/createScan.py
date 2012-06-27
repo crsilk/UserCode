@@ -173,7 +173,7 @@ def makeCreateSLHAs( SLHATemplateName, newFileName, outputDir, modelTag, scanNam
 
     return newFileName
 
-def makeCreateLHEs( oldFileName, newFileName, createScanDirectory, templateCfgName, filesPerJob, useDefaultHeader, runLheCheck, slhaScanDir, outputDir, sourceFileName, crabFile, insertXSection):
+def makeCreateLHEs( oldFileName, newFileName, createScanDirectory, templateCfgName, filesPerJob, useDefaultHeader, runLheCheck, slhaScanDir, outputDir, sourceFileName, crabFile, insertXSection, energy):
     oldFile = open(oldFileName, 'r')
     newFile = open(newFileName, 'w')
 
@@ -189,6 +189,7 @@ def makeCreateLHEs( oldFileName, newFileName, createScanDirectory, templateCfgNa
         line = line.replace('SOURCEFILE', "'" + sourceFileName + "'")
         line = line.replace('CRABFILE', "'" + crabFile + "'")
         line = line.replace('INSERTXSECTION', insertXSection)
+        line = line.replace('ENERGY', energy)
         newFile.write(line)
     oldFile.close()
     newFile.close()
@@ -431,7 +432,7 @@ if __name__ == '__main__':
     
     makeSLHAToLHECfg(setupDir + SLHAToLHE_cfgTemplateName, lheDir + SLHAToLHE_cfgTemplateName.replace('Template', ''), eventsPerPoint, allowedSubprocesses, otherPythias, slhaOutputDir.replace(cmsDir + '/src/', ''), energy, randomSeed)
 
-    makeCreateLHEs( setupDir + createLHEsTemplateName, lheDir + createLHEsTemplateName.replace('Template', ''), createScanDir, lheDir + SLHAToLHE_cfgTemplateName.replace('Template', ''), pointsPerFile, useDefaultHeader, runLheCheck, lheInputDir, lheOutputDir, pythonDir + sourceFileName, aodsimDir + crab_LHEToAODSIMTemplateName.replace('Template', ''), insertXSection)
+    makeCreateLHEs( setupDir + createLHEsTemplateName, lheDir + createLHEsTemplateName.replace('Template', ''), createScanDir, lheDir + SLHAToLHE_cfgTemplateName.replace('Template', ''), pointsPerFile, useDefaultHeader, runLheCheck, lheInputDir, lheOutputDir, pythonDir + sourceFileName, aodsimDir + crab_LHEToAODSIMTemplateName.replace('Template', ''), insertXSection, energy)
 
     makeCondorCreateLHEsSubmit(setupDir + condor_createLHEsSubmitTemplateName, lheDir + condor_createLHEsSubmitTemplateName.replace('Template', ''), modelTag, logFilesDir, createScanDir, lheOutputDir, str(numberOfJobs))
     
