@@ -26,7 +26,7 @@ process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(-1)
 )
 
-process.source = cms.Source("LHESOURCEFILE")
+process.load('LHESOURCEFILE')
 
 process.options = cms.untracked.PSet(
 	wantSummary = cms.untracked.bool(False)
@@ -53,7 +53,7 @@ process.generator = cms.EDFilter("Pythia6HadronizerFilter",
 process.options.SkipEvent = cms.untracked.vstring('ProductNotFound')
 
 process.configurationMetadata = cms.untracked.PSet(
-    version = cms.untracked.string('$Revision: 1.372.2.1 $'),
+    version = cms.untracked.string('$Revision: 1.1 $'),
     annotation = cms.untracked.string('GEN-fragment nevts:1'),
     name = cms.untracked.string('PyReleaseValidation')
 )
@@ -62,7 +62,7 @@ process.configurationMetadata = cms.untracked.PSet(
 process.AODSIMoutput = cms.OutputModule("PoolOutputModule",
     eventAutoFlushCompressedSize = cms.untracked.int32(15728640),
     outputCommands = process.AODSIMEventContent.outputCommands,
-    fileName = cms.untracked.string('GEN-fragment_GEN_FASTSIM_HLT_PU.root'),
+    fileName = cms.untracked.string(OUTPUTFILE),
     dataset = cms.untracked.PSet(
         filterName = cms.untracked.string(''),
         dataTier = cms.untracked.string('AODSIM')

@@ -215,38 +215,6 @@ DECAY   1000022   0.0E+00\n\
     file.writelines(header)
     file.close()
 
-def addToLHESource(sourceFileName, outputDirectory, lheFileName):
-    oldFile = open(sourceFileName, 'r')
-    newFile = open(sourceFileName  + '.tmp', 'w')
-    if outputDirectory.find('/store/') > -1: 
-        prefix = ''
-        outputDirectory = outputDirectory[outputDirectory.find('/store'):]
-    elif outputDirectory.find('/pnfs/') > -1: prefix = 'dcap://'
-    else: prefix = 'file:'
-
-    for line in oldFile:
-        line = line.replace('])', "'" + prefix + outputDirectory + "/" + lheFileName + "',\n])")
-        newFile.write(line)
-    oldFile.close()
-    newFile.close()
-    
-    subprocess.call("mv " + sourceFileName + ".tmp " + sourceFileName, 
-                    shell = True)
-def addEventsToCrab(crabFileName, events):
-    try:
-        file = open(crabFileName, 'r')
-    except:
-        sys.sdterr("** Could not find crab file. You must edit number of "+
-                   "events yourself **\n")
-        return
-    for line in file:
-        if line.find("total_number_of_events") > -1:
-            oldNumber = int(line.split('=')[-1].replace('_', '').replace('\n', ''))
-            newNumber = oldNumber + events
-            break
-    subprocess.call('sed -i -e s,"' + line.replace('\n', '') + 
-                    '","total_number_of_events = ' + str(newNumber) + '", ' + 
-                    crabFileName, shell=True)
 
 def endOutputFile(fileName):
     file = open(fileName, 'r')
@@ -277,7 +245,22 @@ def checkStablesInLhe(lheFileName):
                                  "Skipping " + lheFileName)
                 return False
     return True
+def createCrabCfg(crabTemplateName, lheFileName, firstRunNumber, totalEvents):
+    newFileName = crabTemplateName.replace(crabTemplateName.split('/')[-1], '') + 'crab_' + lheFileName.split('/')[-1].replace('.lhe', '.cfg')
 
+    oldFile = open(crabTemplateName, 'r')
+    newFile = open(newFileName, 'w')
+
+    for line in oldFile:
+        line = line.replace('FULLLHEFILENAME',lheFileName)
+        line = line.replace('FIRSTRUNNUMBER' , firstRunNumber)
+        line = line.replace('TOTALNUMBEROFEVENTS', totalEvents)
+        line = line.replace('UIWORKINGDIR' , 'ui_' + lheFileName.split('/')[-1].replace('.lhe', ''))
+        line = line.replace('LHEFILENAME' , lheFileName.split('/')[-1])
+        newFile.write(line)
+
+    oldFile.close()
+    newFile.close()
 if __name__ == '__main__':
     if len(sys.argv) != 2:
          sys.stderr.write("Usage <SLHA file bunch to run over>")
@@ -342,9 +325,9 @@ if __name__ == '__main__':
         if glob.glob('fort.69') == []:
             sys.stderr.write("No LHE file was created using slha file: " + 
                              slhaBunch[i] + "\nPossible causes:\n1) You" + 
-                             " need to cmsenv.\n2)Something went wrong with" + 
+                             " need to cmsenv.\n2) Something went wrong with" + 
                              " the cmsRun on that point.\n3) You do not have" +
-                             "the correctly modified version of Pythia")
+                             "the correctly modified version of Pythia\n")
             continue
         if runLHECheck and not checkStablesInLhe:
             continue
@@ -359,10 +342,7 @@ if __name__ == '__main__':
         mergeEvents(['fort.69'], outputFileName)
         
         subprocess.call('rm SLHAToLHETemp.log', shell=True)
-    endOutputFile(outputFileName)
-    addToLHESource(sourceFileName, outputDir, outputFileName)
-    addEventsToCrab(crabFileName, events)
 
     subprocess.call('mv ' + outputFileName +' ' +outputDir, shell =True)
     subprocess.call('rm fort.69', shell=True)
-    subprocess.call('scram b -j 4', shell=True, cwd = createScanDirectory)
+    createCrabCfg(crabFileName, outputDir  + outputFileName, str(int(jobNumber) + 1), str(events))
