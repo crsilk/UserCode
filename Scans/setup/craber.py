@@ -100,13 +100,12 @@ if __name__ == '__main__':
     tempDictionary = []
     dictionary = []
     count = -1
-
     if len(args) != 0:
         selectedCrabCfgs = args
     else:
         selectedCrabCfgs = crabCfgs[options.crabRange[0]:options.crabRange[1]]
 
-    
+  
     for crabCfg in crabCfgs:
         count = count + 1
         for selectedCrabCfg in selectedCrabCfgs:
@@ -115,18 +114,17 @@ if __name__ == '__main__':
                 selectedCrabCfgs.remove(selectedCrabCfg)
                 break
   
-    
-
     for temp in tempDictionary:
         if options.checkRootFiles:
             allRootFiles = []
             allFjrFiles = []
             (lheFile, numberOfJobs, eventsPerJob) = getValuesFromCfg(temp['crabCfg'])
             for i in range(1, numberOfJobs + 1):
-                allRootFiles.append(options.locationOfRootFiles + crabCfg.replace('crab_', '').replace('.cfg', '') +'_' + str(i) + "_")
+                allRootFiles.append(options.locationOfRootFiles + temp['crabCfg'].replace('crab_', '').replace('.cfg', '') +'_' + str(i) + "_")
                 allFjrFiles.append("ui_" + temp['crabCfg'].replace('crab', '').replace('.cfg', '') + '/res/crab_fjr_' + str(i) + '.xml')
             dictionary.append({"crabNumber": temp['crabNumber'],
-                               "crabCfg":temp['crabCfg'], 
+                               "crabCfg":temp['crabCfg'],
+                               "uiDirectory": temp['crabCfg'].replace('crab_', 'ui_').replace('.cfg', ''),
                                "lheFile":lheFile, 
                                "numberOfJobs":numberOfJobs, 
                                "eventsPerJob":eventsPerJob, 
@@ -143,6 +141,7 @@ if __name__ == '__main__':
             (lheFile, numberOfJobs, eventsPerJob) = getValuesFromCfg(temp['crabCfg'])
             dictionary.append({"crabNumber": temp['crabNumber'],
                                "crabCfg":temp['crabCfg'], 
+                               "uiDirectory": temp['crabCfg'].replace('crab_', 'ui_').replace('.cfg', ''),
                                "lheFile":lheFile, 
                                "numberOfJobs":numberOfJobs, 
                                "eventsPerJob":eventsPerJob, 
@@ -154,6 +153,7 @@ if __name__ == '__main__':
         col_width = max(len(word) for word in crabCfgs) + 2
         for i in range(0, len(crabCfgs)):
             print "".join(crabCfgs[i].ljust(col_width)) + str(i)
+
 
     if options.checkRootFiles:
         for i in range(0, len(dictionary)):
@@ -171,6 +171,7 @@ if __name__ == '__main__':
             for j in range(0, len(dictionary[i]["allRootFiles"])):
                 hasIt = False
                 for k in range(0, len(haveRootFiles)):
+
                     if dictionary[i]["allRootFiles"][j] == deleteSections(haveRootFiles[k], '_', [-2, -1]):
                         hasIt = True
                         break
@@ -181,9 +182,29 @@ if __name__ == '__main__':
             dictionary[i]["duplicateRootFiles"] = duplicateRootFiles
             dictionary[i]["missingRootFiles"] = missingRootFiles
 
-            print "\nDuplicate root files:\n"
+            print "\n***" + dictionary[i]["crabCfg"].replace('crab_','').replace('.cfg', '') + "***"
+            print "\nDuplicate root files:"
             for rootFile in dictionary[i]["duplicateRootFiles"]:
                 print rootFile
-            print "\nMissing root files:\n"
+            print "\nMissing root files:"
             for rootFile in dictionary[i]["missingRootFiles"]:
-                print rootFile
+                print rootFile + "...root"
+
+                
+    if options.create or options.submit or options.status or options.getoutput or options.publish:
+        for dict in dictionary:
+            if options.create:
+                print "crab -create -cfg " + dict["crabCfg"]
+                subprocess.call("crab -create -cfg " + dict["crabCfg"], shell=True)
+            if options.submit:
+                print "crab -submit -c " + dict['uiDirectory']
+                subprocess.call("crab -submit -c " + dict['uiDirectory'], shell=True)
+            if options.status:
+                print "crab -status -c " + dict['uiDirectory']
+                subprocess.call("crab -status -c " + dict['uiDirectory'], shell=True)
+            if options.getoutput:
+                print "crab -getoutput -c " + dict['uiDirectory']
+                subprocess.call("crab -getoutput -c " + dict['uiDirectory'], shell=True)
+            if options.publish:
+                print "crab -publish -c " + dict['uiDirectory']
+                subprocess.call("crab -publish -c " + dict['uiDirectory'], shell=True)
