@@ -13,7 +13,7 @@
 //
 // Original Author:  Christopher Silkworth
 //         Created:  Mon Apr 30 07:38:45 CDT 2012
-// $Id$
+// $Id: ParameterPointProducer.cc,v 1.1 2012/06/27 13:09:31 crsilk Exp $
 //
 //
 
@@ -125,17 +125,19 @@ ParameterPointProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
       {
          tempString = comment->substr(0, comment->size());
          tempStrings = split(tempString, " ");
-                 
+
          parameters = split(tempStrings[2], "_");
-         istringstream os(tempStrings[4]);
-         os >> tempDouble;
-         *crossSection = tempDouble;
+	 if (tempStrings.size() >3) { //prevent crash when string does not include cross-section
+	   istringstream os(tempStrings[4]);
+	   os >> tempDouble;
+	 }
+	 else tempDouble = 0;
+	 *crossSection = tempDouble;
 
          for(unsigned i = 1; i < parameters.size(); i++)
          {
             modelParameters->push_back(atof(parameters[i].c_str()));
          }
-         
       }
    }   
 
