@@ -662,7 +662,7 @@ if __name__ == '__main__':
         
         makeCrabEDMToAODSIM(setupDir + crab_EDMToAODSIMTemplateName, aodsimDir + crab_EDMToAODSIMTemplateName.replace('Template', ''), aodsim_scheduler, str(aodsim_use_server), '0', events_per_job, aodsim_storage_path, aodsim_user_remote_directory,aodsim_se_whitelist, aodsim_se_blacklist, model_tag)
     else:
-        makeLHEToAODSIMCfg(setupDir + LHEToAODSIM_cfgTemplateName,  aodsimDir + LHEToAODSIM_cfgTemplateName.replace('Template', '').replace('_5_2_2','').replace('_4_2_3', '').replace('_5_2_6', '').replace('_5_3_2'), cmsDir, pythonDir + LHESourceFileName, model_tag + "_AODSIM.root", energy)
+        makeLHEToAODSIMCfg(setupDir + LHEToAODSIM_cfgTemplateName,  aodsimDir + LHEToAODSIM_cfgTemplateName.replace('Template', '').replace('_5_2_2','').replace('_4_2_3', '').replace('_5_2_6', '').replace('_5_3_2', ''), cmsDir, pythonDir + LHESourceFileName, model_tag + "_AODSIM.root", energy)
         
         makeCrabLHEToAODSIM(setupDir + crab_LHEToAODSIMTemplateName, aodsimDir + crab_LHEToAODSIMTemplateName.replace('Template', ''), aodsim_scheduler, str(aodsim_use_server), aodsim_events_per_job, aodsim_storage_path, aodsim_user_remote_directory,aodsim_se_whitelist, aodsim_se_blacklist, dataset_name, aodsim_storage_element)
 
