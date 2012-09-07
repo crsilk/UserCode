@@ -579,12 +579,16 @@ if __name__ == '__main__':
         LHEToAODSIM_cfgTemplateName = 'LHEToAODSIMTemplate_5_2_6_cfg.py'
         LHEToEDM_cfgTemplateName = 'LHEToEDMTemplate_5_2_6_cfg.py'
         EDMToAODSIM_cfgTemplateName = 'EDMToAODSIMTemplate_5_2_6_cfg.py'
+	elif cmsDir.split('/')[-1] == 'CMSSW_5_3_2':
+        LHEToAODSIM_cfgTemplateName = 'LHEToAODSIMTemplate_5_3_2_cfg.py'
+        LHEToEDM_cfgTemplateName = 'LHEToEDMTemplate_5_3_2_cfg.py'
+        EDMToAODSIM_cfgTemplateName = 'EDMToAODSIMTemplate_5_3_2_cfg.py'
     elif cmsDir.split('/')[-1] == 'CMSSW_4_2_3':
         if do_step0:
             sys.stderr.write('step0 only supported in 5_2_6, set "do_step0" to "False".')
             sys.exit(0)
     else:
-        sys.stderr.write('Your cms environment is not set to either  CMSSW_4_2_3, CMSSW_5_2_2 or CMSSW_5_2_6. Using 4_2_3 cfg files...\n')
+        sys.stderr.write('Your cms environment is not set to either  CMSSW_4_2_3, CMSSW_5_2_2, CMSSW_5_2_6 or CMSSW_5_3_2. Using 4_2_3 cfg files...\n')
 
     crab_LHEToEDMTemplateName = 'crab_LHEToEDMTemplate.cfg'
     crab_EDMToAODSIMTemplateName = 'crab_EDMToAODSIMTemplate.cfg'
@@ -658,7 +662,7 @@ if __name__ == '__main__':
         
         makeCrabEDMToAODSIM(setupDir + crab_EDMToAODSIMTemplateName, aodsimDir + crab_EDMToAODSIMTemplateName.replace('Template', ''), aodsim_scheduler, str(aodsim_use_server), '0', events_per_job, aodsim_storage_path, aodsim_user_remote_directory,aodsim_se_whitelist, aodsim_se_blacklist, model_tag)
     else:
-        makeLHEToAODSIMCfg(setupDir + LHEToAODSIM_cfgTemplateName,  aodsimDir + LHEToAODSIM_cfgTemplateName.replace('Template', '').replace('_5_2_2','').replace('_4_2_3', '').replace('_5_2_6', ''), cmsDir, pythonDir + LHESourceFileName, model_tag + "_AODSIM.root", energy)
+        makeLHEToAODSIMCfg(setupDir + LHEToAODSIM_cfgTemplateName,  aodsimDir + LHEToAODSIM_cfgTemplateName.replace('Template', '').replace('_5_2_2','').replace('_4_2_3', '').replace('_5_2_6', '').replace('_5_3_2'), cmsDir, pythonDir + LHESourceFileName, model_tag + "_AODSIM.root", energy)
         
         makeCrabLHEToAODSIM(setupDir + crab_LHEToAODSIMTemplateName, aodsimDir + crab_LHEToAODSIMTemplateName.replace('Template', ''), aodsim_scheduler, str(aodsim_use_server), aodsim_events_per_job, aodsim_storage_path, aodsim_user_remote_directory,aodsim_se_whitelist, aodsim_se_blacklist, dataset_name, aodsim_storage_element)
 
