@@ -579,7 +579,7 @@ if __name__ == '__main__':
         LHEToAODSIM_cfgTemplateName = 'LHEToAODSIMTemplate_5_2_6_cfg.py'
         LHEToEDM_cfgTemplateName = 'LHEToEDMTemplate_5_2_6_cfg.py'
         EDMToAODSIM_cfgTemplateName = 'EDMToAODSIMTemplate_5_2_6_cfg.py'
-	elif cmsDir.split('/')[-1] == 'CMSSW_5_3_2':
+    elif cmsDir.split('/')[-1] == 'CMSSW_5_3_2':
         LHEToAODSIM_cfgTemplateName = 'LHEToAODSIMTemplate_5_3_2_cfg.py'
         LHEToEDM_cfgTemplateName = 'LHEToEDMTemplate_5_3_2_cfg.py'
         EDMToAODSIM_cfgTemplateName = 'EDMToAODSIMTemplate_5_3_2_cfg.py'
