@@ -217,20 +217,20 @@ DECAY   1000022   0.0E+00\n\
 
 
 def endOutputFile(fileName):
-    file = open(fileName, 'r')
-    numberOfEvents = 0
+#    file = open(fileName, 'r')
+#    numberOfEvents = 0
 
-    for line in file:
-        if line.find("<event") > -1:
-            numberOfEvents = numberOfEvents + 1
+#    for line in file:
+#        if line.find("<event") > -1:
+#            numberOfEvents = numberOfEvents + 1
 
-    file.close()
+#    file.close()
     file = open(fileName , 'a')
 
     file.writelines("</LesHouchesEvents>")
     file.close()
 
-    os.system('sed -i 1,20s/NUMEVT/' + str(numberOfEvents) + '/ ' + fileName)
+#    os.system('sed -i 1,20s/NUMEVT/' + str(numberOfEvents) + '/ ' + fileName)
 def checkStablesInLhe(lheFileName):
     file = open(lheFileName, 'r')
 
@@ -343,6 +343,7 @@ if __name__ == '__main__':
         
         subprocess.call('rm SLHAToLHETemp.log', shell=True)
 
+	endOutputFile(outputFileName)
     subprocess.call('mv ' + outputFileName +' ' +outputDir, shell =True)
     subprocess.call('rm fort.69', shell=True)
     createCrabCfg(crabFileName, outputDir  + outputFileName, str(int(jobNumber) + 1), str(events))
