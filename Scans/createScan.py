@@ -4,7 +4,7 @@
 ##########################################
 
 import subprocess, re, glob, os, sys, ConfigParser
-
+from math import sqrt
 
 def ntabs(n):
     tab = ''
@@ -179,7 +179,7 @@ def makeCreateSLHAs( SLHATemplateName, newFileName, outputDir, modelTag, scanNam
 
     return newFileName
 
-def makeCreateLHEs( oldFileName, newFileName, createScanDirectory, templateCfgName, filesPerJob, useDefaultHeader, runLheCheck, slhaScanDir, outputDir, sourceFileName, crabFile, insertXSection, energy):
+def makeCreateLHEs( oldFileName, newFileName, createScanDirectory, templateCfgName, filesPerJob, useDefaultHeader, runLheCheck, slhaScanDir, outputDir, sourceFileName, crabFile, insertXSection, energy, jobsPerDir, filterLHEs, filterPdgIds, filterRequirement, target):
     oldFile = open(oldFileName, 'r')
     newFile = open(newFileName, 'w')
 
@@ -196,6 +196,11 @@ def makeCreateLHEs( oldFileName, newFileName, createScanDirectory, templateCfgNa
         line = line.replace('CRABFILE', "'" + crabFile + "'")
         line = line.replace('INSERTXSECTION', insertXSection)
         line = line.replace('ENERGY', energy)
+        line = line.replace('JOBSPERDIR', jobsPerDir)
+        line = line.replace('FILTERLHES', filterLHEs)
+        line = line.replace('FILTERPDGIDS', filterPdgIds)
+        line = line.replace('FILTERREQUIREMENT', filterRequirement)
+        line = line.replace('TARGET', target)
         newFile.write(line)
     oldFile.close()
     newFile.close()
@@ -325,7 +330,7 @@ def makeCrabLHEToAODSIM(templateFileName, newFileName, scheduler, useServer, eve
     oldFile.close()
     newFile.close()
     return newFileName
-    
+
 if __name__ == '__main__':
     
     configFile = ''
@@ -501,6 +506,38 @@ if __name__ == '__main__':
         insert_cross_section = parser.get('LHE', 'insert_cross_section')
     else:
         insert_cross_section = 'False'
+    if parser.has_option('LHE', 'filter_lhes'):
+        filter_lhes = parser.get('LHE', 'filter_lhes')
+    else:
+        filter_lhes = 'False'
+
+    if parser.has_option('LHE', 'filter_pdgIds'):
+        filter_pdgIds = parser.get('LHE', 'filter_pdgIds')
+    elif filter_lhes == 'True':
+        sys.stderr.write("*** filter_lhes is set to 'True'. You must provide" +
+                         " filter_pdgIds ***\n")
+        sys.exit(0)
+    else:
+        filter_pdgIds = ''
+
+    if parser.has_option('LHE', 'filter_requirement'):
+        filter_requirement = parser.get('LHE', 'filter_requirement')
+    elif filter_lhes == 'True':
+        sys.stderr.write("*** filter_lhes is set to 'True'. You must provide" +
+                         " filter_requirement ***\n")
+        sys.exit(0)
+    else:
+        filter_requirement = '== 0'
+   
+    if parser.has_option('LHE', 'filter_efficiency'):
+        filter_efficiency = parser.get('LHE', 'filter_efficiency')
+    elif filter_lhes == 'True':
+        sys.stderr.write("*** filter_lhes is set to 'True'. You must provide" +
+                         " filter_efficiency ***\n")
+        sys.exit(0)
+    else:
+        filter_efficiency = '1.0'
+    
 
     #[STEP0]
     
@@ -614,8 +651,17 @@ if __name__ == '__main__':
     aodsimDir = scanHomeDir +'AODSIM/'
     logFilesDir = lheDir + 'logfiles/'    
     craberFile = 'craber.py'
-
+    jobsPerDir = int(float(events_per_point)*
+                     float(points_per_file)/
+                     float(aodsim_events_per_job)) + 1
     numberOfJobs = 1
+    target = 0
+    if filter_lhes == 'True':
+        target = events_per_point
+        events_per_point = str(int((float(target) + 3*sqrt(float(target)))/
+                               float(filter_efficiency)))
+    else:
+        target = events_per_point
 
     if step0_scheduler.find('condor') > -1:
         step0_use_server = 0
@@ -647,7 +693,7 @@ if __name__ == '__main__':
     
     makeSLHAToLHECfg(setupDir + SLHAToLHE_cfgTemplateName, lheDir + SLHAToLHE_cfgTemplateName.replace('Template', ''), events_per_point, allowed_subprocesses, other_pythia_commands, slha_output_directory.replace(cmsDir + '/src/', ''), energy, random_seed)
 
-    makeCreateLHEs( setupDir + createLHEsTemplateName, lheDir + createLHEsTemplateName.replace('Template', ''), createScanDir, lheDir + SLHAToLHE_cfgTemplateName.replace('Template', ''), points_per_file, use_default_header, run_lhe_check, lhe_input_directory, lhe_output_directory, pythonDir + LHESourceFileName, aodsimDir + crab_LHEToAODSIMTemplateName.replace('Template', ''), insert_cross_section, energy)
+    makeCreateLHEs( setupDir + createLHEsTemplateName, lheDir + createLHEsTemplateName.replace('Template', ''), createScanDir, lheDir + SLHAToLHE_cfgTemplateName.replace('Template', ''), points_per_file, use_default_header, run_lhe_check, lhe_input_directory, lhe_output_directory, pythonDir + LHESourceFileName, aodsimDir + crab_LHEToAODSIMTemplateName.replace('Template', ''), insert_cross_section, energy, str(jobsPerDir), filter_lhes, "'" + filter_pdgIds + "'", "'" + filter_requirement + "'", target)
 
     makeCondorCreateLHEsSubmit(setupDir + condor_createLHEsSubmitTemplateName, lheDir + condor_createLHEsSubmitTemplateName.replace('Template', ''), model_tag, logFilesDir, createScanDir, lhe_output_directory, str(numberOfJobs))
     

@@ -23,7 +23,17 @@ def isFloat(n):
         return True
     except ValueError:
         return False
+def stringToArray(string):
+    array = string.split(" ")
 
+    deletes = array.count('')
+    for i in range(0,deletes):
+        array.remove('')
+    
+    deletes =  array[-1].count('\t')
+    for i in range(0, deletes):
+            array[-1].remove('\t')
+    return array
 def grabXSection(logFile):
     file = open(logFile, 'r')
     for line in file:
@@ -245,7 +255,7 @@ def checkStablesInLhe(lheFileName):
                                  "Skipping " + lheFileName)
                 return False
     return True
-def createCrabCfg(crabTemplateName, lheFileName, firstRunNumber, totalEvents):
+def createCrabCfg(crabTemplateName, lheFileName, firstLumiNumber, totalEvents):
     newFileName = crabTemplateName.replace(crabTemplateName.split('/')[-1], '') + 'crab_' + lheFileName.split('/')[-1].replace('.lhe', '.cfg')
 
     oldFile = open(crabTemplateName, 'r')
@@ -253,7 +263,7 @@ def createCrabCfg(crabTemplateName, lheFileName, firstRunNumber, totalEvents):
 
     for line in oldFile:
         line = line.replace('FULLLHEFILENAME',lheFileName)
-        line = line.replace('FIRSTRUNNUMBER' , firstRunNumber)
+        line = line.replace('FIRSTLUMINUMBER' , firstLumiNumber)
         line = line.replace('TOTALNUMBEROFEVENTS', totalEvents)
         line = line.replace('UIWORKINGDIR' , 'ui_' + lheFileName.split('/')[-1].replace('.lhe', ''))
         line = line.replace('LHEFILENAME' , lheFileName.split('/')[-1])
@@ -261,6 +271,73 @@ def createCrabCfg(crabTemplateName, lheFileName, firstRunNumber, totalEvents):
 
     oldFile.close()
     newFile.close()
+def filterLHEs(lheFileName, target, filterPdgIds, filterRequirement):
+
+    passFilter = False
+    eventLines = []
+    passedEvents = 0
+    nParticles = 0
+    modelTagList = ['']
+    event = [0]
+
+    oldFile = open(lheFileName, 'r')
+    newFile = open(lheFileName + '.filtered', 'w')
+
+    while True:
+        line = oldFile.readline()
+        if line.find("</init>") > -1:
+            newFile.write(line)
+            break
+        if line.find("<event>") > -1:
+            print "*** WARNING: No header for file ***"
+            break
+        newFile.write(line)
+    
+    while line and passedEvents < target:
+        line = oldFile.readline()
+        if line.find('<event>') > -1:
+            eventLines = [line]
+            nParticles = 0
+            passFilter = False
+
+            while line and not (line.find('</event>') > -1):
+                line = oldFile.readline()
+                eventLines.append(line)
+            
+            if not (eventLines[-1].find('</event>') > -1):
+                print "*** WARNING: <event> block not closed ***"
+
+            for eventLine in eventLines[2:-1]:
+                pdgId = int(stringToArray(eventLine)[0])
+                for filterPdgId in filterPdgIds:
+                    if pdgId == int(filterPdgId):
+                        nParticles = nParticles + 1
+                        break
+            if filterRequirement[0] == "<":
+                if nParticles < int(filterRequirement[1]):
+                    passFilter = True
+            elif filterRequirement[0] == "==":
+                if nParticles == int(filterRequirement[1]):
+                    passFilter = True
+            elif filterRequirement[0] == ">":
+                if nParticles > int(filterRequirement[1]):
+                    passFilter = True
+            else:
+                sys.stderr.write("*** Invalid filter_requirement value. Must be '<','==' or '>' . you have it set to " + str(filterRequirement) + " ***\n")
+                sys.exit(0)
+            if passFilter:
+                passedEvents = passedEvents + 1
+                for eventLine in eventLines:
+                    newFile.write(eventLine)
+
+    
+    newFile.write("</LesHouchesEvents>\n")
+    newFile.close()
+    oldFile.close()
+    
+    subprocess.call('mv ' + lheFileName + '.filtered ' + lheFileName, 
+                    shell=True)
+
 if __name__ == '__main__':
     if len(sys.argv) != 2:
          sys.stderr.write("Usage <SLHA file bunch to run over>")
@@ -277,6 +354,11 @@ if __name__ == '__main__':
     crabFileName = CRABFILE
     insertXSection = INSERTXSECTION
     energy = ENERGY
+    jobsPerDir = JOBSPERDIR
+    filterlhes = FILTERLHES
+    target = TARGET
+    filterPdgIds = stringToArray(FILTERPDGIDS)
+    filterRequirement = stringToArray(FILTERREQUIREMENT)
     events = 0
     slhaBunch = []
     outputFileName =''
@@ -333,7 +415,11 @@ if __name__ == '__main__':
             continue
         
         xsection = grabXSection('SLHAToLHETemp.log')
-        events = events + countEvents('fort.69')
+        if filterlhes:
+            filterLHEs('fort.69', target, filterPdgIds, filterRequirement)
+        events = countEvents('fort.69')
+        if events != target and filterlhes:
+            print "*** WARNING: target number of events not met for " + slhaBunch[i].replace('.slha', '')
         if insertXSection:
             insertComment('fort.69', slhaBunch[i].replace('.slha', '') + 
                           xsection)
@@ -346,4 +432,4 @@ if __name__ == '__main__':
 	endOutputFile(outputFileName)
     subprocess.call('mv ' + outputFileName +' ' +outputDir, shell =True)
     subprocess.call('rm fort.69', shell=True)
-    createCrabCfg(crabFileName, outputDir  + outputFileName, str(int(jobNumber) + 1), str(events))
+    createCrabCfg(crabFileName, outputDir  + outputFileName, str( jobsPerDir*int(jobNumber)), str(events))
