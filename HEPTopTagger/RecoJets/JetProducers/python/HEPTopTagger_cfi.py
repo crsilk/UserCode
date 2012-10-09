@@ -16,7 +16,8 @@ HEPTopTagJets = cms.EDProducer(
        tagAlgo = cms.int32(2) ),
    jetAlgorithm = cms.string("CambridgeAachen"),
    rParam = cms.double(1.5),
-   writeCompound = cms.bool(True)
+   writeCompound = cms.bool(True),
+   useSelTag = cms.bool(False)
    )
 
 HEPTopTagInfos = cms.EDProducer(
