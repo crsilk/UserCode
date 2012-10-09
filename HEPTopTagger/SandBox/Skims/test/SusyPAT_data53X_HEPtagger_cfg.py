@@ -1,7 +1,7 @@
 #
 #  SUSY-PAT configuration file adapted for RA2 workflow
 #
-#  PAT configuration for the SUSY group - 52X series
+#  PAT configuration for the SUSY group - 53X series
 #  More information here:
 #  https://twiki.cern.ch/twiki/bin/view/CMS/SusyPatLayer1DefV12
 #
@@ -20,7 +20,6 @@ process.MessageLogger.cerr.PATSummaryTables = cms.untracked.PSet(
     )
 process.MessageLogger.cerr.FwkReport.reportEvery = 1
 
-process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(False) )
 
 #-- Input Source --------------------------------------------------------------
 process.maxEvents.input = 100
@@ -38,16 +37,17 @@ theJetColls = ['AK5PF']
 jetMetCorr = ['L1FastJet', 'L2Relative', 'L3Absolute']
 if runningOnMC == False: jetMetCorr.append('L2L3Residual')  
 
-process.GlobalTag.globaltag = "START52_V11C::All"
+process.GlobalTag.globaltag = "START53_V11::All"
 if runningOnMC == False:
-    process.GlobalTag.globaltag = "GR_R_52_V9D::All"
+    process.GlobalTag.globaltag = "GR_P_V41_AN2::All"  # for Run2012C PromptReco
+    #process.GlobalTag.globaltag = "GR_R_53_V14::All"  # for Run2012A/B ReReco
 
 process.source = cms.Source("PoolSource",
-   fileNames = cms.untracked.vstring('/store/mc/Summer12/WJetsToLNu_HT-400ToInf_8TeV-madgraph/AODSIM/PU_S7_START52_V9-v1/0000/FCE8EA3D-55A0-E111-88C6-00261894383E.root')
+   fileNames = cms.untracked.vstring('/store/mc/Summer12_DR53X/TTJets_MassiveBinDECAY_TuneZ2star_8TeV-madgraph-tauola/AODSIM/PU_S10_START53_V7A-v1/0000/FED775BD-B8E1-E111-8ED5-003048C69036.root')
 )
 if runningOnMC == False:
     process.source = cms.Source("PoolSource",
-     fileNames = cms.untracked.vstring('/store/data/Run2012B/HTMHT/AOD/PromptReco-v1/000/194/052/9A12DE52-699E-E111-BC9F-5404A638869E.root')
+     fileNames = cms.untracked.vstring('/store/data/Run2012C/HTMHT/AOD/PromptReco-v2/000/198/954/BC722417-6ACF-E111-9B10-002481E0D7C0.root')
     )
 
 # Due to problem in production of LM samples: same event number appears multiple times
@@ -193,8 +193,6 @@ process.HEPTopSelTag125Infos = HEPTopTagInfos.clone(
 	)
 
 
-
-
 from RecoJets.JetProducers.ca4PFJets_cfi import ca4PFJets
 process.ca15PFJetsPFlow = ca4PFJets.clone(
 	rParam = cms.double(1.5),
@@ -215,29 +213,29 @@ process.ca125PFJetsPFlow = ca4PFJets.clone(
 	)
 ##End added by Chris
 
+
 # an example sequence to create skimmed susypat-tuples
 process.cleanpatseq = cms.Sequence(
                       process.susyPatDefaultSequence  *
                       process.prefilterCounter        *
                       process.ra2StdCleaning          *
                       process.postStdCleaningCounter  *
-                      process.ra2Objects              *
-					  process.provInfoMuons * process.provInfoElectrons *
+                      process.ra2Objects              * process.provInfoMuons * process.provInfoElectrons *
 #Added by Chris
                       process.HEPTopTag15Jets *
 					  process.HEPTopTag15Infos *
                       process.HEPTopSelTag15Jets *
 					  process.HEPTopSelTag15Infos *
-					  process.HEPTopTag125Jets *
+		      process.HEPTopTag125Jets *
 					  process.HEPTopTag125Infos *
                       process.HEPTopSelTag125Jets *
 					  process.HEPTopSelTag125Infos *
 
                       process.ca15PFJetsPFlow *
 					  process.ca125PFJetsPFlow *
-#End added by Chris                      
-                      process.ra2PostCleaning         *
-                      process.ra2FullPFchsSelectionNoMHT 
+#End added by Chris      
+                      process.ra2PostCleaning         
+                      #process.ra2FullPFchsSelectionNoMHT 
                       #process.mhtchsPFFilter
                       )
 
