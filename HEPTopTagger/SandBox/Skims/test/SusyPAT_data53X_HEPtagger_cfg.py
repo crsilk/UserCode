@@ -152,6 +152,7 @@ process.ra2EcalTPFilter.taggingMode       = True
 process.ra2EcalBEFilter.taggingMode       = True
 process.hcalLaserEventFilter.taggingMode  = True
 process.eeBadScFilter.taggingMode         = True
+process.ecalLaserCorrFilter.taggingMode   = True
 
 process.load("SandBox.Skims.provInfoMuons_cfi")
 process.load("SandBox.Skims.provInfoElectrons_cfi")
