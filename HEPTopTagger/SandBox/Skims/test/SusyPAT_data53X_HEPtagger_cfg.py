@@ -163,20 +163,6 @@ process.load("RecoJets.JetProducers.HEPTopTagger_cfi")
 from RecoJets.JetProducers.HEPTopTagger_cfi import HEPTopTagJets
 from RecoJets.JetProducers.HEPTopTagger_cfi import HEPTopTagInfos
 
-process.HEPTopTag15Jets = HEPTopTagJets.clone(
-    )
-process.HEPTopTag15Infos = HEPTopTagInfos.clone(
-	src = cms.InputTag("HEPTopTag15Jets")
-	)
-
-
-process.HEPTopSelTag15Jets = HEPTopTagJets.clone(
-    useSelTag = cms.bool(True)
-    )
-process.HEPTopSelTag15Infos = HEPTopTagInfos.clone(
-	src = cms.InputTag("HEPTopSelTag15Jets")
-	)
-
 process.HEPTopTag125Jets = HEPTopTagJets.clone(
 	rParam = cms.double(1.25)
     )
@@ -193,16 +179,38 @@ process.HEPTopSelTag125Infos = HEPTopTagInfos.clone(
 	src = cms.InputTag("HEPTopSelTag125Jets")
 	)
 
+process.HEPTopTag15Jets = HEPTopTagJets.clone(
+    )
+process.HEPTopTag15Infos = HEPTopTagInfos.clone(
+	src = cms.InputTag("HEPTopTag15Jets")
+	)
+
+
+process.HEPTopSelTag15Jets = HEPTopTagJets.clone(
+    useSelTag = cms.bool(True)
+    )
+process.HEPTopSelTag15Infos = HEPTopTagInfos.clone(
+	src = cms.InputTag("HEPTopSelTag15Jets")
+	)
+
+process.HEPTopTag2Jets = HEPTopTagJets.clone(
+	rParam = cms.double(2.0)
+    )
+process.HEPTopTag2Infos = HEPTopTagInfos.clone(
+	src = cms.InputTag("HEPTopTag2Jets")
+	)
+
+
+process.HEPTopSelTag2Jets = HEPTopTagJets.clone(
+	rParam = cms.double(2.0),
+    useSelTag = cms.bool(True)
+    )
+process.HEPTopSelTag2Infos = HEPTopTagInfos.clone(
+	src = cms.InputTag("HEPTopSelTag2Jets")
+	)
+
 
 from RecoJets.JetProducers.ca4PFJets_cfi import ca4PFJets
-process.ca15PFJetsPFlow = ca4PFJets.clone(
-	rParam = cms.double(1.5),
-	src = cms.InputTag('particleFlow'),
-	doAreaFastjet = cms.bool(True),
-	doRhoFastjet = cms.bool(True),
-	Rho_EtaMax = cms.double(6.0),
-	Ghost_EtaMax = cms.double(7.0)
-	)
 
 process.ca125PFJetsPFlow = ca4PFJets.clone(
 	rParam = cms.double(1.25),
@@ -212,6 +220,25 @@ process.ca125PFJetsPFlow = ca4PFJets.clone(
 	Rho_EtaMax = cms.double(6.0),
 	Ghost_EtaMax = cms.double(7.0)
 	)
+
+
+process.ca15PFJetsPFlow = ca4PFJets.clone(
+	rParam = cms.double(1.5),
+	src = cms.InputTag('particleFlow'),
+	doAreaFastjet = cms.bool(True),
+	doRhoFastjet = cms.bool(True),
+	Rho_EtaMax = cms.double(6.0),
+	Ghost_EtaMax = cms.double(7.0)
+	)
+process.ca2PFJetsPFlow = ca4PFJets.clone(
+	rParam = cms.double(2.0),
+	src = cms.InputTag('particleFlow'),
+	doAreaFastjet = cms.bool(True),
+	doRhoFastjet = cms.bool(True),
+	Rho_EtaMax = cms.double(6.0),
+	Ghost_EtaMax = cms.double(7.0)
+	)
+
 ##End added by Chris
 
 
@@ -223,17 +250,21 @@ process.cleanpatseq = cms.Sequence(
                       process.postStdCleaningCounter  *
                       process.ra2Objects              * process.provInfoMuons * process.provInfoElectrons *
 #Added by Chris
+					  process.HEPTopTag125Jets *
+					  process.HEPTopTag125Infos *
+                      process.HEPTopSelTag125Jets *
+					  process.HEPTopSelTag125Infos *
                       process.HEPTopTag15Jets *
 					  process.HEPTopTag15Infos *
                       process.HEPTopSelTag15Jets *
 					  process.HEPTopSelTag15Infos *
-		      process.HEPTopTag125Jets *
-					  process.HEPTopTag125Infos *
-                      process.HEPTopSelTag125Jets *
-					  process.HEPTopSelTag125Infos *
-
-                      process.ca15PFJetsPFlow *
+					  process.HEPTopTag2Jets *
+					  process.HEPTopTag2Infos *
+                      process.HEPTopSelTag2Jets *
+					  process.HEPTopSelTag2Infos *
 					  process.ca125PFJetsPFlow *
+                      process.ca15PFJetsPFlow *
+					  process.ca2PFJetsPFlow *
 #End added by Chris      
                       process.ra2PostCleaning         
                       #process.ra2FullPFchsSelectionNoMHT 
@@ -250,7 +281,7 @@ process.out.fileName = cms.untracked.string('susypat.root')
 # output for HEPTopTagger added by Chris
 process.out.outputCommands.extend(cms.untracked.vstring('keep *_HEPTopTag*_*_*'))
 process.out.outputCommands.extend(cms.untracked.vstring('keep *_HEPTopSelTag*_*_*'))
-process.out.outputCommands.extend(cms.untracked.vstring('keep *_ca15PFJetsPFlow*_*_*'))
+process.out.outputCommands.extend(cms.untracked.vstring('keep *_ca*PFJetsPFlow*_*_*'))
 # End added by Chris
 
 process.out.SelectEvents = cms.untracked.PSet( SelectEvents = cms.vstring('ppf') )
