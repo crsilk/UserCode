@@ -20,6 +20,7 @@ options.register('nEvents',
 				 "Number of events to run"
 				 )
 options.parseArguments()
+
 ####Load the source file
 process.load(options.sourceFile)
 
@@ -42,9 +43,8 @@ process.load("StopAnalysis.ObjectProducers.PATJetSelector_PFchsJetsPt70eta2p5_cf
 process.load("StopAnalysis.EventFilters.PATCandViewCountFilter_requireTopBJetPair_cfi")
 process.load("StopAnalysis.EventFilters.preCuts_cff")
 process.load("StopAnalysis.EventFilters.DoublesFilter_DeltaPhiJetsAndMETCut_cfi")
-process.load("SandBox.Stop.StopLeptons_cff")
-process.load("SandBox.Stop.StopTauJets_cff")
-process.load("SandBox.Stop.StopTrackIsolation_cff")
+process.load("SandBox.Skims.RA2Leptons_cff")
+
 
 
 ###Other definitions
@@ -70,6 +70,7 @@ process.requireBJet = cms.EDFilter(
 
 process.PFchsJetsPt30Cut.src = cms.InputTag("PFchsJetsPt30","SelectedJets","antiTag")
 process.PFchsJetsPt70eta2p5Cut.src = cms.InputTag("PFchsJetsPt70eta2p5","SelectedJets","antiTag")
+
 ###Output Definition
 process.output1 = cms.OutputModule(
 	"PoolOutputModule",
@@ -135,30 +136,30 @@ process.produce = cms.Path(
 ####Define the path that defines all of the cuts to be made
 process.cuts1 = cms.Path(
 	process.preCuts *
-	process.stopPFMuonVeto *
-	process.stopElectronVeto *
+	process.ra2PFMuonVeto *
+	process.ra2ElectronVeto *
 	process.requireHEPAntiTag *
 	process.requireBJet 
 	)
 process.cuts2 = cms.Path(
 	process.preCuts *
-	process.stopPFMuonVeto *
-	process.stopElectronVeto *
+	process.ra2PFMuonVeto *
+	process.ra2ElectronVeto *
 	process.requireHEPAntiTag *
 	~process.requireBJet 
 	)
 process.cuts3 = cms.Path(
 	process.preCuts *
-	process.stopPFMuonVeto *
-	process.stopElectronVeto *
+	process.ra2PFMuonVeto *
+	process.ra2ElectronVeto *
 	process.requireHEPAntiTag *
 	process.requireBJet *
 	process.requireHEPTopTag
 	)
 process.cuts4 = cms.Path(
 	process.preCuts *
-	process.stopPFMuonVeto *
-	process.stopElectronVeto *
+	process.ra2PFMuonVeto *
+	process.ra2ElectronVeto *
 	process.requireHEPAntiTag *
 	~process.requireBJet *
 	process.requireHEPTopTag

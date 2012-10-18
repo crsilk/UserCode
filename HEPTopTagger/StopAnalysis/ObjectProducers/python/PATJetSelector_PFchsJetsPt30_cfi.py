@@ -3,5 +3,5 @@ PFchsJetsPt30 = cms.EDProducer(
 	'JetSelector',
 	jetSrc = cms.InputTag('patJetsPF'),
 	cuts = cms.string('pt > 30'),
-	label = cms.string('PFchsJetsPt30')
+	labelName = cms.string('PFchsJetsPt30')
 )

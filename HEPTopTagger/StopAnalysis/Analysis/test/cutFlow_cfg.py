@@ -1,18 +1,33 @@
 import FWCore.ParameterSet.Config as cms
-
+from FWCore.ParameterSet.VarParsing import VarParsing
 process = cms.Process("cutFlow")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+
+options = VarParsing ('python')
+
+options.register ('sourceFile',
+                  'StopAnalysis.Analysis.test_cfi',
+                  VarParsing.multiplicity.singleton,
+                  VarParsing.varType.string,
+                  "Source file (ex StopAnalysis.Analysis.test_cfi) "
+				  )
+
+options.register('nEvents',
+				 -1,
+				  VarParsing.multiplicity.singleton,
+				  VarParsing.varType.int,
+				 "Number of events to run"
+				 )
+options.parseArguments()
+
+
+
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.nEvents) )
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
-
-process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring(
-'/store/user/lpcsusyhad/crsilk/TTJets_TuneZ2star_8TeV-madgraph-tauola/SUSYPAT_20_1_nXk.root'
-)
-)
+process.load(options.sourceFile)
 
 
 ####Load the modules of all the new collections
@@ -25,14 +40,17 @@ process.load("StopAnalysis.ObjectProducers.MT2Producer_TopAndBJet_cfi")
 process.load("StopAnalysis.ObjectProducers.DeltaPhiObjectVsMETProducer_patJetsAK5PF_cfi")
 process.load("StopAnalysis.ObjectProducers.PATJetSelector_PFchsJetsPt30_cfi")
 process.load("StopAnalysis.ObjectProducers.PATJetSelector_PFchsJetsPt70eta2p5_cfi")
+process.load("StopAnalysis.ObjectProducers.IsolatedTrackProducer_StandardIsolation_cfi")
+
 
 ####Load the modules for apply the cuts
 process.load("StopAnalysis.EventFilters.PATCandViewCountFilter_requireTopBJetPair_cfi")
 process.load("StopAnalysis.EventFilters.preCuts_cff")
 process.load("StopAnalysis.EventFilters.DoublesFilter_DeltaPhiJetsAndMETCut_cfi")
+process.load("StopAnalysis.EventFilters.PATCandViewCountFilter_isolatedTrackVeto_cfi")
 process.load("SandBox.Stop.StopLeptons_cff")
 process.load("SandBox.Stop.StopTauJets_cff")
-process.load("SandBox.Stop.StopTrackIsolation_cff")
+
 
 
 ###Output Definition
@@ -42,9 +60,6 @@ process.output = cms.OutputModule(
 
 										   ),
     fileName = cms.untracked.string('cutFlow.root'),
-    SelectEvents = cms.untracked.PSet(
-	SelectEvents = cms.vstring('cuts')
-    )
 								 
 )
 
@@ -59,18 +74,21 @@ process.produce = cms.Path(
 	process.MT2TopAndBJet *
 	process.deltaPhiJetsAndMET *
 	process.PFchsJetsPt30 *
-	process.PFchsJetsPt70eta2p5
+	process.PFchsJetsPt70eta2p5 *
+	process.isolatedTracks
 	)
 
 ####Define the path that defines all of the cuts to be made
 process.cuts = cms.Path(
-	process.preCuts *
+	process.METCut *
+	process.PFchsJetsPt30Cut *
+	process.PFchsJetsPt70eta2p5Cut *
 	process.requireTopBJetPair *
 	process.deltaPhiJetsAndMETCut *
 	process.stopPFMuonVeto *
-	process.stopElectronVeto 
+	process.stopElectronVeto *
 #	process.stopTauJetVeto 	*
-#	process.stopIsoTrackVeto
+	process.isolatedTrackVeto
 	)
 
 process.out = cms.EndPath(process.output)
