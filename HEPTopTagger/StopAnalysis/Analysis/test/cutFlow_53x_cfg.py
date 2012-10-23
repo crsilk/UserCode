@@ -79,23 +79,35 @@ process.output = cms.OutputModule(
 										   'keep *_selectedPatTausPF_*_*',
 										   'keep *_patMETsPF_*_*',
 										   'keep *_generator_*_*',
+										   'keep *_ca*PFJetsPFlow_*_*'
 
 										   ),
     fileName = cms.untracked.string('cutFlow.root'),
 								 
 )
 
-
 ####Define the path that defines all the collections to be made
 process.produce = cms.Path(
 	process.modelPoints *
-	process.selectedHEPTopTags *
-	process.selectedHEPAntiTags *
+	process.selectedHEPTop125Tags *
+	process.selectedHEPTop15Tags *
+	process.selectedHEPTop2Tags *
+	process.selectedHEPAnti125Tags *
+	process.selectedHEPAnti15Tags *
+	process.selectedHEPAnti2Tags *
 	process.selectedBJets *
-	process.selectedTopBJetPair *
-	process.MTTop *
-	process.MTBJet *
-	process.MT2TopAndBJet *
+	process.selectedTop125BJetPair *
+	process.selectedTop15BJetPair *
+	process.selectedTop2BJetPair *
+	process.MTTop125 *
+	process.MTTop15 *
+	process.MTTop2 *
+	process.MT125BJet *
+	process.MT15BJet *
+	process.MT2BJet *
+	process.MT2Top125AndBJet *
+	process.MT2Top15AndBJet *
+	process.MT2Top2AndBJet *
 	process.deltaPhiJetsAndMET *
 	process.PFchsJetsPt30 *
 	process.PFchsJetsPt70eta2p5 *
@@ -108,12 +120,16 @@ process.produce = cms.Path(
 process.METCut_path = cms.Path(process.METCut )
 process.PFchsJetsPt30Cut_path = cms.Path(process.PFchsJetsPt30Cut )
 process.PFchsJetsPt70eta2p5Cut_path = cms.Path(process.PFchsJetsPt70eta2p5Cut )
-process.requireHEPAntiTag_path = cms.Path(process.requireHEPAntiTag)
-process.requireTopBJetPair_path = cms.Path(process.requireTopBJetPair )
+process.requireHEPAnti125Tag_path = cms.Path(process.requireHEPAnti125Tag)
+process.requireHEPAnti15Tag_path = cms.Path(process.requireHEPAnti15Tag)
+process.requireHEPAnti2Tag_path = cms.Path(process.requireHEPAnti2Tag)
+process.requireTop125BJetPair_path = cms.Path(process.requireTop125BJetPair)
+process.requireTop15BJetPair_path = cms.Path(process.requireTop15BJetPair)
+process.requireTop2BJetPair_path = cms.Path(process.requireTop2BJetPair)
 process.deltaPhiJetsAndMETCut_path = cms.Path(process.deltaPhiJetsAndMETCut )
 process.isolatedPFMuonVeto_path = cms.Path(process.isolatedPFMuonVeto )
 process.isolatedElectronVeto_path = cms.Path(process.isolatedElectronVeto )
-process.PFTauVeto_path = cms.Path(process.PFTauVeto 	)
+process.PFTauVeto_path = cms.Path(process.PFTauVeto)
 process.isolatedTrackVeto_path = cms.Path(process.isolatedTrackVeto)
 
 process.out = cms.EndPath(process.output)
@@ -122,8 +138,12 @@ process.schedule = cms.Schedule(
 	process.METCut_path,
 	process.PFchsJetsPt30Cut_path,
 	process.PFchsJetsPt70eta2p5Cut_path,
-	process.requireHEPAntiTag_path, 
-	process.requireTopBJetPair_path, 
+	process.requireHEPAnti125Tag_path,
+	process.requireHEPAnti15Tag_path,
+	process.requireHEPAnti2Tag_path,
+	process.requireTop125BJetPair_path,
+	process.requireTop15BJetPair_path,
+	process.requireTop2BJetPair_path, 
 	process.deltaPhiJetsAndMETCut_path, 
 	process.isolatedPFMuonVeto_path, 
 	process.isolatedElectronVeto_path, 
