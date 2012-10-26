@@ -46,7 +46,6 @@ class MT2Producer : public edm::EDProducer {
       
       bool twoDifferentVisibleObjects_;
 
-      string labelName_;
 };
 
 
@@ -59,14 +58,8 @@ MT2Producer::MT2Producer(const edm::ParameterSet& iConfig)
    METSrc_ = iConfig.getParameter<InputTag>("METSrc");
    twoDifferentVisibleObjects_= iConfig.getParameter<bool>("twoDifferentVisibleObjects");
    
-   labelName_ = iConfig.getParameter<string>("labelName");
-   
-   
 
-
-
-
-   produces<vector<double> >(labelName_);
+   produces<vector<double> >();
 
 }
 
@@ -91,16 +84,15 @@ void
 MT2Producer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    
-   Handle<View<LeafCandidate> > VisibleObjects1;
+   Handle<View<Candidate> > VisibleObjects1;
    iEvent.getByLabel(VisibleObject1Src_, VisibleObjects1);
 
-   Handle<View<LeafCandidate> > VisibleObjects2;
+   Handle<View<Candidate> > VisibleObjects2;
    if(twoDifferentVisibleObjects_)
       iEvent.getByLabel(VisibleObject2Src_, VisibleObjects2);
 
-   Handle<pat::METCollection> METs;
+   Handle<View<Candidate> > METs;
    iEvent.getByLabel(METSrc_, METs);
-   pat::METCollection::const_iterator MET = METs->begin();
 
    auto_ptr<vector<double> > mt2(new vector<double>());
    Mt2::ChengHanBisect_Mt2_332_Calculator mt2Calculator;   
@@ -118,8 +110,8 @@ MT2Producer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    const double pxOfSystemB   =  (*VisibleObjects1)[1].px(); 
    const double pyOfSystemB   =  (*VisibleObjects1)[1].py(); 
    
-   const double pxMiss        = MET->px(); 
-   const double pyMiss        = MET->py(); 
+   const double pxMiss        = METs->begin()->px(); 
+   const double pyMiss        = METs->begin()->py(); 
    
    const double invis_mass    = 0; 
 
@@ -142,8 +134,8 @@ MT2Producer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
          const double pxOfSystemB   =  (*VisibleObjects2)[0].px(); 
          const double pyOfSystemB   =  (*VisibleObjects2)[0].py(); 
          
-         const double pxMiss        = MET->px(); 
-         const double pyMiss        = MET->py(); 
+         const double pxMiss        = METs->begin()->px(); 
+         const double pyMiss        = METs->begin()->py(); 
          
          const double invis_mass    = 0; 
          
@@ -156,7 +148,7 @@ MT2Producer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    }
    
    
-   iEvent.put(mt2, labelName_);
+   iEvent.put(mt2);
    
 
 

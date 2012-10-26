@@ -13,7 +13,7 @@
 //
 // Original Author:  Christopher Silkworth
 //         Created:  Wed Oct  3 17:38:08 CDT 2012
-// $Id$
+// $Id: TopBJetPairSelector.cc,v 1.1 2012/10/17 22:48:56 crsilk Exp $
 //
 //
 
@@ -58,34 +58,32 @@ class TopBJetPairSelector : public edm::EDProducer {
 
 
       InputTag TopSrc_;
+      InputTag TopSubjetSrc_;
       InputTag BJetSrc_;
 
       double deltaRFromFatjetCut_;
       double deltaRFromSubjetsCut_;
 
-      string TopLabelName_;
-      string BJetLabelName_;
 
 
 
 };
 
 
-
+typedef reco::Candidate::LorentzVector LorentzVector;
 
 TopBJetPairSelector::TopBJetPairSelector(const edm::ParameterSet& iConfig)
 {
    TopSrc_ = iConfig.getParameter<InputTag>("TopSrc");
+   TopSubjetSrc_ = iConfig.getParameter<InputTag>("TopSubjetSrc");
    BJetSrc_ = iConfig.getParameter<InputTag>("BJetSrc");
    deltaRFromFatjetCut_ = iConfig.getParameter<double>("deltaRFromFatjetCut");
    deltaRFromSubjetsCut_ = iConfig.getParameter<double>("deltaRFromSubjetsCut");
 
-   TopLabelName_ = iConfig.getParameter<string>("TopLabelName");
-   BJetLabelName_ = iConfig.getParameter<string>("BJetLabelName");
+   produces<BasicJetCollection >("Top");
+   produces<PFJetCollection >("subjets");
+   produces<pat::JetCollection >("BJet");
 
-   produces<BasicJetCollection> (TopLabelName_);
-   produces<pat::JetCollection> (BJetLabelName_);
-   
 }
 
 TopBJetPairSelector::~TopBJetPairSelector()
@@ -106,19 +104,26 @@ void
 TopBJetPairSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
+
    Handle<BasicJetCollection > Tops;
    iEvent.getByLabel(TopSrc_, Tops);
-   BasicJetCollection ::const_iterator Top;
+   BasicJetCollection::const_iterator Top;
    
-   Handle<pat::JetCollection> BJets;
+   Handle<PFJetCollection > TopSubjets;
+   iEvent.getByLabel(TopSubjetSrc_, TopSubjets);
+   PFJetCollection::const_iterator TopSubjet0;
+   PFJetCollection::const_iterator TopSubjet1;
+   PFJetCollection::const_iterator TopSubjet2;
+
+   Handle<pat::JetCollection > BJets;
    iEvent.getByLabel(BJetSrc_,BJets);
    pat::JetCollection::const_iterator BJet;
-   
 
-   BasicJetCollection possibleTops;
-   pat::JetCollection possibleBJets;
+   vector<unsigned> possibleTops;
+   vector<unsigned> possibleBJets;
 
    auto_ptr<BasicJetCollection> producedTop(new BasicJetCollection());
+   auto_ptr<PFJetCollection> producedTopSubjets(new PFJetCollection());
    auto_ptr<pat::JetCollection> producedBJet(new pat::JetCollection());
 
    bool disjoint;
@@ -126,32 +131,38 @@ TopBJetPairSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    double highTopPt= 0;
    double highBJetPt = 0;
    unsigned keepPairIndex = 0;
+   unsigned TopIndex = 0;
+   unsigned BJetIndex = 0;
 
    for(Top = Tops->begin(); Top != Tops->end(); Top++)
    {
+      TopSubjet0 = TopSubjets->begin() + (3*TopIndex);
+      TopSubjet1 = TopSubjets->begin() + (3*TopIndex + 1);
+      TopSubjet2 = TopSubjets->begin() + (3*TopIndex + 2);
+
+      BJetIndex = 0;
       for(BJet = BJets->begin(); BJet != BJets->end(); BJet++)
       {
-
-         if(deltaR(Top->eta(), Top->phi(), BJet->eta(), BJet->phi() > deltaRFromFatjetCut_))
-         {
-            possibleTops.push_back(*Top);
-            possibleBJets.push_back(*BJet);
-         }
-         
          disjoint = true;
-         subjets = Top->getJetConstituents();
-         for(unsigned i = 0; i < subjets.size();i++)
-         {
-            if(deltaR(BJet->eta(),BJet->phi(),subjets[0]->eta(), subjets[0]->phi()) < deltaRFromSubjetsCut_) 
-               disjoint = false;
-         }
+
+         if(deltaR(Top->eta(), Top->phi(), BJet->eta(), 
+                   BJet->phi()) < deltaRFromFatjetCut_) disjoint = false;
+
+         if(deltaR(BJet->eta(),BJet->phi(),
+                   TopSubjet0->eta(), TopSubjet0->phi()) < deltaRFromSubjetsCut_) disjoint = false;
+
+         if(deltaR(BJet->eta(),BJet->phi(),TopSubjet1->eta(), TopSubjet1->phi()) < deltaRFromSubjetsCut_) disjoint = false;
+
+         if(deltaR(BJet->eta(),BJet->phi(),TopSubjet2->eta(), TopSubjet2->phi()) < deltaRFromSubjetsCut_) disjoint = false;
+
          if(disjoint)
          {
-            possibleTops.push_back(*Top);
-            possibleBJets.push_back(*BJet);
+            possibleTops.push_back(TopIndex);
+            possibleBJets.push_back(BJetIndex);
          }
-         
+         BJetIndex++;
       }
+      TopIndex++;
    }
 
 
@@ -159,10 +170,11 @@ TopBJetPairSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    {
       for(unsigned i = 0; i < possibleTops.size(); i++)
       {
-         if(possibleTops[i].pt() >= highTopPt)
+       
+         if((*Tops)[possibleTops[i]].pt() >= highTopPt)
          {
-            highTopPt = possibleTops[i].pt();
-            if(possibleBJets[i].pt() > highBJetPt)
+            highTopPt = (*Tops)[possibleTops[i]].pt();
+            if((*BJets)[possibleBJets[i]].pt() > highBJetPt)
             {
                keepPairIndex = i;
             }
@@ -170,12 +182,17 @@ TopBJetPairSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
          
       }
       
-      producedTop->push_back(possibleTops[keepPairIndex]);
-      producedBJet->push_back(possibleBJets[keepPairIndex]);
+      producedTop->push_back((*Tops)[possibleTops[keepPairIndex]]);
+      producedTopSubjets->push_back((*TopSubjets)[3*possibleTops[keepPairIndex]]);
+      producedTopSubjets->push_back((*TopSubjets)[3*possibleTops[keepPairIndex] + 1]);
+      producedTopSubjets->push_back((*TopSubjets)[3*possibleTops[keepPairIndex] + 2]);
+      producedBJet->push_back((*BJets)[possibleBJets[keepPairIndex]]);
    }
    
-   iEvent.put(producedTop, TopLabelName_);
-   iEvent.put(producedBJet, BJetLabelName_);
+      
+   iEvent.put(producedTop, "Top");
+   iEvent.put(producedTopSubjets, "subjets");
+   iEvent.put(producedBJet, "BJet");
 
 }
 

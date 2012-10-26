@@ -3,5 +3,5 @@ PFchsJetsPt30 = cms.EDProducer(
 	'CandidateSelector',
 	src = cms.InputTag('patJetsPF'),
 	cuts = cms.string('pt > 30'),
-	labelName = cms.string('PFchsJetsPt30')
+	light = cms.bool(False)
 )

@@ -13,7 +13,7 @@
 //
 // Original Author:  Christopher Silkworth
 //         Created:  Mon Apr 30 07:38:45 CDT 2012
-// $Id: ModelPointProducer.cc,v 1.2 2012/08/29 15:33:52 joshmt Exp $
+// $Id: ModelPointProducer.cc,v 1.1 2012/10/23 23:28:39 crsilk Exp $
 //
 //
 
@@ -114,23 +114,24 @@ ModelPointProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    vector<string> parameters;
    auto_ptr<vector<double> > modelParameters(new vector<double>());
    double tempDouble;
-   iEvent.getByLabel(inputTagSource_, product);
-   for(comment = product->comments_begin(); 
-       comment != product->comments_end(); comment++)
+   if(commentIsThere)
    {
-      if(commentIsThere)
+      for(comment = product->comments_begin(); 
+          comment != product->comments_end(); comment++)
       {
+
          tempString = comment->substr(0, comment->size());
          tempStrings = split(tempString, " ");
 
          parameters = split(tempStrings[2], "_");
-	 if (tempStrings.size() >3) { 
+         if (tempStrings.size() >3) 
+         { 
 //prevent crash when string does not include cross-section
-	   istringstream os(tempStrings[4]);
-	   os >> tempDouble;
-	 }
-	 else tempDouble = 0;
-
+            istringstream os(tempStrings[4]);
+            os >> tempDouble;
+         }
+         else tempDouble = 0;
+         
          for(unsigned i = 1; i < parameters.size(); i++)
          {
             modelParameters->push_back(atof(parameters[i].c_str()));

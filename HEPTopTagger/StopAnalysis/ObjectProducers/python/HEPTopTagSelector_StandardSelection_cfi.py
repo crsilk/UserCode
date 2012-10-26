@@ -1,7 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 
 
-selectedHEPTopTags = cms.EDProducer('HEPTopTagSelector',
+selectedHEPTopTags = cms.EDProducer(
+	'HEPTopTagSelector',
     HEPTopTagSrc = cms.InputTag("HEPTopTagJets"),
     ptCut = cms.double(200),
     etaCut = cms.double(5.0),
@@ -14,8 +15,8 @@ selectedHEPTopTags = cms.EDProducer('HEPTopTagSelector',
     m23MinCut = cms.double(0.35),
     m23MaxCut = cms.double(1.00),
     antiDijetCuts = cms.bool(False),
+	light = cms.bool(False)
 									
-    labelName = cms.string("selectedHEPTopTags")
 )
 
 selectedHEPTop15Tags = cms.EDProducer('HEPTopTagSelector',
@@ -31,9 +32,8 @@ selectedHEPTop15Tags = cms.EDProducer('HEPTopTagSelector',
     m23MinCut = cms.double(0.35),
     m23MaxCut = cms.double(1.00),
     antiDijetCuts = cms.bool(False),
-									
-    labelName = cms.string("selectedHEPTop15Tags")
-)
+	light = cms.bool(False)									
+  )
 
 selectedHEPTop2Tags = cms.EDProducer('HEPTopTagSelector',
     HEPTopTagSrc = cms.InputTag("HEPTopSelTag2Jets"),
@@ -48,8 +48,7 @@ selectedHEPTop2Tags = cms.EDProducer('HEPTopTagSelector',
     m23MinCut = cms.double(0.35),
     m23MaxCut = cms.double(1.00),
     antiDijetCuts = cms.bool(False),
-									
-    labelName = cms.string("selectedHEPTop2Tags")
+	light = cms.bool(False)									
 )
 
 selectedHEPTop125Tags = cms.EDProducer('HEPTopTagSelector',
@@ -65,6 +64,5 @@ selectedHEPTop125Tags = cms.EDProducer('HEPTopTagSelector',
     m23MinCut = cms.double(0.35),
     m23MaxCut = cms.double(1.00),
     antiDijetCuts = cms.bool(False),
-									
-    labelName = cms.string("selectedHEPTop125Tags")
+	light = cms.bool(False)									
 )

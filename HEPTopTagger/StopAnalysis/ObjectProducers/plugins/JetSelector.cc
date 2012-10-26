@@ -44,25 +44,26 @@ class JetSelector : public edm::EDProducer {
 
       InputTag jetSrc_;
       string cuts_;
-      string labelName_;
+      bool light_;
 
 };
 
-
+typedef reco::Candidate::LorentzVector LorentzVector;
 
 JetSelector::JetSelector(const edm::ParameterSet& iConfig)
 {
    jetSrc_ = iConfig.getParameter<InputTag>("jetSrc");
    cuts_ = iConfig.getParameter<string>("cuts");
-   
-   if(iConfig.exists("labelName"))
-      labelName_ = iConfig.getParameter<string>("labelName");
+   light_ = iConfig.getParameter<bool>("light");
+      
+   if(light_)
+   {
+      produces<JetCollection> ();
+   }
    else
    {
-      labelName_ = "SelectedJets";
+      produces<vector<LorentzVector> >();
    }
-      
-   produces<JetCollection> (labelName_);
 }
 
 
@@ -87,15 +88,25 @@ JetSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    StringCutObjectSelector<pat::Jet> selector(cuts_);
    auto_ptr<JetCollection> selectedJets(new JetCollection());
+   auto_ptr<vector<LorentzVector> >selectedJetsP4(new vector<LorentzVector> ());
    
 
    for(jet = jets->begin(); jet != jets->end(); jet++)
    {
       if(selector(*jet))
+      {
          selectedJets->push_back(*jet);
+         selectedJetsP4->push_back(jet->p4());
+      }
    }
-
-   iEvent.put(selectedJets, labelName_);
+   if(light_)
+   {
+      iEvent.put(selectedJetsP4);
+   }
+   else
+   {
+      iEvent.put(selectedJets);
+   }
  }
 
 // ------------ method called once each job just before starting event loop  ------------

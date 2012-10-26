@@ -46,7 +46,7 @@ class BJetSelector : public edm::EDProducer {
       string discriminator_;
       double discriminatorCut_;
 
-      string labelName_;
+      bool light_;
 
 };
 
@@ -63,10 +63,17 @@ BJetSelector::BJetSelector(const edm::ParameterSet& iConfig)
    discriminator_ = iConfig.getParameter<string>("discriminator");
    discriminatorCut_ = iConfig.getParameter<double>("discriminatorCut");
 
-   labelName_ = iConfig.getParameter<string>("labelName");
+   light_ = iConfig.getParameter<bool>("light");
 
-   produces<vector<pat::Jet> > (labelName_);
-
+   if(light_)
+   {
+      produces <vector<LorentzVector> > ();
+      produces <vector<double> > ("discriminator");
+   }
+   else
+   {
+      produces<vector<pat::Jet> > ();
+   }
 }
 
 
@@ -93,6 +100,8 @@ BJetSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   pat::JetCollection::const_iterator BJet;
 
   auto_ptr<pat::JetCollection> SelectedBJets(new pat::JetCollection());
+  auto_ptr<vector<LorentzVector> > SelectedBJetsP4(new vector<LorentzVector>());
+  auto_ptr<vector<double> > SelectedBJetsDiscriminator(new vector<double>());
 
   for ( BJet = BJets->begin(); BJet != BJets->end(); BJet++)
   {
@@ -101,11 +110,19 @@ BJetSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      if( BJet->bDiscriminator(discriminator_) < discriminatorCut_) continue;
 
      SelectedBJets->push_back(*BJet);
+     SelectedBJetsP4->push_back(BJet->p4());
+     SelectedBJetsDiscriminator->push_back(BJet->bDiscriminator(discriminator_));
   }
 
-
-  iEvent.put(SelectedBJets, labelName_);
-  
+  if(light_)
+  {
+     iEvent.put(SelectedBJetsP4);
+     iEvent.put(SelectedBJetsDiscriminator, "discriminator");
+  }
+  else
+  {
+     iEvent.put(SelectedBJets);
+  }
 }
 // ------------ method called once each job just before starting event loop  ------------
 void 

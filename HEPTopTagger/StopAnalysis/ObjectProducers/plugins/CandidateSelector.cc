@@ -17,7 +17,7 @@
 #include "CommonTools/UtilAlgos/interface/SingleElementCollectionSelector.h"
 
 #include "DataFormats/PatCandidates/interface/Jet.h"
-
+#include "DataFormats/Candidate/interface/LeafCandidate.h"
 
 //includes needed for this file
 
@@ -44,25 +44,33 @@ class CandidateSelector : public edm::EDProducer {
 
       InputTag candidateSrc_;
       string cuts_;
-      string labelName_;
+      bool light_;
 
 };
 
 
-
+typedef reco::Candidate::LorentzVector LorentzVector;
 CandidateSelector::CandidateSelector(const edm::ParameterSet& iConfig)
 {
    candidateSrc_ = iConfig.getParameter<InputTag>("src");
    cuts_ = iConfig.getParameter<string>("cuts");
-   
-   if(iConfig.exists("labelName"))
+   light_ = iConfig.getParameter<bool>("light");
+ 
+/*   if(iConfig.exists("labelName"))
       labelName_ = iConfig.getParameter<string>("labelName");
    else
    {
       labelName_ = "SelectedJets";
    }
-      
-   produces<CandidateCollection> (labelName_);
+*/      
+   if(light_)
+   {
+      produces<vector<LorentzVector> > ();
+   }
+   else
+   {
+      produces<vector<LeafCandidate> > ();
+   }
 }
 
 
@@ -81,21 +89,31 @@ void
 CandidateSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
-   Handle< View<Candidate> > candidates;
+   Handle< View<LeafCandidate> > candidates;
    iEvent.getByLabel( candidateSrc_, candidates );
-   View<Candidate>::const_iterator candidate;
+   View<LeafCandidate>::const_iterator candidate;
 
-   StringCutObjectSelector<Candidate> selector(cuts_);
-   auto_ptr<CandidateCollection> selectedCandidates(new CandidateCollection());
+   StringCutObjectSelector<LeafCandidate> selector(cuts_);
+   auto_ptr<vector<LeafCandidate> > selectedCandidates(new vector<LeafCandidate>());
+   auto_ptr<vector<LorentzVector> > selectedCandidatesP4(new vector<LorentzVector>());
    
 
    for(candidate = candidates->begin(); candidate != candidates->end(); candidate++)
    {
       if(selector(*candidate))
+      {
          selectedCandidates->push_back(*candidate);
+         selectedCandidatesP4->push_back(candidate->p4());
+      }
    }
-
-   iEvent.put(selectedCandidates, labelName_);
+   if(light_)
+   {
+      iEvent.put(selectedCandidatesP4);
+   }
+   else
+   {
+      iEvent.put(selectedCandidates);
+   }
  }
 
 // ------------ method called once each job just before starting event loop  ------------

@@ -55,7 +55,7 @@ class IsolatedTrackProducer : public edm::EDProducer {
       
       int vtxSize;
       
-      string labelName_;
+      bool light_;
 
 
 };
@@ -72,10 +72,24 @@ IsolatedTrackProducer::IsolatedTrackProducer(const edm::ParameterSet& iConfig)
   dzcut_ = iConfig.getParameter<double> ("dz_CutValue");       // cut value for dz(trk,vtx) for track to include in iso sum (default 0.05)
   minPt_ = iConfig.getParameter<double>("minPt_PFCandidate"); // store PFCandidates with pt above this cut                 (default 0   )
   isoCut_ = iConfig.getParameter<double>("isoCut"); // isolation cut value
-  labelName_ = iConfig.getParameter<string>("labelName"); 
+  light_ = iConfig.getParameter<bool>("light");
   
-  produces<std::vector<reco::PFCandidate> >(labelName_); 
+  if(light_)
+  {
+     produces<vector<float> >("pfcandstrkiso").setBranchAlias("pfcands_trkiso");
+     produces<vector<float> >("pfcandsdzpv"  ).setBranchAlias("pfcands_dzpv");
+     produces<vector<int>   >("pfcandschg"   ).setBranchAlias("pfcands_chg");
 
+     produces<vector<LorentzVector> > ();
+  }
+  else
+  {
+     produces<vector<float> >("pfcandstrkiso").setBranchAlias("pfcands_trkiso");
+     produces<vector<float> >("pfcandsdzpv"  ).setBranchAlias("pfcands_dzpv");
+     produces<vector<int>   >("pfcandschg"   ).setBranchAlias("pfcands_chg");
+
+     produces<std::vector<reco::PFCandidate> >(); 
+  }
   
 }
 
@@ -122,6 +136,11 @@ IsolatedTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   //-------------------------------------------------------------------------------------------------
 
   std::auto_ptr<std::vector<reco::PFCandidate> > prod(new std::vector<reco::PFCandidate>());
+  std::auto_ptr<std::vector<LorentzVector> > prodP4(new std::vector<LorentzVector>());
+  auto_ptr<vector<float> >  pfcands_trkiso(new vector<float>);
+  auto_ptr<vector<float> >  pfcands_dzpv  (new vector<float>);
+  auto_ptr<vector<int>   >  pfcands_chg   (new vector<int>  );
+
 
   if( vertices->size() > 0) {
 
@@ -136,6 +155,8 @@ IsolatedTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
         //-------------------------------------------------------------------------------------
         // store pt and charge of PFCandidate
         //-------------------------------------------------------------------------------------
+
+        pfcands_chg->push_back(pf_it->charge());
 
         //-------------------------------------------------------------------------------------
         // if there's no good vertex in the event, we can't calculate anything so store 999999
@@ -162,11 +183,11 @@ IsolatedTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	      if( pf_other->charge() == 0 ) continue;
 
               // cut on dR between the PFCandidates
-              float dR = deltaR(pf_it->eta(), pf_it->phi(), pf_other->eta(), pf_other->phi());
+              double dR = deltaR(pf_it->eta(), pf_it->phi(), pf_other->eta(), pf_other->phi());
               if( dR > dR_ ) continue;
 
 	      // cut on the PFCandidate dz
-	      float dz_other = 100;
+	      double dz_other = 100;
 
 	      if ( pf_other->trackRef().isNonnull()) {
 	         dz_other = pf_other->trackRef()->dz(vtxpos);
@@ -184,20 +205,39 @@ IsolatedTrackProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
               dz_it = pf_it->trackRef()->dz(vtxpos);
            }
 
+           // store trkiso and dz values
+           pfcands_trkiso->push_back(trkiso);
+           pfcands_dzpv->push_back(dz_it);
+
            if( trkiso/pf_it->pt() > isoCut_ ) continue;
            if( std::abs(dz_it) > dzcut_ ) continue;
 
            prod->push_back( (*pf_it) );
-
+           prodP4->push_back(pf_it->p4());
+        }else{
+           //neutral particle, set trkiso and dzpv to 9999
+           pfcands_trkiso->push_back(9999);
+           pfcands_dzpv->push_back(9999);
         }
 
      }
       
   }
 
-
-  iEvent.put(prod, labelName_);
-
+  if(light_)
+  {
+     iEvent.put(pfcands_trkiso,"pfcandstrkiso");
+     iEvent.put(pfcands_dzpv  ,"pfcandsdzpv"  );
+     iEvent.put(pfcands_chg   ,"pfcandschg"   );
+     iEvent.put(prodP4);
+  }
+  else
+  {
+     iEvent.put(pfcands_trkiso,"pfcandstrkiso");
+     iEvent.put(pfcands_dzpv  ,"pfcandsdzpv"  );
+     iEvent.put(pfcands_chg   ,"pfcandschg"   );
+     iEvent.put(prod);
+  }
 }
 
 // ------------ method called once each job just before starting event loop  ------------

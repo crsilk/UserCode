@@ -1,5 +1,9 @@
+
+
+// system include files
 #include <memory>
 
+// user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDFilter.h"
 
@@ -7,17 +11,17 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "DataFormats/Candidate/interface/LeafCandidate.h"
+#include "CommonTools/UtilAlgos/interface/StringCutObjectSelector.h"
 
-#include "DataFormats/Common/interface/TriggerResults.h"
-#include "FWCore/Common/interface/TriggerNames.h"
-
-using namespace std;
 using namespace edm;
+using namespace reco;
+using namespace std;
 
-class Skimmer : public edm::EDFilter {
+class CandidateFilter : public edm::EDFilter {
    public:
-      explicit Skimmer(const edm::ParameterSet&);
-      ~Skimmer();
+      explicit CandidateFilter(const edm::ParameterSet&);
+      ~CandidateFilter();
 
       static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
@@ -31,25 +35,39 @@ class Skimmer : public edm::EDFilter {
       virtual bool beginLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
       virtual bool endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
 
+      InputTag candidateSrc_;
+      string cuts_;
 
-      InputTag bitSetSrc_;
-      vector<string> cutNames_;
-      vector<int> cutDecisions_;
+
+      // ----------member data ---------------------------
 };
 
+//
+// constants, enums and typedefs
+//
 
-Skimmer::Skimmer(const edm::ParameterSet& iConfig)
+//
+// static data member definitions
+//
+
+//
+// constructors and destructor
+//
+CandidateFilter::CandidateFilter(const edm::ParameterSet& iConfig)
 {
-   bitSetSrc_ = iConfig.getParameter<InputTag>("bitSetSrc");
-   cutNames_ = iConfig.getParameter<vector<string> >("cutNames");
-   cutDecisions_ = iConfig.getParameter<vector<int> >("cutDecisions");
+   candidateSrc_ = iConfig.getParameter<InputTag>("src");
+   cuts_ = iConfig.getParameter<string>("cuts");
+
+   //now do what ever initialization is needed
 
 }
 
 
-Skimmer::~Skimmer()
+CandidateFilter::~CandidateFilter()
 {
  
+   // do anything here that needs to be done at desctruction time
+   // (e.g. close files, deallocate resources etc.)
 
 }
 
@@ -60,85 +78,65 @@ Skimmer::~Skimmer()
 
 // ------------ method called on each new Event  ------------
 bool
-Skimmer::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
+CandidateFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
-   Handle<TriggerResults> bitSet;
-   iEvent.getByLabel(bitSetSrc_, bitSet);
-   
-   TriggerNames  bitSetNames = iEvent.triggerNames(*bitSet);
-   bool cutNameFound;
 
-   if( cutNames_.size() != cutDecisions_.size())
-      throw cms::Exception("Configuration Error") <<"Number of cut decisions does not match the number of cuts names.";
-   
-   
 
-   for(unsigned i = 0; i < cutNames_.size(); i++)
-   {      
-      cutNameFound = false;
+   Handle< View<Candidate> > candidates;
+   iEvent.getByLabel( candidateSrc_, candidates );
+   View<Candidate>::const_iterator candidate = candidates->begin();
 
-      for(unsigned j = 0; j < bitSetNames.size(); j++)
-      {
-         if(bitSetNames.triggerName(j) == cutNames_[i])
-         {
-            cutNameFound = true;
-            if(bitSet->accept(j) != cutDecisions_[i])
-            {
-               return false;
-            }
-         }
-      }
+   StringCutObjectSelector<Candidate> selector(cuts_);
 
-      if(cutNameFound == false)
-         throw cms::Exception("Configuration Error") <<cutNames_[i]<<" is not a valid cut name. Please check your configuration file";
+   if(selector(*candidate))
+      return true;
 
-   }
-return true;
+   return false;
 }
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-Skimmer::beginJob()
+CandidateFilter::beginJob()
 {
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
-Skimmer::endJob() {
+CandidateFilter::endJob() {
 }
 
 // ------------ method called when starting to processes a run  ------------
 bool 
-Skimmer::beginRun(edm::Run&, edm::EventSetup const&)
+CandidateFilter::beginRun(edm::Run&, edm::EventSetup const&)
 { 
   return true;
 }
 
 // ------------ method called when ending the processing of a run  ------------
 bool 
-Skimmer::endRun(edm::Run&, edm::EventSetup const&)
+CandidateFilter::endRun(edm::Run&, edm::EventSetup const&)
 {
   return true;
 }
 
 // ------------ method called when starting to processes a luminosity block  ------------
 bool 
-Skimmer::beginLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&)
+CandidateFilter::beginLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&)
 {
   return true;
 }
 
 // ------------ method called when ending the processing of a luminosity block  ------------
 bool 
-Skimmer::endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&)
+CandidateFilter::endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&)
 {
   return true;
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
 void
-Skimmer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+CandidateFilter::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   //The following says we do not know what parameters are allowed so do no validation
   // Please change this to state exactly what you do use, even if it is no parameters
   edm::ParameterSetDescription desc;
@@ -146,4 +144,4 @@ Skimmer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   descriptions.addDefault(desc);
 }
 //define this as a plug-in
-DEFINE_FWK_MODULE(Skimmer);
+DEFINE_FWK_MODULE(CandidateFilter);

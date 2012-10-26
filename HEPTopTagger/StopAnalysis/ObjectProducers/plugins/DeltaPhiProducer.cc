@@ -44,7 +44,6 @@ class DeltaPhiObjectVsMETProducer : public edm::EDProducer {
       InputTag METSrc_;
 
       unsigned nDeltaPhis_;
-      string labelName_;
 
 };
 
@@ -64,9 +63,7 @@ DeltaPhiObjectVsMETProducer::DeltaPhiObjectVsMETProducer(const edm::ParameterSet
    METSrc_ = iConfig.getParameter<InputTag>("METSrc");
    nDeltaPhis_ = iConfig.getParameter<unsigned>("nDeltaPhis");
 
-   labelName_ = iConfig.getParameter<string>("labelName");
-
-   produces<vector<double> > (labelName_);
+   produces<vector<double> > ();
 
 }
 
@@ -93,9 +90,8 @@ DeltaPhiObjectVsMETProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
    View<LeafCandidate>::const_iterator Object;
 
    
-   Handle<View<MET> > METs;
+   Handle<View<Candidate> > METs;
    iEvent.getByLabel(METSrc_, METs); 
-   MET met = (*METs)[0];
 
    Candidate::LorentzVector tempP4;
    auto_ptr<vector<double> > deltaPhis(new vector<double>());
@@ -112,11 +108,11 @@ DeltaPhiObjectVsMETProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
       if(i >= nDeltaPhis_)
          break;
 
-      tempP4 = ObjectsVector[i].p4() - met.p4();
+      tempP4 = ObjectsVector[i].p4() - METs->begin()->p4();
       deltaPhis->push_back(abs(tempP4.phi()));
    }
    
-   iEvent.put(deltaPhis, labelName_);
+   iEvent.put(deltaPhis);
 }
 
 // ------------ method called once each job just before starting event loop  ------------

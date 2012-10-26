@@ -8,5 +8,5 @@ isolatedTracks = cms.EDProducer(
 	dz_CutValue         = cms.double(0.05),
 	minPt_PFCandidate   = cms.double(15.0),
 	isoCut              = cms.double(0.1),
-	labelName = cms.string("isolatedTracks")
+	light = cms.bool(False)
 	)

@@ -41,7 +41,6 @@ class MTProducer : public edm::EDProducer {
       InputTag Object1Src_;
       InputTag Object2Src_;
 
-      string labelName_;
 };
 
 
@@ -52,9 +51,8 @@ MTProducer::MTProducer(const edm::ParameterSet& iConfig)
    Object1Src_ = iConfig.getParameter<InputTag>("Object1Src");
    Object2Src_ = iConfig.getParameter<InputTag>("Object2Src");
    
-   labelName_ = iConfig.getParameter<string>("labelName");
    
-   produces<vector<double> >(labelName_);
+   produces<vector<double> >();
 
 }
 
@@ -79,11 +77,11 @@ void
 MTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    
-   Handle<View<LeafCandidate> > Objects1;
+   Handle<View<Candidate> > Objects1;
    iEvent.getByLabel(Object1Src_, Objects1);
 
 
-   Handle<View<LeafCandidate> > Objects2;
+   Handle<View<Candidate> > Objects2;
    iEvent.getByLabel(Object2Src_, Objects2);
 
    auto_ptr<vector<double > > mt(new vector<double>());
@@ -91,17 +89,14 @@ MTProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    if( Objects1->size() > 0 && Objects2->size() > 0)
    {
 
-   LeafCandidate Object1 = (*Objects1)[0];
-   LeafCandidate Object2 = (*Objects2)[0];
 
+   double Et_1=sqrt((*Objects1)[0].mass()*(*Objects1)[0].mass() + (*Objects1)[0].pt()*(*Objects1)[0].pt());
+   double Et_2=sqrt((*Objects2)[0].mass()*(*Objects2)[0].mass() + (*Objects2)[0].pt()*(*Objects2)[0].pt());
 
-   double Et_1=sqrt(Object1.mass()*Object1.mass() + Object1.pt()*Object1.pt());
-   double Et_2=sqrt(Object2.mass()*Object2.mass() + Object2.pt()*Object2.pt());
-
-   mt->push_back(sqrt( Object1.mass()*Object1.mass() + Object2.mass()*Object2.mass() + 2*( Et_1*Et_2 - Object1.px()*Object2.px() - Object1.py()*Object2.py() ) ));
+   mt->push_back(sqrt( (*Objects1)[0].mass()*(*Objects1)[0].mass() + (*Objects2)[0].mass()*(*Objects2)[0].mass() + 2*( Et_1*Et_2 - (*Objects1)[0].px()*(*Objects2)[0].px() - (*Objects1)[0].py()*(*Objects2)[0].py() ) ));
    }
    
-   iEvent.put(mt, labelName_);
+   iEvent.put(mt);
 
 
 

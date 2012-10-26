@@ -1,42 +1,42 @@
 import FWCore.ParameterSet.Config as cms
 
-selectedTopBJetPair = cms.EDProducer('TopBJetPairSelector',
-	TopSrc = cms.InputTag("selectedHEPTopTags", "selectedHEPTopTags"),
-    BJetSrc = cms.InputTag("selectedBJets", "selectedBJets"),
-    deltaRFromFatjetCut = cms.double(0),
+selectedTopBJetPair = cms.EDProducer(
+	'TopBJetPairSelector',
+	TopSrc = cms.InputTag("selectedHEPTopTags", ""),
+	TopSubjetSrc = cms.InputTag("selectedHEPTopTags", "subjets"),
+    BJetSrc = cms.InputTag("selectedBJets", ""),
+    deltaRFromFatjetCut = cms.double(1.5),
     deltaRFromSubjetsCut = cms.double(0.8),
-    TopLabelName = cms.string("Top"),
-    BJetLabelName = cms.string("BJet")
-
+	light = cms.bool(False)
 )
 
 
-selectedTop15BJetPair = cms.EDProducer('TopBJetPairSelector',
-	TopSrc = cms.InputTag("selectedHEPTop15Tags", "selectedHEPTop15Tags"),
-    BJetSrc = cms.InputTag("selectedBJets", "selectedBJets"),
-    deltaRFromFatjetCut = cms.double(0),
+selectedTop15BJetPair = cms.EDProducer(
+	'TopBJetPairSelector',
+	TopSrc = cms.InputTag("selectedHEPTop15Tags", ""),
+	TopSubjetSrc = cms.InputTag("selectedHEPTop15Tags", "subjets"),
+    BJetSrc = cms.InputTag("selectedBJets", ""),
+    deltaRFromFatjetCut = cms.double(1.5),
     deltaRFromSubjetsCut = cms.double(0.8),
-    TopLabelName = cms.string("Top"),
-    BJetLabelName = cms.string("BJet")
-
+ 	light = cms.bool(False)
 )
 
-selectedTop2BJetPair = cms.EDProducer('TopBJetPairSelector',
-	TopSrc = cms.InputTag("selectedHEPTop2Tags", "selectedHEPTop2Tags"),
-    BJetSrc = cms.InputTag("selectedBJets", "selectedBJets"),
-    deltaRFromFatjetCut = cms.double(0),
+selectedTop2BJetPair = cms.EDProducer(
+	'TopBJetPairSelector',
+	TopSrc = cms.InputTag("selectedHEPTop2Tags", ""),
+	TopSubjetSrc = cms.InputTag("selectedHEPTop2Tags", "subjets"),
+    BJetSrc = cms.InputTag("selectedBJets", ""),
+    deltaRFromFatjetCut = cms.double(2.0),
     deltaRFromSubjetsCut = cms.double(0.8),
-    TopLabelName = cms.string("Top"),
-    BJetLabelName = cms.string("BJet")
-
+	light = cms.bool(False)
 )
 
-selectedTop125BJetPair = cms.EDProducer('TopBJetPairSelector',
-	TopSrc = cms.InputTag("selectedHEPTop125Tags", "selectedHEPTop125Tags"),
-    BJetSrc = cms.InputTag("selectedBJets", "selectedBJets"),
-    deltaRFromFatjetCut = cms.double(0),
+selectedTop125BJetPair = cms.EDProducer(
+	'TopBJetPairSelector',
+	TopSrc = cms.InputTag("selectedHEPTop125Tags", ""),
+	TopSubjetSrc = cms.InputTag("selectedHEPTop125Tags", "subjets"),
+    BJetSrc = cms.InputTag("selectedBJets", ""),
+    deltaRFromFatjetCut = cms.double(1.25),
     deltaRFromSubjetsCut = cms.double(0.8),
-    TopLabelName = cms.string("Top"),
-    BJetLabelName = cms.string("BJet")
-
+   	light = cms.bool(False)
 )

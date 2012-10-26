@@ -14,7 +14,7 @@
 
 #include "DataFormats/JetReco/interface/BasicJet.h"
 #include "DataFormats/JetReco/interface/BasicJetCollection.h"
-
+#include "DataFormats/JetReco/interface/PFJet.h"
 using namespace edm;
 using namespace reco;
 using namespace std;
@@ -54,8 +54,8 @@ class HEPTopTagSelector : public edm::EDProducer {
       double m23MaxCut_;
       
       bool antiDijetCuts_;
+      bool light_;
 
-      string labelName_;
 
 };
 
@@ -86,12 +86,19 @@ HEPTopTagSelector::HEPTopTagSelector(const edm::ParameterSet& iConfig)
    m23MaxCut_ = iConfig.getParameter<double>("m23MaxCut");
    
    antiDijetCuts_ = iConfig.getParameter<bool>("antiDijetCuts");
-   labelName_ = iConfig.getParameter<string>("labelName");
+   light_ = iConfig.getParameter<bool>("light");
    
 
-
-   produces<BasicJetCollection > (labelName_);
-
+   if(light_)
+   {
+      produces<vector<LorentzVector> >();
+      produces<vector<LorentzVector> >("subjets").setBranchAlias("subjets");
+   }
+   else
+   {
+      produces<BasicJetCollection > ();
+      produces<vector<PFJet>  > ("subjets").setBranchAlias("subjets");
+   }
 
   
 }
@@ -119,7 +126,12 @@ HEPTopTagSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    iEvent.getByLabel(HEPTopTagSrc_, HEPTopTags);
    BasicJetCollection ::const_iterator HEPTopTag;
 
+   Jet::Constituents subjets;
+
    auto_ptr<BasicJetCollection > SelectedHEPTopTags( new BasicJetCollection () );
+   auto_ptr<vector<PFJet>  >  SelectedSubjets( new vector<PFJet>   () );
+   auto_ptr<vector<LorentzVector> > SelectedHEPTopTagsP4( new vector<LorentzVector>() );
+   auto_ptr<vector<LorentzVector> > SelectedSubjetsP4( new vector<LorentzVector>() );
 
    for(HEPTopTag = HEPTopTags->begin(); HEPTopTag != HEPTopTags->end(); HEPTopTag++)
    {
@@ -144,12 +156,27 @@ HEPTopTagSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       if(!passM23Cut(HEPTopTag, m23MinCut_, m23MaxCut_)) continue;
 
       SelectedHEPTopTags->push_back(*HEPTopTag);
+      SelectedHEPTopTagsP4->push_back(HEPTopTag->p4());
+      subjets = HEPTopTag->getJetConstituents();
+      for( unsigned i = 0; i < subjets.size(); i++)
+      {
+         const PFJet * subjet = dynamic_cast<const PFJet*>(subjets[i].get()); 
 
+         SelectedSubjets->push_back(*subjet);
+         SelectedSubjetsP4->push_back(subjet->p4());
+      }
    }
 
-
-   iEvent.put(SelectedHEPTopTags, labelName_);
-
+   if(light_)
+   {
+       iEvent.put(SelectedHEPTopTagsP4);
+       iEvent.put(SelectedSubjetsP4, "subjets");  
+   }
+   else
+   {
+      iEvent.put(SelectedHEPTopTags);
+      iEvent.put(SelectedSubjets, "subjets");
+   }
 }
 
 // ------------ method called once each job just before starting event loop  ------------
