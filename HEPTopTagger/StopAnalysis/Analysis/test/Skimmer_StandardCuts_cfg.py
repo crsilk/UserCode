@@ -1,4 +1,4 @@
-import glob
+import glob, pickle
 import FWCore.ParameterSet.Config as cms
 from FWCore.ParameterSet.VarParsing import VarParsing
 process = cms.Process("count")
@@ -22,12 +22,18 @@ options.register ('CMSSW53x',
                   VarParsing.varType.bool,
                   "Running over a 53x sample"
 				  )
+options.register ('saveSourceVariable',
+                  '',
+                  VarParsing.multiplicity.singleton,
+                  VarParsing.varType.string,
+                  "File name of the process.source variable to be saved in. If nothing given then it won't save."
+				  )
 
 
 
 options.parseArguments()
 
-process = cms.Process("StopNTuple")
+process = cms.Process("StandardSelection")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 
@@ -40,6 +46,8 @@ readFiles = []
 for file in files:
 	if file.split('/')[1] == 'pnfs':
 		file = 'dcap://' + file
+	elif file.split('/')[1] == 'eos':
+		file = 'root://cmseos:1094/' + file
 	else:
 		file = 'file:' + file
 	readFiles.append(file)
@@ -52,12 +60,14 @@ process.source = cms.Source("PoolSource",
 if options.CMSSW53x:
 	HEPs = 'selectedHEPTop15Tags'
 	requireHEPAnti = 'requireHEPAnti15Tag_path'
+	requireHEPTopTag = 'requireHEPTop15Tag_path'
 	requireTopBJetPair = 'requireTop15BJetPair_path'
 	triangleCutMTTopAndMTBJet = 'triangleCutMTTop15AndMTBJet_path'
 	MT2Cut = 'MT2Cut15_path'
 else:
 	HEPs = 'selectedHEPTopTags'
 	requireHEPAnti = 'requireHEPAntiTag_path'
+	requireHEPTopTag = 'requireHEPTopTag_path'
 	requireTopBJetPair = 'requireTopBJetPair_path'
 	triangleCutMTTopAndMTBJet = 'triangleCutMTTopAndMTBJet_path'
 	MT2Cut = 'MT2Cut_path'
@@ -80,6 +90,8 @@ process.skim = cms.EDFilter(
 	'isolatedElectronVeto_path',
 	'isolatedTrackVeto_path',
 	'deltaPhiJetsAndMETCut_path',
+	requireHEPTopTag,
+	'requireBJet_path',
 	requireTopBJetPair,
 	triangleCutMTTopAndMTBJet,
 	MT2Cut
@@ -91,3 +103,7 @@ process.p = cms.Path(
 	)
 process.out = cms.EndPath(process.output)
 process.schedule = cms.Schedule(process.p, process.out)
+if not options.saveSourceVariable == '':
+	import pickle
+	file = open(options.saveSourceVariable, 'w')
+	pickle.dump( process.source.fileNames, file)

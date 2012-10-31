@@ -13,7 +13,7 @@
 //
 // Original Author:  giulio dujany
 //         Created:  Thu Sep 11 09:30:00 CDT 2012
-// $Id$
+// $Id: CountEventsAfterCuts.cc,v 1.1 2012/10/26 20:58:20 crsilk Exp $
 //
 //
 
@@ -60,11 +60,19 @@ private:
   
       InputTag bitSetSrc_;
       InputTag genEventSrc_;
+      InputTag modelPointSrc_;
       vector<string> cutNames_;
       vector<int> cutDecisions_;
-
+      double totalCount_;
       vector<double> counts_;
+      unsigned countsSize_;
 
+      bool runOnSignal_;
+      vector<vector<double> > allModelPoints_;
+      vector<double> signalTotalCount_;
+      vector<vector<double> > signalCounts_;
+      int eventNumber_;
+      
 };
 
 
@@ -74,11 +82,27 @@ CountEventsAfterCuts::CountEventsAfterCuts(const edm::ParameterSet& iConfig)
 {
    bitSetSrc_ = iConfig.getParameter<InputTag>("bitSetSrc");
    genEventSrc_= iConfig.getParameter<InputTag>("genEventSrc");
+   modelPointSrc_ = iConfig.getParameter<InputTag>("modelPointSrc");
    cutNames_ = iConfig.getParameter<vector<string> >("cutNames");
    cutDecisions_ = iConfig.getParameter<vector<int> >("cutDecisions");
 
+   if(iConfig.exists("runOnSignal"))
+      runOnSignal_ = iConfig.getParameter<bool>("runOnSignal");
+
+   else
+   {
+      runOnSignal_ = false;
+   }
+      
+
+   eventNumber_ = 0;
+   totalCount_ = 0;
+   countsSize_ = 0;
    for(unsigned i = 0; i < cutNames_.size(); i++)
+   {
+      countsSize_++;
       counts_.push_back(0.0);
+   }
 }
 
 
@@ -103,15 +127,52 @@ void CountEventsAfterCuts::analyze(const edm::Event& iEvent, const edm::EventSet
    Handle<GenEventInfoProduct>    genEvent;
    iEvent.getByLabel(genEventSrc_,  genEvent);
 
+   Handle<vector<double> > modelPoints;
+   unsigned eventIndex = 0;
+
    TriggerNames  bitSetNames = iEvent.triggerNames(*bitSet);
    bool cutNameFound;
    double weight = genEvent->weight();
 
-   if( cutNames_.size() != cutDecisions_.size())
-      throw cms::Exception("Configuration Error") <<"Number of cut decisions does not match the number of cuts names.";
-   
-   
+   eventNumber_++;
 
+   if( cutNames_.size() != cutDecisions_.size())
+   {
+      cout<<"Number of cutNames ="<<cutNames_.size()<<"\nNumber of cutDecisions ="<<cutDecisions_.size()<<endl;
+      throw cms::Exception("Configuration Error") <<"Number of cut decisions does not match the number of cuts names.";
+   }
+
+   if (runOnSignal_)
+   {
+      bool alreadyThere = false;
+      iEvent.getByLabel(modelPointSrc_, modelPoints);
+
+      for(unsigned i = allModelPoints_.size() ; i-- > 0;)
+      {
+         if (allModelPoints_.size() == 0) 
+            break;
+         
+         if(allModelPoints_[i] == *modelPoints)
+         {
+            eventIndex = i;
+            alreadyThere =true;
+            signalTotalCount_[i] = signalTotalCount_[i] + weight;
+            break;
+         }
+      }
+      if(!alreadyThere)
+      {
+         signalTotalCount_.push_back(1);
+         signalCounts_.push_back(vector<double>(countsSize_, 0));
+         allModelPoints_.push_back(*modelPoints);
+         eventIndex = allModelPoints_.size() -1;
+         
+      }
+      
+   }
+
+   
+   totalCount_ = totalCount_ + weight;
    for(unsigned i = 0; i < cutNames_.size(); i++)
    {      
       cutNameFound = false;
@@ -132,7 +193,10 @@ void CountEventsAfterCuts::analyze(const edm::Event& iEvent, const edm::EventSet
          throw cms::Exception("Configuration Error") <<cutNames_[i]<<" is not a valid cut name. Please check your configuration file";
       
       counts_[i] = counts_[i] + weight;
-
+      if(runOnSignal_)
+      {
+         signalCounts_[eventIndex][i] = signalCounts_[eventIndex][i] + weight;
+      }
 
    }
 
@@ -150,9 +214,38 @@ CountEventsAfterCuts::beginJob()
 void 
 CountEventsAfterCuts::endJob() 
 {
+   cout<<"Total Count: "<<totalCount_<<endl;
    cout<<"Cut      Number that passed this cut "<<endl;
    for(unsigned i = 0; i < counts_.size(); i++)
-      cout<<cutNames_[i]<<"  "<<counts_[i]<<endl;
+      cout<<cutNames_[i]<<"\t";
+   cout<<endl;
+   for(unsigned i = 0; i < counts_.size(); i++)
+      cout<<counts_[i]<<"\t";
+   cout<<endl;
+
+   if(runOnSignal_)
+   {
+      cout<<"ModelPoint\tTotalCount\t";
+      for(unsigned i = 0; i < counts_.size(); i++)
+         cout<<cutNames_[i]<<"\t";
+      cout<<endl;
+      for(unsigned i= 0 ; i < allModelPoints_.size(); i++)
+      {
+         for(unsigned j = 0; j < allModelPoints_[i].size(); j++)
+         {
+            cout<<allModelPoints_[i][j];
+            if( j != allModelPoints_[i].size()-1) cout<<"_";
+         }
+         
+         cout<<"\t"<<signalTotalCount_[i]<<"\t";
+         for(unsigned j = 0; j < signalCounts_[i].size(); j++)
+         {
+            cout<<signalCounts_[i][j]<<"\t";
+         }
+         cout<<endl;
+      }
+   }
+
 }
 
 // ------------ method called when starting to processes a run  ------------
