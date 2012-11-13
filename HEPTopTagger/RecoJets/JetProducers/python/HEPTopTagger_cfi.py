@@ -12,7 +12,7 @@ HEPTopTagJets = cms.EDProducer(
                           ),
    AnomalousCellParameters,
    CATopJetParameters.clone(
-       verbose = cms.bool(True),
+       verbose = cms.bool(False),
        tagAlgo = cms.int32(2) ),
    jetAlgorithm = cms.string("CambridgeAachen"),
    rParam = cms.double(1.5),
