@@ -37,10 +37,10 @@ theJetColls = ['AK5PF']
 jetMetCorr = ['L1FastJet', 'L2Relative', 'L3Absolute']
 if runningOnMC == False: jetMetCorr.append('L2L3Residual')  
 
-process.GlobalTag.globaltag = "START53_V11::All"
+process.GlobalTag.globaltag = "START53_V7F::All"
 if runningOnMC == False:
-    process.GlobalTag.globaltag = "GR_P_V41_AN2::All"  # for Run2012C PromptReco
-    #process.GlobalTag.globaltag = "GR_R_53_V14::All"  # for Run2012A/B ReReco
+    process.GlobalTag.globaltag = "FT_53_V6_AN2::All"  
+
 
 process.source = cms.Source("PoolSource",
    fileNames = cms.untracked.vstring('/store/mc/Summer12_DR53X/TTJets_MassiveBinDECAY_TuneZ2star_8TeV-madgraph-tauola/AODSIM/PU_S10_START53_V7A-v1/0000/FED775BD-B8E1-E111-8ED5-003048C69036.root')
