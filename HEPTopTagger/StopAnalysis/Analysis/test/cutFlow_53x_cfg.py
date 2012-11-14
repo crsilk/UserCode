@@ -85,7 +85,7 @@ process.output = cms.OutputModule(
 		'keep *_patMETsPF_*_*',
 		'keep *_generator_*_*',
 		'keep *_ca*PFJetsPFlow_*_*',
-		'keep *_TriggerResults_*_*'
+		'keep *_TriggerResults_*_*',
 		'keep *_HEPTopSelTag*Jets_*_*',
 		'keep *_addPileupInfo_*_*'
 		),
