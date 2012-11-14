@@ -14,6 +14,13 @@ isolatedPFMuonVeto = cms.EDFilter(
 	maxNumber = cms.uint32(0)
 	
 )
+isolatedMuonVeto = cms.EDFilter(
+	'PATCandViewCountFilter',
+    src = cms.InputTag("patMuonsIDIso"),
+    minNumber = cms.uint32(0),
+	maxNumber = cms.uint32(0)
+	
+)
 PFTauVeto = cms.EDFilter(
 	'PATCandViewCountFilter',
     src = cms.InputTag("selectedPatTausPF"),

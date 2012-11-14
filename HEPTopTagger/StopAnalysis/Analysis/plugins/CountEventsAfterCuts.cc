@@ -13,7 +13,7 @@
 //
 // Original Author:  giulio dujany
 //         Created:  Thu Sep 11 09:30:00 CDT 2012
-// $Id: CountEventsAfterCuts.cc,v 1.1 2012/10/26 20:58:20 crsilk Exp $
+// $Id: CountEventsAfterCuts.cc,v 1.2 2012/10/31 14:34:23 crsilk Exp $
 //
 //
 
@@ -21,7 +21,7 @@
 // system include files
 #include <memory>
 #include <iostream>
-
+#include <string>
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
@@ -35,8 +35,11 @@
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
+#include "FWCore/Utilities/interface/RegexMatch.h"
+#include "DataFormats/Candidate/interface/Candidate.h"
 using namespace std;
 using namespace edm;
+using namespace reco;
 
 
 
@@ -57,12 +60,18 @@ private:
   virtual void endRun(edm::Run const&, edm::EventSetup const&);
   virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
   virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
+  vector<string> getTriggerNames(vector<string> & pattern, TriggerNames & triggerNames);
+
   
       InputTag bitSetSrc_;
+      InputTag triggerSrc_;
       InputTag genEventSrc_;
       InputTag modelPointSrc_;
       vector<string> cutNames_;
+      vector<string> triggerNames_;
+      vector<string> triggerPatterns_;
       vector<int> cutDecisions_;
+      vector<int> triggerDecisions_;
       double totalCount_;
       vector<double> counts_;
       unsigned countsSize_;
@@ -72,7 +81,7 @@ private:
       vector<double> signalTotalCount_;
       vector<vector<double> > signalCounts_;
       int eventNumber_;
-      
+      ParameterSetID triggerNamesID_;
 };
 
 
@@ -81,28 +90,27 @@ private:
 CountEventsAfterCuts::CountEventsAfterCuts(const edm::ParameterSet& iConfig)
 {
    bitSetSrc_ = iConfig.getParameter<InputTag>("bitSetSrc");
+   triggerSrc_ = iConfig.getParameter<InputTag>("triggerSrc");
    genEventSrc_= iConfig.getParameter<InputTag>("genEventSrc");
    modelPointSrc_ = iConfig.getParameter<InputTag>("modelPointSrc");
    cutNames_ = iConfig.getParameter<vector<string> >("cutNames");
+   triggerPatterns_ = iConfig.getParameter<vector<string> >("triggerNames");
    cutDecisions_ = iConfig.getParameter<vector<int> >("cutDecisions");
+   triggerDecisions_ = iConfig.getParameter<vector<int> >("triggerDecisions");
+
+
 
    if(iConfig.exists("runOnSignal"))
       runOnSignal_ = iConfig.getParameter<bool>("runOnSignal");
 
    else
-   {
       runOnSignal_ = false;
-   }
       
 
    eventNumber_ = 0;
    totalCount_ = 0;
    countsSize_ = 0;
-   for(unsigned i = 0; i < cutNames_.size(); i++)
-   {
-      countsSize_++;
-      counts_.push_back(0.0);
-   }
+
 }
 
 
@@ -123,23 +131,71 @@ void CountEventsAfterCuts::analyze(const edm::Event& iEvent, const edm::EventSet
 
    Handle<TriggerResults> bitSet;
    iEvent.getByLabel(bitSetSrc_, bitSet);
+
+   Handle<TriggerResults> trigger;
+   iEvent.getByLabel(triggerSrc_, trigger);
    
    Handle<GenEventInfoProduct>    genEvent;
    iEvent.getByLabel(genEventSrc_,  genEvent);
 
+///TEMP
+
+   InputTag TopSrc("selectedTopBJetPair", "Top");
+   Handle<View<Candidate> > Tops;
+   iEvent.getByLabel(TopSrc, Tops);
+   
+
+   InputTag BJetSrc("selectedTopBJetPair", "BJet");
+   Handle<View<Candidate> > BJets;
+   iEvent.getByLabel(BJetSrc, BJets);
+
+   InputTag mttSrc("MTTop");
+   Handle<vector<double> > mtts;
+   iEvent.getByLabel(mttSrc, mtts);
+
+
+   InputTag mtbSrc("MTBJet");
+   Handle<vector<double> > mtbs;
+   iEvent.getByLabel(mtbSrc, mtbs);
+
+
+///TEMP
    Handle<vector<double> > modelPoints;
    unsigned eventIndex = 0;
 
    TriggerNames  bitSetNames = iEvent.triggerNames(*bitSet);
+   TriggerNames  triggerNames = iEvent.triggerNames(*trigger);
    bool cutNameFound;
+   bool triggerNameFound;
    double weight = genEvent->weight();
 
    eventNumber_++;
 
+
+   if (triggerNamesID_ != triggerNames.parameterSetID()) 
+   {
+      triggerNamesID_ = triggerNames.parameterSetID();
+      triggerNames_ = getTriggerNames(triggerPatterns_, triggerNames);
+   
+      if (counts_.size() == 0) 
+      {
+         for(unsigned i = 0; i < cutNames_.size() + triggerNames_.size(); i++)
+         {
+            countsSize_++;
+            counts_.push_back(0.0);
+         }
+      }
+   }
    if( cutNames_.size() != cutDecisions_.size())
    {
       cout<<"Number of cutNames ="<<cutNames_.size()<<"\nNumber of cutDecisions ="<<cutDecisions_.size()<<endl;
       throw cms::Exception("Configuration Error") <<"Number of cut decisions does not match the number of cuts names.";
+   }
+
+   if( triggerNames_.size() != triggerDecisions_.size())
+   {
+      cout<<"Number of triggerNames ="<<triggerNames_.size()<<"\nNumber of triggerDecisions ="<<triggerDecisions_.size()<<endl;
+      throw cms::Exception("Configuration Error") <<"Number of trigger decisions does not match the number of triggers names.";
    }
 
    if (runOnSignal_)
@@ -173,6 +229,37 @@ void CountEventsAfterCuts::analyze(const edm::Event& iEvent, const edm::EventSet
 
    
    totalCount_ = totalCount_ + weight;
+
+
+
+   for(unsigned i = 0; i < triggerNames_.size(); i++)
+   {      
+      triggerNameFound = false;
+
+      for(unsigned j = 0; j < triggerNames.size(); j++)
+      {
+         if(triggerNames.triggerName(j) == triggerNames_[i])
+         {
+            triggerNameFound = true;
+            if(trigger->accept(j) != triggerDecisions_[i])
+            {
+
+               return;
+            }
+
+         }
+      }
+
+      if(triggerNameFound == false)
+         throw cms::Exception("Configuration Error") <<triggerNames_[i]<<" is not a valid trigger name. Please check your configuration file";
+      
+      counts_[i] = counts_[i] + weight;
+      if(runOnSignal_)
+      {
+         signalCounts_[eventIndex][i] = signalCounts_[eventIndex][i] + weight;
+      }
+
+   }
    for(unsigned i = 0; i < cutNames_.size(); i++)
    {      
       cutNameFound = false;
@@ -186,16 +273,22 @@ void CountEventsAfterCuts::analyze(const edm::Event& iEvent, const edm::EventSet
             {
                return;
             }
+               //TEMP
+               if(cutNames_[i] == "triangleCutMTTopAndMTBJet_path" )
+               {
+                  cout << setprecision(5) << "TopBFLAG: " << (*Tops)[0].pt()<< " " << (*BJets)[0].pt() << " "<< (*mtts)[0] <<" " << (*mtbs)[0] <<  endl;
+               }
+//TEMP
+
          }
       }
 
       if(cutNameFound == false)
          throw cms::Exception("Configuration Error") <<cutNames_[i]<<" is not a valid cut name. Please check your configuration file";
-      
-      counts_[i] = counts_[i] + weight;
+      counts_[i + triggerNames_.size()] = counts_[i + triggerNames_.size()] + weight;
       if(runOnSignal_)
       {
-         signalCounts_[eventIndex][i] = signalCounts_[eventIndex][i] + weight;
+         signalCounts_[eventIndex][i + triggerNames_.size()] = signalCounts_[eventIndex][i + triggerNames_.size()] + weight;
       }
 
    }
@@ -216,8 +309,15 @@ CountEventsAfterCuts::endJob()
 {
    cout<<"Total Count: "<<totalCount_<<endl;
    cout<<"Cut      Number that passed this cut "<<endl;
-   for(unsigned i = 0; i < counts_.size(); i++)
-      cout<<cutNames_[i]<<"\t";
+   for(unsigned i = 0; i < triggerNames_.size(); i++)
+      cout<<triggerNames_[i]<<"\t";
+   for(unsigned i = 0; i < cutNames_.size(); i++)
+   {
+      if (cutDecisions_[i])
+         cout<<cutNames_[i]<<"\t";
+      else
+         cout<<"~"<<cutNames_[i]<<"\t";
+   }
    cout<<endl;
    for(unsigned i = 0; i < counts_.size(); i++)
       cout<<counts_[i]<<"\t";
@@ -226,7 +326,9 @@ CountEventsAfterCuts::endJob()
    if(runOnSignal_)
    {
       cout<<"ModelPoint\tTotalCount\t";
-      for(unsigned i = 0; i < counts_.size(); i++)
+      for(unsigned i = 0; i < triggerNames_.size(); i++)
+         cout<<triggerNames_[i]<<"\t";
+      for(unsigned i = 0; i < cutNames_.size(); i++)
          cout<<cutNames_[i]<<"\t";
       cout<<endl;
       for(unsigned i= 0 ; i < allModelPoints_.size(); i++)
@@ -287,6 +389,33 @@ CountEventsAfterCuts::fillDescriptions(edm::ConfigurationDescriptions& descripti
  //desc.addUntracked<edm::InputTag>("tracks","ctfWithMaterialTracks");
  //descriptions.addDefault(desc);
 }
+vector<string> CountEventsAfterCuts::getTriggerNames(vector<string> & triggerPatterns, TriggerNames & triggerNames)
+{
+   vector<string> matchedTriggerNames;
+   for(unsigned i = 0; i < triggerPatterns.size(); i++) 
+   {
+      string pattern = triggerPatterns[i];
+      if (edm::is_glob(pattern)) 
+      {
+         vector<vector<string>::const_iterator > matches = regexMatch(triggerNames.triggerNames(), pattern);
+         if(matches.empty())
+            throw cms::Exception("Configuration") << "requested pattern \"" << pattern <<  "\" does not match any HLT paths";
+         else 
+         {
+            for(unsigned j = 0; j < matches.size(); j++)
+            {
+               vector<string>::const_iterator match = matches[j];
+               matchedTriggerNames.push_back(*match);
+            }
+         }
+      } 
+      else 
+         matchedTriggerNames.push_back(pattern);
+
+   }
+   return matchedTriggerNames;
+}
+
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(CountEventsAfterCuts);

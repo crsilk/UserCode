@@ -18,7 +18,14 @@ def createCondorSh(CMSSW_BASE, SCRAM_ARCH, cfgFile, filesPerJob, totalFiles, con
 		'python cfgHandler.py ' + cfgFile  + ' -j $1 ' + ' -p ' + str(filesPerJob) + ' -n ' + str(totalFiles) +' -c "' + configParserCommands + '" -t ' + fileTag + '\n' +
 		'\n' +
 		'\n' +
+		'setenv X509_USER_PROXY /uscms/home/csilkw2/x509up_u44258\n' +
 		'cp  *root  ' + outputDirectory + '\n' +
+		'if [ $? ==0]; then\n' +
+		'echo "Copy successful"\n' + 
+		'else\n' + 
+		'echo "Copy failed, sent to scratch area"\n' +
+		'cp  *root /uscmst1b_scratch/lpc1/3DayLifetime/crsilk/temp/\n' +
+		'fi\n' +
 		'rm *.py\n' +
 		'rm *.root\n' +
 		'\n' +

@@ -15,17 +15,17 @@ options.register ('sourceFile',
 				  )
 
 options.register('nEvents',
-				 -1,
-				 VarParsing.multiplicity.singleton,
-				 VarParsing.varType.int,
-				 "Number of events to run"
-				 )
+		 -1,
+		 VarParsing.multiplicity.singleton,
+		 VarParsing.varType.int,
+		 "Number of events to run"
+		 )
 options.register('mc',
-				 True,
-				 VarParsing.multiplicity.singleton,
-				 VarParsing.varType.bool,
-				 "Run on MC"
-				 )
+		 True,
+		 VarParsing.multiplicity.singleton,
+		 VarParsing.varType.bool,
+		 "Run on MC"
+		 )
 options.register ('saveSourceVariable',
                   '',
                   VarParsing.multiplicity.singleton,
@@ -61,7 +61,7 @@ process.load("StopAnalysis.ObjectProducers.CandidateSelector_Status3GenParticles
 process.load("StopAnalysis.ObjectProducers.ModelPointProducer_StandardConfiguration_cfi")
 process.load("StopAnalysis.ObjectProducers.CandidateSelector_MET_cfi")
 process.load("StopAnalysis.ObjectProducers.MatchedFatJetSelector_BJet_cfi")
-
+process.load("StopAnalysis.ObjectProducers.LostLeptonSelector_StandardSelection_cfi")
 ####Load the modules for apply the cuts
 process.load("StopAnalysis.EventFilters.PATCandViewCountFilter_requireTopBJetPair_cfi")
 process.load("StopAnalysis.EventFilters.PATCandViewCountFilter_requireHEPAntiTag_cfi")
@@ -73,20 +73,23 @@ process.load("StopAnalysis.EventFilters.PATCandViewCountFilter_isolatedTrackVeto
 process.load("StopAnalysis.EventFilters.LeptonVetos_cff")
 process.load("StopAnalysis.EventFilters.TriangleCutFilter_MTTopAndMTBJet_cfi")
 process.load("StopAnalysis.EventFilters.DoublesFilter_MT2Cut_cfi")
-
+process.load("StopAnalysis.EventFilters.PATCandViewCountFilter_lostLeptonVeto_cfi")
 ###Output Definition
 process.output = cms.OutputModule(
 	"PoolOutputModule",
-    outputCommands = cms.untracked.vstring('keep *_*_*_cutFlow',
-										   'keep *_patElectronsIDIso_*_*',
-										   'keep *_patMuonsPFIDIso_*_*',
-										   'keep *_selectedPatTausPF_*_*',
-										   'keep *_patMETsPF_*_*',
-										   'keep *_generator_*_*',
-										   'keep *_ca*PFJetsPFlow_*_*'
-
-										   ),
-    fileName = cms.untracked.string('cutFlow.root'),
+	outputCommands = cms.untracked.vstring(
+		'keep *_*_*_cutFlow',
+		'keep *_patElectronsIDIso_*_*',
+		'keep *_patMuonsIDIso_*_*',
+		'keep *_selectedPatTausPF_*_*',
+		'keep *_patMETsPF_*_*',
+		'keep *_generator_*_*',
+		'keep *_ca*PFJetsPFlow_*_*',
+		'keep *_TriggerResults_*_*'
+		'keep *_HEPTopSelTag*Jets_*_*',
+		'keep *_addPileupInfo_*_*'
+		),
+	fileName = cms.untracked.string('cutFlow.root'),
 								 
 )
 
@@ -120,7 +123,8 @@ process.produce = cms.Path(
 	process.PFchsJetsPt70eta2p5 *
 	process.isolatedTracks *
 	process.status3GenParticles *
-	process.MET175  
+	process.MET175  *
+	process.lostLeptons
 	)
 
 ####Define the path that defines all of the cuts to be made
@@ -145,7 +149,7 @@ process.requireTop125BJetPair_path = cms.Path(process.requireTop125BJetPair)
 process.requireTop15BJetPair_path = cms.Path(process.requireTop15BJetPair)
 process.requireTop2BJetPair_path = cms.Path(process.requireTop2BJetPair)
 process.deltaPhiJetsAndMETCut_path = cms.Path(process.deltaPhiJetsAndMETCut )
-process.isolatedPFMuonVeto_path = cms.Path(process.isolatedPFMuonVeto )
+process.isolatedMuonVeto_path = cms.Path(process.isolatedMuonVeto )
 process.isolatedElectronVeto_path = cms.Path(process.isolatedElectronVeto )
 process.PFTauVeto_path = cms.Path(process.PFTauVeto)
 process.isolatedTrackVeto_path = cms.Path(process.isolatedTrackVeto)
@@ -155,7 +159,7 @@ process.triangleCutMTTop2AndMTBJet_path = cms.Path(process.triangleCutMTTop2AndM
 process.MT2Cut125_path = cms.Path(process.MT2Cut125)
 process.MT2Cut15_path = cms.Path(process.MT2Cut15)
 process.MT2Cut2_path = cms.Path(process.MT2Cut2)
-
+process.lostLeptonVeto_path = cms.Path(process.lostLeptonVeto)
 
 process.out = cms.EndPath(process.output)
 process.schedule = cms.Schedule(
@@ -181,7 +185,7 @@ process.schedule = cms.Schedule(
 	process.requireTop15BJetPair_path,
 	process.requireTop2BJetPair_path, 
 	process.deltaPhiJetsAndMETCut_path, 
-	process.isolatedPFMuonVeto_path, 
+	process.isolatedMuonVeto_path, 
 	process.isolatedElectronVeto_path, 
 	process.PFTauVeto_path, 
 	process.isolatedTrackVeto_path,
@@ -190,7 +194,8 @@ process.schedule = cms.Schedule(
 	process.triangleCutMTTop2AndMTBJet_path,
 	process.MT2Cut125_path,
 	process.MT2Cut15_path,
-	process.MT2Cut2_path,	
+	process.MT2Cut2_path,
+	process.lostLeptonVeto_path,
 	process.out
 	)
 

@@ -13,7 +13,7 @@
 //
 // Original Author:  Christopher Silkworth
 //         Created:  Wed Oct  3 17:38:08 CDT 2012
-// $Id: TriangleCutFilter.cc.bk,v 1.1 2012/10/17 22:56:38 crsilk Exp $
+// $Id: TriangleCutFilter.cc,v 1.1 2012/10/26 20:58:22 crsilk Exp $
 //
 //
 
@@ -113,7 +113,7 @@ TriangleCutFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
    double value1 = *(handle1->begin());
    double value2 = *(handle2->begin());
 
-   if(src1Coeff_ * value1 + src2Coeff_ * value2 < triangleMinCut_ || value1 + value2 > triangleMaxCut_)
+   if( (src1Coeff_ * value1 + src2Coeff_ * value2 < triangleMinCut_) || (src1Coeff_ * value1 + src2Coeff_ * value2 > triangleMaxCut_) )
       return false;
 
    

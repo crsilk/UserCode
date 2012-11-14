@@ -66,12 +66,13 @@ process.load("StopAnalysis.ObjectProducers.MT2Producer_TopAndMatchedFatJet_cfi")
 process.load("StopAnalysis.ObjectProducers.DeltaPhiObjectVsMETProducer_patJetsAK5PF_cfi")
 process.load("StopAnalysis.ObjectProducers.CandidateSelector_PFchsJetsPt30_cfi")
 process.load("StopAnalysis.ObjectProducers.CandidateSelector_PFchsJetsPt70eta2p5_cfi")
-process.load("StopAnalysis.ObjectProducers.IsolatedTrackProducer_StandardIsolation_cfi")
+#process.load("StopAnalysis.ObjectProducers.IsolatedTrackProducer_StandardIsolation_cfi")
 process.load("StopAnalysis.ObjectProducers.CandidateSelector_Status3GenParticles_cfi")
 process.load("StopAnalysis.ObjectProducers.ModelPointProducer_StandardConfiguration_cfi")
 process.load("StopAnalysis.ObjectProducers.CandidateSelector_MET_cfi")
 process.load("StopAnalysis.ObjectProducers.MatchedFatJetSelector_BJet_cfi")
 process.load("StopAnalysis.ObjectProducers.HEPTopTagger_cfi")
+process.load("StopAnalysis.ObjectProducers.LostLeptonSelector_StandardSelection_cfi")
 ####Load the modules for apply the cuts
 process.load("StopAnalysis.EventFilters.PATCandViewCountFilter_requireTopBJetPair_cfi")
 process.load("StopAnalysis.EventFilters.PATCandViewCountFilter_requireHEPTopTag_cfi")
@@ -83,27 +84,35 @@ process.load("StopAnalysis.EventFilters.PATCandViewCountFilter_isolatedTrackVeto
 process.load("StopAnalysis.EventFilters.LeptonVetos_cff")
 process.load("StopAnalysis.EventFilters.TriangleCutFilter_MTTopAndMTBJet_cfi")
 process.load("StopAnalysis.EventFilters.DoublesFilter_MT2Cut_cfi")
-
+process.load("StopAnalysis.EventFilters.PATCandViewCountFilter_lostLeptonVeto_cfi")
 
 
 ###Output Definition
 process.output = cms.OutputModule(
 	"PoolOutputModule",
-    outputCommands = cms.untracked.vstring('keep *_*_*_cutFlow',
-										   'keep *_patElectronsIDIso_*_*',
-										   'keep *_patMuonsPFIDIso_*_*',
-										   'keep *_selectedPatTausPF_*_*',
-										   'keep *_patMETsPF_*_*',
-										   'keep *_generator_*_*',
-										   'keep *_ca*PFJetsPFlow_*_*'
-										   ),
+    outputCommands = cms.untracked.vstring(
+		'keep *_*_*_cutFlow',
+		'keep *_patElectronsIDIso_*_*',
+		'keep *_patMuonsIDIso_*_*',
+		'keep *_selectedPatTausPF_*_*',
+		'keep *_patMETsPF_*_*',
+		'keep *_generator_*_*',
+		'keep *_ca*PFJetsPFlow_*_*',
+		'keep *_TriggerResults_*_*',
+		'keep *_HEPTopTagJets_*_*',
+		'keep *_addPileupInfo_*_*'
+  ),
     fileName = cms.untracked.string('cutFlow.root'),
 								 
 )
 
+####TEMP
+process.load("SandBox.Skims.RA2Leptons_cff")
+process.load("SandBox.Stop.StopTrackIsolation_cff")
+process.load("SandBox.Stop.trackIsolationMaker_cfi")
+process.load("SandBox.Stop.StopTauJets_cff")
 
-
-
+###TEMP
 if options.modelPoints:
 	process.modelPoints_path = cms.Path(process.modelPoints)
 if options.HEPTopTagOnFly:
@@ -125,7 +134,9 @@ process.produce = cms.Path(
 	process.PFchsJetsPt30 *
 	process.PFchsJetsPt70eta2p5 *
 	process.isolatedTracks *
-	process.status3GenParticles 
+	process.status3GenParticles *
+	process.lostLeptons 
+
 	)
 
 ####Define the path that defines all of the cuts to be made
@@ -144,12 +155,16 @@ process.requireHEPTopTag_path = cms.Path(process.requireHEPTopTag)
 process.requireBJet_path = cms.Path(process.requireBJet)
 process.requireTopBJetPair_path = cms.Path(process.requireTopBJetPair )
 process.deltaPhiJetsAndMETCut_path = cms.Path(process.deltaPhiJetsAndMETCut )
-process.isolatedPFMuonVeto_path = cms.Path(process.isolatedPFMuonVeto )
-process.isolatedElectronVeto_path = cms.Path(process.isolatedElectronVeto )
+process.isolatedMuonVeto_path = cms.Path(process.ra2PFMuonVeto )
+#process.isolatedMuonVeto_path = cms.Path(process.isolatedMuonVeto )
+process.isolatedElectronVeto_path = cms.Path(process.ra2ElectronVeto )
+#process.isolatedElectronVeto_path = cms.Path(process.isolatedElectronVeto )
 process.PFTauVeto_path = cms.Path(process.PFTauVeto 	)
-process.isolatedTrackVeto_path = cms.Path(process.isolatedTrackVeto)
+process.isolatedTrackVeto_path = cms.Path(process.stopIsoTrackVeto)
+#process.isolatedTrackVeto_path = cms.Path(process.isolatedTrackVeto)
 process.triangleCutMTTopAndMTBJet_path = cms.Path(process.triangleCutMTTopAndMTBJet)
 process.MT2Cut_path = cms.Path(process.MT2Cut)
+process.lostLeptonVeto_path = cms.Path(process.lostLeptonVeto)
 process.out = cms.EndPath(process.output)
 process.schedule = cms.Schedule()
 if options.modelPoints:
@@ -174,12 +189,13 @@ process.schedule.extend([
 	process.requireBJet_path,
 	process.requireTopBJetPair_path, 
 	process.deltaPhiJetsAndMETCut_path, 
-	process.isolatedPFMuonVeto_path, 
+	process.isolatedMuonVeto_path, 
 	process.isolatedElectronVeto_path, 
 	process.PFTauVeto_path, 
 	process.isolatedTrackVeto_path,
 	process.triangleCutMTTopAndMTBJet_path,
 	process.MT2Cut_path,
+	process.lostLeptonVeto_path,
 	process.out]
 	)
 

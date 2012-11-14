@@ -104,8 +104,10 @@ MatchedFatJetSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
       for(FatJet = FatJets->begin(); FatJet != FatJets->end(); FatJet++)
       {
          currentDeltaR = deltaR(FatJet->eta(), FatJet->phi(), Top->eta(), Top->phi());
+//         if( currentDeltaR < minDeltaR)
          if( currentDeltaR < fatJetR_)
          { 
+//            minDeltaR = currentDeltaR;
             topFatJetIndex = counter;
             break;
          }

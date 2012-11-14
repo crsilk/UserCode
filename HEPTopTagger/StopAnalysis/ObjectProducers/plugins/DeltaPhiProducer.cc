@@ -93,7 +93,7 @@ DeltaPhiObjectVsMETProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
    Handle<View<Candidate> > METs;
    iEvent.getByLabel(METSrc_, METs); 
 
-   Candidate::LorentzVector tempP4;
+   double phi;
    auto_ptr<vector<double> > deltaPhis(new vector<double>());
    
 
@@ -107,9 +107,9 @@ DeltaPhiObjectVsMETProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
    {   
       if(i >= nDeltaPhis_)
          break;
-
-      tempP4 = ObjectsVector[i].p4() - METs->begin()->p4();
-      deltaPhis->push_back(abs(tempP4.phi()));
+      phi = abs(METs->begin()->phi() - ObjectsVector[i].phi());
+      if(phi > 3.142) phi = 2*3.142 - phi;
+      deltaPhis->push_back(phi);
    }
    
    iEvent.put(deltaPhis);

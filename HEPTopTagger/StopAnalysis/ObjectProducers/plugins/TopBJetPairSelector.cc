@@ -13,7 +13,7 @@
 //
 // Original Author:  Christopher Silkworth
 //         Created:  Wed Oct  3 17:38:08 CDT 2012
-// $Id: TopBJetPairSelector.cc,v 1.1 2012/10/17 22:48:56 crsilk Exp $
+// $Id: TopBJetPairSelector.cc,v 1.2 2012/10/26 20:58:23 crsilk Exp $
 //
 //
 
@@ -59,11 +59,12 @@ class TopBJetPairSelector : public edm::EDProducer {
 
       InputTag TopSrc_;
       InputTag TopSubjetSrc_;
+      InputTag FatJetSrc_;
       InputTag BJetSrc_;
 
       double deltaRFromFatjetCut_;
       double deltaRFromSubjetsCut_;
-
+      double fatJetR_;
 
 
 
@@ -76,9 +77,11 @@ TopBJetPairSelector::TopBJetPairSelector(const edm::ParameterSet& iConfig)
 {
    TopSrc_ = iConfig.getParameter<InputTag>("TopSrc");
    TopSubjetSrc_ = iConfig.getParameter<InputTag>("TopSubjetSrc");
+   FatJetSrc_ = iConfig.getParameter<InputTag>("FatJetSrc");
    BJetSrc_ = iConfig.getParameter<InputTag>("BJetSrc");
    deltaRFromFatjetCut_ = iConfig.getParameter<double>("deltaRFromFatjetCut");
    deltaRFromSubjetsCut_ = iConfig.getParameter<double>("deltaRFromSubjetsCut");
+   fatJetR_ = iConfig.getParameter<double>("fatJetR");
 
    produces<BasicJetCollection >("Top");
    produces<PFJetCollection >("subjets");
@@ -119,6 +122,11 @@ TopBJetPairSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    iEvent.getByLabel(BJetSrc_,BJets);
    pat::JetCollection::const_iterator BJet;
 
+   Handle<PFJetCollection > FatJets;
+   iEvent.getByLabel(FatJetSrc_,FatJets);
+   PFJetCollection::const_iterator FatJet;
+
+
    vector<unsigned> possibleTops;
    vector<unsigned> possibleBJets;
 
@@ -133,6 +141,31 @@ TopBJetPairSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    unsigned keepPairIndex = 0;
    unsigned TopIndex = 0;
    unsigned BJetIndex = 0;
+   vector<unsigned> TopFatJetIndex;
+   double currentDeltaR;
+   double minDeltaR = 99999;
+   unsigned counter = 0;
+
+   //Find fat jet that corresponds to the top
+   for(Top = Tops->begin(); Top != Tops->end(); Top++)
+   {
+      TopFatJetIndex.push_back(0);
+      counter = 0;
+      minDeltaR = 99999;
+      for(FatJet = FatJets->begin(); FatJet != FatJets->end(); FatJet++)
+      {
+         currentDeltaR = deltaR(FatJet->eta(), FatJet->phi(), Top->eta(), Top->phi());
+         if( currentDeltaR < minDeltaR )
+         { 
+            minDeltaR = currentDeltaR;
+            TopFatJetIndex.back() = counter;
+
+         }
+         counter++;
+      }
+      
+   }
+
 
    for(Top = Tops->begin(); Top != Tops->end(); Top++)
    {
@@ -145,11 +178,9 @@ TopBJetPairSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       {
          disjoint = true;
 
-         if(deltaR(Top->eta(), Top->phi(), BJet->eta(), 
-                   BJet->phi()) < deltaRFromFatjetCut_) disjoint = false;
+         if(deltaR((*FatJets)[TopFatJetIndex[TopIndex]].eta(), (*FatJets)[TopFatJetIndex[TopIndex]].phi(), BJet->eta(), BJet->phi()) < deltaRFromFatjetCut_) disjoint = false;
 
-         if(deltaR(BJet->eta(),BJet->phi(),
-                   TopSubjet0->eta(), TopSubjet0->phi()) < deltaRFromSubjetsCut_) disjoint = false;
+         if(deltaR(BJet->eta(),BJet->phi(), TopSubjet0->eta(), TopSubjet0->phi()) < deltaRFromSubjetsCut_) disjoint = false;
 
          if(deltaR(BJet->eta(),BJet->phi(),TopSubjet1->eta(), TopSubjet1->phi()) < deltaRFromSubjetsCut_) disjoint = false;
 
@@ -173,9 +204,13 @@ TopBJetPairSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        
          if((*Tops)[possibleTops[i]].pt() >= highTopPt)
          {
+
+            if((*Tops)[possibleTops[i]].pt() > highTopPt) highBJetPt = 0;
+
             highTopPt = (*Tops)[possibleTops[i]].pt();
             if((*BJets)[possibleBJets[i]].pt() > highBJetPt)
             {
+               highBJetPt  = (*BJets)[possibleBJets[i]].pt();
                keepPairIndex = i;
             }
          }
