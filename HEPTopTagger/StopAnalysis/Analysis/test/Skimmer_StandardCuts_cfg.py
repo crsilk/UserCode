@@ -84,20 +84,19 @@ process.skim = cms.EDFilter(
 	"Skimmer",
 	bitSetSrc = cms.InputTag("TriggerResults"),
 	cutNames = cms.vstring(
-	'isolatedMuonVeto_path',
+	'METCut175_path',
+	'PFchs2JetsPt70eta2p5Cut_path',
+	'isolatedPFMuonVeto_path',
 	'isolatedElectronVeto_path',
 	'isolatedTrackVeto_path',
-	'PFchs2JetsPt70eta2p5Cut_path',
+	'deltaPhiJetsAndMETCut_path',
 	requireHEPTopTag,
 	'requireBJet_path',
 	requireTopBJetPair,
-	'deltaPhiJetsAndMETCut_path',
-	'METCut175_path',
 	triangleCutMTTopAndMTBJet,
 	MT2Cut
 	),
-	cutDecisions = cms.vint32(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
-
+	cutDecisions = cms.vint32(1, 1, 1, 1, 1, 1, 1, 1, 1)
 )
 process.p = cms.Path(
 	process.skim 

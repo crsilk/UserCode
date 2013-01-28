@@ -15,23 +15,23 @@ options.register ('sourceFile',
 				  )
 
 options.register('nEvents',
-		 -1,
-		 VarParsing.multiplicity.singleton,
-		 VarParsing.varType.int,
-		 "Number of events to run"
-		 )
+				 -1,
+				 VarParsing.multiplicity.singleton,
+				 VarParsing.varType.int,
+				 "Number of events to run"
+				 )
 options.register('mc',
-		 True,
-		 VarParsing.multiplicity.singleton,
-		 VarParsing.varType.bool,
-		 "Run on MC"
-		 )
+				 True,
+				 VarParsing.multiplicity.singleton,
+				 VarParsing.varType.bool,
+				 "Run on MC"
+				 )
 options.register('modelPoints',
-		 True,
-		 VarParsing.multiplicity.singleton,
-		 VarParsing.varType.bool,
-		 "Produce modelPoints"
-		 )
+				 True,
+				 VarParsing.multiplicity.singleton,
+				 VarParsing.varType.bool,
+				 "Produce modelPoints"
+				 )
 options.register ('saveSourceVariable',
                   '',
                   VarParsing.multiplicity.singleton,
@@ -39,20 +39,21 @@ options.register ('saveSourceVariable',
                   "File name of the process.source variable to be saved in. If nothing given then it won't save."
 				  )
 options.register('HEPTopTagOnFly',
-		 False,
-		 VarParsing.multiplicity.singleton,
-		 VarParsing.varType.bool,
-		 'Make HEPTopTags on the fly'
-		 )
+				 False,
+				 VarParsing.multiplicity.singleton,
+				 VarParsing.varType.bool,
+				 'Make HEPTopTags on the fly'
+				 )
 options.parseArguments()
 
 
 
-process.maxEvents = cms.untracked.PSet( 
-	input = cms.untracked.int32(options.nEvents) 
-	)
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.nEvents) )
+#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
+
 process.load(options.sourceFile)
+#process.load("StopAnalysis.Analysis.test_cfi")
 
 ####Load the modules of all the new collections
 process.load("StopAnalysis.ObjectProducers.HEPTopTagSelector_StandardSelection_cfi")
@@ -65,7 +66,7 @@ process.load("StopAnalysis.ObjectProducers.MT2Producer_TopAndMatchedFatJet_cfi")
 process.load("StopAnalysis.ObjectProducers.DeltaPhiObjectVsMETProducer_patJetsAK5PF_cfi")
 process.load("StopAnalysis.ObjectProducers.CandidateSelector_PFchsJetsPt30_cfi")
 process.load("StopAnalysis.ObjectProducers.CandidateSelector_PFchsJetsPt70eta2p5_cfi")
-process.load("StopAnalysis.ObjectProducers.IsolatedTrackProducer_StandardIsolation_cfi")
+#process.load("StopAnalysis.ObjectProducers.IsolatedTrackProducer_StandardIsolation_cfi")
 process.load("StopAnalysis.ObjectProducers.CandidateSelector_Status3GenParticles_cfi")
 process.load("StopAnalysis.ObjectProducers.ModelPointProducer_StandardConfiguration_cfi")
 process.load("StopAnalysis.ObjectProducers.CandidateSelector_MET_cfi")
@@ -105,20 +106,19 @@ process.output = cms.OutputModule(
 								 
 )
 
+####TEMP
+process.load("SandBox.Skims.RA2Leptons_cff")
+process.load("SandBox.Stop.StopTrackIsolation_cff")
+process.load("SandBox.Stop.trackIsolationMaker_cfi")
+process.load("SandBox.Stop.StopTauJets_cff")
 
+###TEMP
 if options.modelPoints:
 	process.modelPoints_path = cms.Path(process.modelPoints)
 if options.HEPTopTagOnFly:
 	process.HEPTopTags_path = cms.Path(
 		process.HEPTopTag *
 		process.ca15PFJetsPFlow)
-if options.mc:
-	process.genInfo_path = 	cms.Path(
-		process.status3GenParticles *
-		process.lostLeptons
-		)
-
-
 ####Define the path that defines all the collections to be made
 process.produce = cms.Path(
 
@@ -133,7 +133,9 @@ process.produce = cms.Path(
 	process.deltaPhiJetsAndMET *
 	process.PFchsJetsPt30 *
 	process.PFchsJetsPt70eta2p5 *
-	process.isolatedTracks 
+	process.isolatedTracks *
+	process.status3GenParticles *
+	process.lostLeptons 
 
 	)
 
@@ -153,15 +155,16 @@ process.requireHEPTopTag_path = cms.Path(process.requireHEPTopTag)
 process.requireBJet_path = cms.Path(process.requireBJet)
 process.requireTopBJetPair_path = cms.Path(process.requireTopBJetPair )
 process.deltaPhiJetsAndMETCut_path = cms.Path(process.deltaPhiJetsAndMETCut )
-process.isolatedMuonVeto_path = cms.Path(process.isolatedMuonVeto )
-process.isolatedElectronVeto_path = cms.Path(process.isolatedElectronVeto )
+process.isolatedMuonVeto_path = cms.Path(process.ra2PFMuonVeto )
+#process.isolatedMuonVeto_path = cms.Path(process.isolatedMuonVeto )
+process.isolatedElectronVeto_path = cms.Path(process.ra2ElectronVeto )
+#process.isolatedElectronVeto_path = cms.Path(process.isolatedElectronVeto )
 process.PFTauVeto_path = cms.Path(process.PFTauVeto 	)
-process.isolatedTrackVeto_path = cms.Path(process.isolatedTrackVeto)
+process.isolatedTrackVeto_path = cms.Path(process.stopIsoTrackVeto)
+#process.isolatedTrackVeto_path = cms.Path(process.isolatedTrackVeto)
 process.triangleCutMTTopAndMTBJet_path = cms.Path(process.triangleCutMTTopAndMTBJet)
 process.MT2Cut_path = cms.Path(process.MT2Cut)
-if options.mc:
-	process.lostLeptonVeto_path = cms.Path(process.lostLeptonVeto)
-
+process.lostLeptonVeto_path = cms.Path(process.lostLeptonVeto)
 process.out = cms.EndPath(process.output)
 process.schedule = cms.Schedule()
 if options.modelPoints:
@@ -191,12 +194,11 @@ process.schedule.extend([
 	process.PFTauVeto_path, 
 	process.isolatedTrackVeto_path,
 	process.triangleCutMTTopAndMTBJet_path,
-	process.MT2Cut_path]
+	process.MT2Cut_path,
+	process.lostLeptonVeto_path,
+	process.out]
 	)
-if options.mc:
-	process.schedule.extend([process.genInfo_path, process.lostLeptonVeto_path])
-process.schedule.append(process.out)
-	
+
 if not options.saveSourceVariable == '':
 	import pickle
 	file = open(options.saveSourceVariable, 'w')
