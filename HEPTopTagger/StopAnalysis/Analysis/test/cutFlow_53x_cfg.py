@@ -26,6 +26,12 @@ options.register('mc',
 		 VarParsing.varType.bool,
 		 "Run on MC"
 		 )
+options.register('HEPTopTagOnFly',
+		 False,
+		 VarParsing.multiplicity.singleton,
+		 VarParsing.varType.bool,
+		 'Make HEPTopTags on the fly'
+		 )
 options.register ('saveSourceVariable',
                   '',
                   VarParsing.multiplicity.singleton,
@@ -37,12 +43,15 @@ options.parseArguments()
 
 
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.nEvents) )
-#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet( 
+	input = cms.untracked.int32(options.nEvents) 
+	)
+
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
 process.load(options.sourceFile)
-#process.load("StopAnalysis.Analysis.test_cfi")
+
+
 
 ####Load the modules of all the new collections
 process.load("StopAnalysis.ObjectProducers.HEPTopTagSelector_StandardSelection_cfi")
@@ -53,7 +62,7 @@ process.load("StopAnalysis.ObjectProducers.MTProducer_TopAndMET_cfi")
 process.load("StopAnalysis.ObjectProducers.MTProducer_BJetAndMET_cfi")
 process.load("StopAnalysis.ObjectProducers.MT2Producer_TopAndMatchedFatJet_cfi")
 
-process.load("StopAnalysis.ObjectProducers.DeltaPhiObjectVsMETProducer_patJetsAK5PF_cfi")
+process.load("StopAnalysis.ObjectProducers.DeltaPhiObjectVsMETProducer_PFchsJetsPt30_cfi")
 process.load("StopAnalysis.ObjectProducers.CandidateSelector_PFchsJetsPt30_cfi")
 process.load("StopAnalysis.ObjectProducers.CandidateSelector_PFchsJetsPt70eta2p5_cfi")
 process.load("StopAnalysis.ObjectProducers.IsolatedTrackProducer_StandardIsolation_cfi")
@@ -62,6 +71,8 @@ process.load("StopAnalysis.ObjectProducers.ModelPointProducer_StandardConfigurat
 process.load("StopAnalysis.ObjectProducers.CandidateSelector_MET_cfi")
 process.load("StopAnalysis.ObjectProducers.MatchedFatJetSelector_BJet_cfi")
 process.load("StopAnalysis.ObjectProducers.LostLeptonSelector_StandardSelection_cfi")
+process.load("StopAnalysis.ObjectProducers.METSignificanceProducer_Standard_cfi")
+process.load("StopAnalysis.ObjectProducers.HEPTopTagger_cfi")
 ####Load the modules for apply the cuts
 process.load("StopAnalysis.EventFilters.PATCandViewCountFilter_requireTopBJetPair_cfi")
 process.load("StopAnalysis.EventFilters.PATCandViewCountFilter_requireHEPAntiTag_cfi")
@@ -93,41 +104,39 @@ process.output = cms.OutputModule(
 								 
 )
 
+if options.HEPTopTagOnFly:
+	process.HEPTopSelTag15_path = cms.Path(
+		process.HEPTopSelTag15 *
+		process.ca15PFJetsPFlow
+		)
+
+if options.mc:
+	process.genInfo_path = 	cms.Path(
+		process.status3GenParticles *
+		process.lostLeptons
+		)
+
+
 ####Define the path that defines all the collections to be made
 process.produce = cms.Path(
 	process.modelPoints *
-	process.selectedHEPTop125Tags *
-	process.selectedHEPTop15Tags *
-	process.selectedHEPTop2Tags *
-	process.selectedHEPAnti125Tags *
-	process.selectedHEPAnti15Tags *
-	process.selectedHEPAnti2Tags *
-	process.selectedBJets *
-	process.selectedTop125BJetPair *
-	process.selectedTop15BJetPair *
-	process.selectedTop2BJetPair *
-	process.selectedMatchedFatJet125 *
-	process.selectedMatchedFatJet15 *
-	process.selectedMatchedFatJet2 *
-	process.MTTop125 *
-	process.MTTop15 *
-	process.MTTop2 *
-	process.MT125BJet *
-	process.MT15BJet *
-	process.MT2BJet *
-	process.MT2Top125AndMatchedFatJet *
-	process.MT2Top15AndMatchedFatJet *
-	process.MT2Top2AndMatchedFatJet *
-	process.deltaPhiJetsAndMET *
 	process.PFchsJetsPt30 *
 	process.PFchsJetsPt70eta2p5 *
-	process.isolatedTracks *
-	process.status3GenParticles *
-	process.MET175  *
-	process.lostLeptons
+	process.selectedHEPTop15Tags *
+	process.selectedHEPAnti15Tags *
+	process.selectedBJets *
+	process.selectedTop15BJetPair *
+	process.selectedMatchedFatJet15 *
+	process.MTTop15 *
+	process.MT15BJet *
+	process.MT2Top15AndMatchedFatJet *
+	process.deltaPhiJetsAndMET *
+	process.metSignificance *
+	process.isolatedTracks 
 	)
 
 ####Define the path that defines all of the cuts to be made
+process.METCut125_path = cms.Path(process.METCut125 )
 process.METCut150_path = cms.Path(process.METCut150 )
 process.METCut125_path = cms.Path(process.METCut125 )
 process.METCut175_path = cms.Path(process.METCut175 )
@@ -138,31 +147,29 @@ process.PFchs4JetsPt30Cut_path = cms.Path(process.PFchs4JetsPt30Cut )
 process.PFchs5JetsPt30Cut_path = cms.Path(process.PFchs5JetsPt30Cut )
 process.PFchs6JetsPt30Cut_path = cms.Path(process.PFchs6JetsPt30Cut )
 process.PFchs2JetsPt70eta2p5Cut_path = cms.Path(process.PFchs2JetsPt70eta2p5Cut )
-process.requireHEPAnti125Tag_path = cms.Path(process.requireHEPAnti125Tag)
 process.requireHEPAnti15Tag_path = cms.Path(process.requireHEPAnti15Tag)
-process.requireHEPAnti2Tag_path = cms.Path(process.requireHEPAnti2Tag)
-process.requireHEPTop125Tag_path = cms.Path(process.requireHEPTop125Tag)
 process.requireHEPTop15Tag_path = cms.Path(process.requireHEPTop15Tag)
-process.requireHEPTop2Tag_path = cms.Path(process.requireHEPTop2Tag)
 process.requireBJet_path = cms.Path(process.requireBJet)
-process.requireTop125BJetPair_path = cms.Path(process.requireTop125BJetPair)
 process.requireTop15BJetPair_path = cms.Path(process.requireTop15BJetPair)
-process.requireTop2BJetPair_path = cms.Path(process.requireTop2BJetPair)
 process.deltaPhiJetsAndMETCut_path = cms.Path(process.deltaPhiJetsAndMETCut )
 process.isolatedMuonVeto_path = cms.Path(process.isolatedMuonVeto )
 process.isolatedElectronVeto_path = cms.Path(process.isolatedElectronVeto )
 process.PFTauVeto_path = cms.Path(process.PFTauVeto)
 process.isolatedTrackVeto_path = cms.Path(process.isolatedTrackVeto)
-process.triangleCutMTTop125AndMTBJet_path = cms.Path(process.triangleCutMTTop125AndMTBJet)
 process.triangleCutMTTop15AndMTBJet_path = cms.Path(process.triangleCutMTTop15AndMTBJet)
-process.triangleCutMTTop2AndMTBJet_path = cms.Path(process.triangleCutMTTop2AndMTBJet)
-process.MT2Cut125_path = cms.Path(process.MT2Cut125)
 process.MT2Cut15_path = cms.Path(process.MT2Cut15)
-process.MT2Cut2_path = cms.Path(process.MT2Cut2)
-process.lostLeptonVeto_path = cms.Path(process.lostLeptonVeto)
+process.MT2Cut2Pt120_path = cms.Path(process.MT2Cut2Pt120)
+process.MT2Cut2Pt150_path = cms.Path(process.MT2Cut2Pt150)
+if options.mc:
+	process.lostLeptonVeto_path = cms.Path(process.lostLeptonVeto)
 
 process.out = cms.EndPath(process.output)
-process.schedule = cms.Schedule(
+
+process.schedule = cms.Schedule()
+if options.HEPTopTagOnFly:
+	process.schedule.append(process.HEPTopSelTag15_path)
+
+process.schedule.extend([
 	process.produce,
 	process.METCut125_path,
 	process.METCut150_path,
@@ -174,30 +181,22 @@ process.schedule = cms.Schedule(
 	process.PFchs5JetsPt30Cut_path,
 	process.PFchs6JetsPt30Cut_path,
 	process.PFchs2JetsPt70eta2p5Cut_path,
-	process.requireHEPAnti125Tag_path,
 	process.requireHEPAnti15Tag_path,
-	process.requireHEPAnti2Tag_path,
-	process.requireHEPTop125Tag_path,
 	process.requireHEPTop15Tag_path,
-	process.requireHEPTop2Tag_path,
 	process.requireBJet_path,
-	process.requireTop125BJetPair_path,
 	process.requireTop15BJetPair_path,
-	process.requireTop2BJetPair_path, 
 	process.deltaPhiJetsAndMETCut_path, 
 	process.isolatedMuonVeto_path, 
 	process.isolatedElectronVeto_path, 
 	process.PFTauVeto_path, 
 	process.isolatedTrackVeto_path,
-	process.triangleCutMTTop125AndMTBJet_path,
 	process.triangleCutMTTop15AndMTBJet_path,
-	process.triangleCutMTTop2AndMTBJet_path,
-	process.MT2Cut125_path,
 	process.MT2Cut15_path,
-	process.MT2Cut2_path,
-	process.lostLeptonVeto_path,
-	process.out
+	]
 	)
+if options.mc:
+	process.schedule.extend([process.genInfo_path, process.lostLeptonVeto_path])
+process.schedule.append(process.out)
 
 if not options.saveSourceVariable == '':
 	import pickle

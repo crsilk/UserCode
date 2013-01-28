@@ -27,8 +27,12 @@ options.register ('CMSSW53x',
                   VarParsing.varType.bool,
                   "Run over a sample made in 53x"
 				  )
-
-
+options.register('mc',
+		 True,
+		 VarParsing.multiplicity.singleton,
+                  VarParsing.varType.bool,
+                  "Run over mc."
+		 )
 
 options.parseArguments()
 
@@ -55,6 +59,7 @@ else:
 	requireHEPAntiTag = 'requireHEPAntiTag_path'
 	requireHEPTopTag = 'requireHEPTopTag_path'
 
+
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(readFiles),
 )
@@ -66,6 +71,7 @@ process.HT_200 = cms.EDAnalyzer(
 	genEventSrc = cms.InputTag("generator"),
 	modelPointSrc = cms.InputTag("modelPoints", "modelParameters"),
 	runOnSignal = cms.bool(options.runOnSignal),
+	mc = cms.bool(options.mc),
 	triggerNames = cms.vstring('HLT_HT200_v*'
 	),
 	triggerDecisions = cms.vint32(1),
@@ -86,6 +92,7 @@ process.DoubleJet36Central = cms.EDAnalyzer(
 	genEventSrc = cms.InputTag("generator"),
 	modelPointSrc = cms.InputTag("modelPoints", "modelParameters"),
 	runOnSignal = cms.bool(options.runOnSignal),
+	mc = cms.bool(options.mc),
 	triggerNames = cms.vstring('HLT_L1DoubleJet36Central_v*'
 	),
 	triggerDecisions = cms.vint32(1),
@@ -106,6 +113,7 @@ process.PFJet40 = cms.EDAnalyzer(
 	genEventSrc = cms.InputTag("generator"),
 	modelPointSrc = cms.InputTag("modelPoints", "modelParameters"),
 	runOnSignal = cms.bool(options.runOnSignal),
+	mc = cms.bool(options.mc),
 	triggerNames = cms.vstring('HLT_PFJet40_v*'
 	),
 	triggerDecisions = cms.vint32(1),
@@ -126,7 +134,29 @@ process.PFJet80 = cms.EDAnalyzer(
 	genEventSrc = cms.InputTag("generator"),
 	modelPointSrc = cms.InputTag("modelPoints", "modelParameters"),
 	runOnSignal = cms.bool(options.runOnSignal),
+	mc = cms.bool(options.mc),
 	triggerNames = cms.vstring('HLT_PFJet80_v*'
+	),
+	triggerDecisions = cms.vint32(1),
+	cutNames = cms.vstring(
+	'PFchs4JetsPt30Cut_path',
+	'isolatedMuonVeto_path',
+	'isolatedElectronVeto_path',
+	requireHEPAntiTag,
+	requireHEPTopTag,
+	'requireBJet_path',
+	),
+	cutDecisions = cms.vint32(1, 1, 1, 1, 1, 1)
+	)
+process.PFJet140 = cms.EDAnalyzer(
+	"CountEventsAfterCuts",
+	bitSetSrc = cms.InputTag("TriggerResults","","cutFlow"),
+	triggerSrc = cms.InputTag("TriggerResults","","HLT"),
+	genEventSrc = cms.InputTag("generator"),
+	modelPointSrc = cms.InputTag("modelPoints", "modelParameters"),
+	runOnSignal = cms.bool(options.runOnSignal),
+	mc = cms.bool(options.mc),
+	triggerNames = cms.vstring('HLT_PFJet140_v*'
 	),
 	triggerDecisions = cms.vint32(1),
 	cutNames = cms.vstring(
@@ -146,6 +176,7 @@ process.QuadJet70 = cms.EDAnalyzer(
 	genEventSrc = cms.InputTag("generator"),
 	modelPointSrc = cms.InputTag("modelPoints", "modelParameters"),
 	runOnSignal = cms.bool(options.runOnSignal),
+	mc = cms.bool(options.mc),
 	triggerNames = cms.vstring('HLT_QuadJet70_v*'
 	),
 	triggerDecisions = cms.vint32(1),
@@ -166,6 +197,7 @@ process.QuadJet80 = cms.EDAnalyzer(
 	genEventSrc = cms.InputTag("generator"),
 	modelPointSrc = cms.InputTag("modelPoints", "modelParameters"),
 	runOnSignal = cms.bool(options.runOnSignal),
+	mc = cms.bool(options.mc),
 	triggerNames = cms.vstring('HLT_QuadJet80_v*'
 	),
 	triggerDecisions = cms.vint32(1),
@@ -181,10 +213,12 @@ process.QuadJet80 = cms.EDAnalyzer(
 	)
 
 
-process.p = cms.Path(process.HT_200 *
-					 process.DoubleJet36Central *
-					 process.PFJet40 *
-					 process.PFJet80 *
-					 process.QuadJet70 *
-					 process.QuadJet80 
-					 )
+process.p = cms.Path(
+	process.HT_200 *
+	process.DoubleJet36Central *
+	process.PFJet40 *
+	process.PFJet80 *
+	process.PFJet140 *
+	process.QuadJet70 *
+	process.QuadJet80 
+	)
