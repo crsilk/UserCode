@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 PFchsJetsPt70eta2p5 = cms.EDProducer(
-	'CandidateSelector',
-	src = cms.InputTag('stopJetsPFchsPt30'),
+	'JetSelector',
+	jetSrc = cms.InputTag('patJetsPF'),
 	cuts = cms.string('pt > 70 & abs(eta) < 2.5'),
-	light = cms.bool(False)
+	light =cms.bool(False)
 )

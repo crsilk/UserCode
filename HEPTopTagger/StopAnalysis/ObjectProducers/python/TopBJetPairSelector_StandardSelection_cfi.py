@@ -25,14 +25,27 @@ selectedTop15BJetPair = cms.EDProducer(
  	light = cms.bool(False)
 )
 
-selectedTop2BJetPair = cms.EDProducer(
+selectedTop2Pt120BJetPair = cms.EDProducer(
 	'TopBJetPairSelector',
-	TopSrc = cms.InputTag("selectedHEPTop2Tags", ""),
-	TopSubjetSrc = cms.InputTag("selectedHEPTop2Tags", "subjets"),
+	TopSrc = cms.InputTag("selectedHEPTop2Pt120Tags", ""),
+	TopSubjetSrc = cms.InputTag("selectedHEPTop2Pt120Tags", "subjets"),
     BJetSrc = cms.InputTag("selectedBJets", ""),
   	FatJetSrc = cms.InputTag("ca2PFJetsPFlow"),
 	fatJetR = cms.double(2.0),
-  deltaRFromFatjetCut = cms.double(2.5),
+	deltaRFromFatjetCut = cms.double(2.5),
+    deltaRFromSubjetsCut = cms.double(0.8),
+	light = cms.bool(False)
+)
+
+
+selectedTop2Pt150BJetPair = cms.EDProducer(
+	'TopBJetPairSelector',
+	TopSrc = cms.InputTag("selectedHEPTop2Pt150Tags", ""),
+	TopSubjetSrc = cms.InputTag("selectedHEPTop2Pt150Tags", "subjets"),
+    BJetSrc = cms.InputTag("selectedBJets", ""),
+  	FatJetSrc = cms.InputTag("ca2PFJetsPFlow"),
+	fatJetR = cms.double(2.0),
+	deltaRFromFatjetCut = cms.double(2.5),
     deltaRFromSubjetsCut = cms.double(0.8),
 	light = cms.bool(False)
 )

@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 selectedBJets = cms.EDProducer(
     'BJetSelector',
-    BJetSrc = cms.InputTag('patJetsAK5PF'),
+    BJetSrc = cms.InputTag('patJetsPF'),
     ptCut = cms.double(30),
     etaCut = cms.double(2.4),
     discriminator = cms.string(	"combinedSecondaryVertexBJetTags"),

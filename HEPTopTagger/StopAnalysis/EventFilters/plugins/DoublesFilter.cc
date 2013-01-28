@@ -62,23 +62,52 @@ DoublesFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
    Handle<vector<double> > doubles;
-   iEvent.getByLabel(src_, doubles);
+   bool foundVector = iEvent.getByLabel(src_, doubles);
+   bool foundSingleton = false;
+   Handle<double> singleDouble;
 
-   for(unsigned i = 0; i < minCuts_.size();i++)
+   if(!foundVector)
    {
-      if(doubles->size() == i) break;
-      if((*doubles)[i] < minCuts_[i]) return false;
-      
+      foundSingleton = iEvent.getByLabel(src_, singleDouble);
    }
 
-   for(unsigned i = 0; i < maxCuts_.size();i++)
+   if(foundVector)
    {
-      if(doubles->size() == i) break; 
-      if((*doubles)[i] > maxCuts_[i]) return false;
+      for(unsigned i = 0; i < minCuts_.size();i++)
+      {
+         if(doubles->size() == i) return false;
+         if((*doubles)[i] < minCuts_[i]) return false;
+         
+      }
       
-   }
+      for(unsigned i = 0; i < maxCuts_.size();i++)
+      {
+         if(doubles->size() == i) return false; 
+         if((*doubles)[i] > maxCuts_[i]) return false;
+         
+      }
 
    return true;
+   }
+   else if(foundSingleton)
+   {
+      for(unsigned i = 0; i < minCuts_.size();i++)
+      {
+         if( *singleDouble < minCuts_[i]) return false;         
+      }
+      
+      for(unsigned i = 0; i < maxCuts_.size();i++)
+      {
+         if(*singleDouble > maxCuts_[i]) return false;
+         
+      }
+      return true;
+   }
+
+   throw cms::Exception("Configuration Error") <<"Found neither a vector of doubles nor a single double as src for DoublesFilter, check configuration.";
+
+   return false;
+   
 
 }
 

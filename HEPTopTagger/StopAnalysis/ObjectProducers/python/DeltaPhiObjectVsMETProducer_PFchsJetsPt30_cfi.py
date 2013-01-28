@@ -5,4 +5,4 @@ deltaPhiJetsAndMET = cms.EDProducer(
     ObjectSrc = cms.InputTag("stopJetsPFchsPt30"),
     METSrc = cms.InputTag("patMETsPF"),
     nDeltaPhis = cms.uint32(3)
-    )
+)

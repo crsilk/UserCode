@@ -14,9 +14,17 @@ requireTop15BJetPair = cms.EDFilter(
 	maxNumber = cms.uint32(99999)
 	
 )
-requireTop2BJetPair = cms.EDFilter(
+requireTop2Pt120BJetPair = cms.EDFilter(
 	'PATCandViewCountFilter',
-    src = cms.InputTag("selectedTop2BJetPair","Top"),
+    src = cms.InputTag("selectedTop2Pt120BJetPair","Top"),
+    minNumber = cms.uint32(1),
+	maxNumber = cms.uint32(99999)
+	
+)
+
+requireTop2Pt150BJetPair = cms.EDFilter(
+	'PATCandViewCountFilter',
+    src = cms.InputTag("selectedTop2Pt150BJetPair","Top"),
     minNumber = cms.uint32(1),
 	maxNumber = cms.uint32(99999)
 	

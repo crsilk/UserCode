@@ -29,10 +29,19 @@ MT2Top125AndMatchedFatJet = cms.EDProducer(
     light = cms.bool(False)
 )
 
-MT2Top2AndMatchedFatJet = cms.EDProducer(
+MT2Top2Pt120AndMatchedFatJet = cms.EDProducer(
     'MT2Producer',
-    VisibleObject1Src = cms.InputTag("selectedTop2BJetPair", "Top"),
-    VisibleObject2Src = cms.InputTag("selectedMatchedFatJet2"),
+    VisibleObject1Src = cms.InputTag("selectedTop2Pt120BJetPair", "Top"),
+    VisibleObject2Src = cms.InputTag("selectedMatchedFatJet2Pt120"),
+    METSrc = cms.InputTag("patMETsPF", ""),
+    twoDifferentVisibleObjects = cms.bool(True),
+    light = cms.bool(False)
+)
+
+MT2Top2Pt150AndMatchedFatJet = cms.EDProducer(
+    'MT2Producer',
+    VisibleObject1Src = cms.InputTag("selectedTop2Pt150BJetPair", "Top"),
+    VisibleObject2Src = cms.InputTag("selectedMatchedFatJet2Pt150"),
     METSrc = cms.InputTag("patMETsPF", ""),
     twoDifferentVisibleObjects = cms.bool(True),
     light = cms.bool(False)

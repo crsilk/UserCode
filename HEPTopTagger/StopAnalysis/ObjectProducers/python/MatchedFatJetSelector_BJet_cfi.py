@@ -28,10 +28,18 @@ selectedMatchedFatJet15 = cms.EDProducer(
 	)
 
 
-selectedMatchedFatJet2 = cms.EDProducer(
+selectedMatchedFatJet2Pt120 = cms.EDProducer(
 	"MatchedFatJetSelector",
-	TopSrc = cms.InputTag("selectedTop2BJetPair", "Top"),
-	BJetSrc = cms.InputTag("selectedTop2BJetPair", "BJet"),
+	TopSrc = cms.InputTag("selectedTop2Pt120BJetPair", "Top"),
+	BJetSrc = cms.InputTag("selectedTop2Pt120BJetPair", "BJet"),
+	FatJetSrc = cms.InputTag("ca2PFJetsPFlow"),	
+	fatJetR = cms.double(2.0)
+	)
+
+selectedMatchedFatJet2Pt150 = cms.EDProducer(
+	"MatchedFatJetSelector",
+	TopSrc = cms.InputTag("selectedTop2Pt150BJetPair", "Top"),
+	BJetSrc = cms.InputTag("selectedTop2Pt150BJetPair", "BJet"),
 	FatJetSrc = cms.InputTag("ca2PFJetsPFlow"),	
 	fatJetR = cms.double(2.0)
 	)

@@ -24,9 +24,18 @@ requireHEPTop125Tag = cms.EDFilter(
 	
 )
 
-requireHEPTop2Tag = cms.EDFilter(
+requireHEPTop2Pt120Tag = cms.EDFilter(
 	'PATCandViewCountFilter',
-    src = cms.InputTag("selectedHEPTop2Tags",""),
+    src = cms.InputTag("selectedHEPTop2Pt120Tags",""),
+    minNumber = cms.uint32(1),
+	maxNumber = cms.uint32(99999)
+	
+)
+
+
+requireHEPTop2Pt150Tag = cms.EDFilter(
+	'PATCandViewCountFilter',
+    src = cms.InputTag("selectedHEPTop2Pt150Tags",""),
     minNumber = cms.uint32(1),
 	maxNumber = cms.uint32(99999)
 	
