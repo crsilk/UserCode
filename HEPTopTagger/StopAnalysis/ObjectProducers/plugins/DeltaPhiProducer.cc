@@ -14,7 +14,7 @@
 
 #include "DataFormats/Candidate/interface/LeafCandidate.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
-
+#include "DataFormats/Math/interface/deltaPhi.h"
 
 //includes needed for this file
 
@@ -63,8 +63,9 @@ DeltaPhiObjectVsMETProducer::DeltaPhiObjectVsMETProducer(const edm::ParameterSet
    METSrc_ = iConfig.getParameter<InputTag>("METSrc");
    nDeltaPhis_ = iConfig.getParameter<unsigned>("nDeltaPhis");
 
-   produces<vector<double> > ();
-
+   produces<vector<double> > ("all");
+   produces<double> ("significance");
+   produces<double> ("min");
 }
 
 
@@ -93,26 +94,60 @@ DeltaPhiObjectVsMETProducer::produce(edm::Event& iEvent, const edm::EventSetup& 
    Handle<View<Candidate> > METs;
    iEvent.getByLabel(METSrc_, METs); 
 
+   double met = (*METs)[0].pt();
    double phi;
+   double minPhi = 99999;
+   double sigMin = 99999;
+   double sum;
+   double resolution;
    auto_ptr<vector<double> > deltaPhis(new vector<double>());
-   
+   auto_ptr<double> minDeltaPhi(new double());
+   auto_ptr<double> deltaPhiMinSignificance(new double());
 
-   for(Object = Objects->begin(); Object != Objects->end(); Object++)
+/*   for(Object = Objects->begin(); Object != Objects->end(); Object++)
       ObjectsVector.push_back(*Object);
    
    sort(ObjectsVector.begin(), ObjectsVector.end(), GreaterByPtCandPtr());
-
+*/
    
-   for(unsigned i = 0; i < ObjectsVector.size();i++)
+   for(unsigned i = 0; i < (*Objects).size();i++)
    {   
-      if(i >= nDeltaPhis_)
-         break;
-      phi = abs(METs->begin()->phi() - ObjectsVector[i].phi());
-      if(phi > 3.142) phi = 2*3.142 - phi;
-      deltaPhis->push_back(phi);
+      sum = 0;
+      
+      phi = abs(deltaPhi((*METs)[0].phi(), (*Objects)[i].phi()));
+      
+      if(i < nDeltaPhis_)
+      {
+         deltaPhis->push_back(phi);
+         if(phi < minPhi)      
+            minPhi = phi;
+      }
+      
+      for(unsigned j = 0; j < (*Objects).size(); j++)
+      {
+         if( i == j) continue;
+         sum += (0.1*(*Objects)[j].pt()*sin( (*Objects)[i].phi() - 
+                                                (*Objects)[j].phi() ) )*
+            (0.1*(*Objects)[j].pt()*sin( (*Objects)[i].phi() - 
+                                            (*Objects)[j].phi() ) );
+      }
+
+      resolution = atan(sqrt(sum)/met);
+
+      if( phi/resolution < sigMin)
+         sigMin = phi/resolution;
+      
    }
    
-   iEvent.put(deltaPhis);
+   if(sigMin != 99999)
+      *deltaPhiMinSignificance = sigMin;
+
+   if(minPhi != 99999) 
+      *minDeltaPhi = minPhi;
+
+   iEvent.put(deltaPhis, "all");
+   iEvent.put(minDeltaPhi, "min");
+   iEvent.put(deltaPhiMinSignificance, "significance");
 }
 
 // ------------ method called once each job just before starting event loop  ------------
