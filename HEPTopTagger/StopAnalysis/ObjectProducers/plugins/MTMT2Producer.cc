@@ -107,11 +107,11 @@ MTMT2Producer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    Handle<View<Jet> > bJetsInR;
    iEvent.getByLabel(bJetsInRSrc_, bJetsInR);
    
-   unsigned bJetIndex = -1;
-   unsigned bJetIndexForDoublet = -1;
-   unsigned closestBJetToMETIndex = -1;
-   unsigned wJet1Index = -1;
-   unsigned wJet2Index = -1;
+   unsigned bJetIndex;
+   unsigned bJetIndexForDoublet;
+   unsigned closestBJetToMETIndex;
+   unsigned wJet1Index;
+   unsigned wJet2Index;
    int otherJetIndex = -1;
    double dTopMin = 9999999;
    double dRMin = 9999999;
@@ -121,7 +121,7 @@ MTMT2Producer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    double Et_1;
    double Et_2;
 
-   bool lookForDoublet = false;
+   bool outsideWWindow = false;
    bool foundTriplet = false;
 
    LorentzVector bJetP4;
@@ -157,9 +157,10 @@ MTMT2Producer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
                if((deltaR(wJet2P4.eta(), wJet2P4.phi(), 
                           bJetP4.eta(), bJetP4.phi()) < 0.01) )  continue;
             
-               if( (bJetP4 + wJet1P4 + wJet2P4).mass() < dTopMin)
+               if( fabs((bJetP4 + wJet1P4 + wJet2P4).mass() - mTop_) < dTopMin)
                {
-                  dTopMin = (bJetP4 + wJet1P4 + wJet2P4).mass();
+
+                  dTopMin = fabs((bJetP4 + wJet1P4 + wJet2P4).mass() - mTop_);
                   foundTriplet = true;
                   bJetIndex = i;
                   wJet1Index = j;
@@ -174,65 +175,73 @@ MTMT2Producer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
          wJet1P4 = (*rSystem)[wJet1Index].p4();
          wJet2P4 = (*rSystem)[wJet2Index].p4();
          if ( (wJet1P4 + wJet2P4).mass() < mWMin_ || 
-              (wJet1P4 + wJet2P4).mass() > mWMax_) lookForDoublet = true;
+              (wJet1P4 + wJet2P4).mass() > mWMax_) outsideWWindow = true;
       }
-      if(lookForDoublet || !foundTriplet)
-      {
-         if(!foundTriplet)
-         {
-            dPhiMin = 999999;
-            for(unsigned i = 0; i < (*bJetsInR).size(); i++)
-            {
-               dPhi = abs(deltaPhi((*bJetsInR)[i].phi(), (*METs)[0].phi()));
-               if( dPhi < dPhiMin)
-               {
-                  dPhiMin = dPhi;
-                  bJetP4 = (*bJetsInR)[i].p4();
-                  bJetIndexForDoublet = i;
-               }
-               
-            }
-         }     
-         dRMin = 99999;
-         for(unsigned i = 0; i < (*rSystem).size(); i++)
-         {            
-            dR = deltaR(bJetP4.eta(), bJetP4.phi(), 
-                        (*rSystem)[i].eta(), (*rSystem)[i].phi());
 
-            if(dR < 0.01) continue;
-            if(dR > 2.0) continue;
-            if( (bJetP4 + (*rSystem)[i].p4()).mass() > mTop_) continue;
+      if(!foundTriplet)
+      {
+         dPhiMin = 999999;
+         for(unsigned i = 0; i < (*bJetsInR).size(); i++)
+         {
+            dPhi = abs(deltaPhi((*bJetsInR)[i].phi(), (*METs)[0].phi()));
+            if( dPhi < dPhiMin)
+            {
+               dPhiMin = dPhi;
+               bJetP4 = (*bJetsInR)[i].p4();
+               bJetIndexForDoublet = i;
+            }
             
-            if(dR < dRMin)
+         }
+      }     
+      else
+         bJetIndexForDoublet = bJetIndex;
+      dRMin = 99999;
+      for(unsigned i = 0; i < (*rSystem).size(); i++)
+      {            
+         dR = deltaR(bJetP4.eta(), bJetP4.phi(), 
+                     (*rSystem)[i].eta(), (*rSystem)[i].phi());
+         
+         if(dR < 0.01) continue;
+         if(dR > 2.0) continue;
+         if( (bJetP4 + (*rSystem)[i].p4()).mass() > mTop_) continue;
+         
+         if(dR < dRMin)
             {            
                otherJetIndex = int(i);
                dRMin = dR;
             }
-         }
-         
-         if(otherJetIndex == -1)
-            otherTopP4 = bJetP4;
-         else
-            otherTopP4 = (*rSystem)[otherJetIndex].p4() + bJetP4;            
-         
       }
-      else
+      
+      if(foundTriplet && !outsideWWindow)
       {
          otherTopP4 = bJetP4 + wJet1P4 + wJet2P4;
       }
-   
-      const double massOfSystemA =  tripletP4.mass(); 
-      const double pxOfSystemA   =  tripletP4.px(); 
-      const double pyOfSystemA   =  tripletP4.py(); 
+      else if(outsideWWindow && otherJetIndex != -1)
+      {
+         otherTopP4 = (*rSystem)[otherJetIndex].p4() + bJetP4;
+      }
+      else if(otherJetIndex != -1)
+      {
+         otherTopP4 = (*rSystem)[otherJetIndex].p4() + bJetP4;
+      }
+      else
+      {
+         otherTopP4 = bJetP4;            
+      }  
+
+
+      const double massOfSystemA =  tripletP4.M(); 
+      const double pxOfSystemA   =  tripletP4.Px(); 
+      const double pyOfSystemA   =  tripletP4.Py(); 
       
-      const double massOfSystemB =  otherTopP4.mass(); 
-      const double pxOfSystemB   =  otherTopP4.px(); 
-      const double pyOfSystemB   =  otherTopP4.py(); 
+      const double massOfSystemB =  otherTopP4.M(); 
+      const double pxOfSystemB   =  otherTopP4.Px(); 
+      const double pyOfSystemB   =  otherTopP4.Py(); 
       
-      const double pxMiss        = METP4.px(); 
-      const double pyMiss        = METP4.py(); 
+      const double pxMiss        = METP4.Px(); 
+      const double pyMiss        = METP4.Py(); 
       
-      const double invis_mass    = 0; 
+      const double invis_mass    = METP4.M(); 
       
       Mt2::LorentzTransverseVector  vis_A(Mt2::TwoVector(pxOfSystemA, 
                                                          pyOfSystemA), massOfSystemA);
@@ -273,17 +282,11 @@ MTMT2Producer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       } 
       otherTopP4 = bJetP4;
 
-      cout<<"MINUS ONE CONDITION: "<<(otherJetIndex != -1) <<endl;
-      cout<<"SAME INDEX CONDITION: "<<(closestBJetToMETIndex == bJetIndexForDoublet)<<endl;
       if( otherJetIndex  != -1 && closestBJetToMETIndex == bJetIndexForDoublet)
       {
          otherTopP4 = (*rSystem)[otherJetIndex].p4() + bJetP4;            
-         cout<<"CASE 1: "<<otherTopP4.Px()<<" "<<otherTopP4.Py()<<" "<<otherTopP4.Pz()<<" "<<otherTopP4.E()<<endl;
       }
-      else
-      {
-         cout<<"CASE 2: "<<otherTopP4.Px()<<" "<<otherTopP4.Py()<<" "<<otherTopP4.Pz()<<" "<<otherTopP4.E()<<endl;
-      }
+
       
 
       Et_1 = sqrt(otherTopP4.mass()*otherTopP4.mass() + otherTopP4.pt() * otherTopP4.pt());
@@ -299,6 +302,7 @@ MTMT2Producer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    {
       MTt2MTb->push_back((*MTt)[0] + 2 * (*MTb)[0]);
    }
+
 
    iEvent.put(MTt, "MTt");
    iEvent.put(MTb, "MTb");

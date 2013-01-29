@@ -3,7 +3,7 @@ import os, sys, subprocess, math, inspect
 ####So that pyroot doesn't take my command line#########
 tmpargv = sys.argv[:]
 sys.argv = []
-from ROOT import gSystem, gROOT, gStyle, gDirectory, TROOT, TH1, TFile, TTree, TKey, TObject, THStack, TLegend, TDirectory, TCanvas, TLatex
+from ROOT import gSystem, gROOT, gStyle, gDirectory, TROOT, TH1, TFile, TTree, TKey, TObject, THStack, TLegend, TDirectory, TCanvas, TLatex, TLine
 sys.argv = tmpargv
 from optparse import OptionParser
 #########################################################
@@ -54,6 +54,7 @@ if __name__== "__main__":
     parser.add_option("-f", "--filterHistograms", dest = "filters", default ="", help = 'Only go through histograms which have all strings listed in filters (seperarate multiplies by ",")', metavar = "STRING")
     parser.add_option("-a", "--appendTitle", dest = "appendTitle", default = "",help = 'Adds a string to the end of the title', metavar="STRING")
     parser.add_option("-x", "--axisTitles", dest = "axisTitles", default = ("", ""), help = "Titles of the x and y axis respectively", type ="string", nargs = 2, metavar = "STRINGS")
+    parser.add_option("-w", "--weight", dest = "weight", default = 1.0, help = 'Weight of each event, default is 1.0.', metavar = "FLOAT", type="float")
     (options, args) = parser.parse_args()
 
 
@@ -89,13 +90,21 @@ if __name__== "__main__":
             if histograms[i].GetName().find(filter) > -1:
                 continue
             skip = True
-
+        histograms[i].Scale(options.weight)
         histograms[i].SetTitle(histograms[i].GetTitle() +	
                                options.appendTitle)
         histograms[i].GetXaxis().SetTitle(options.axisTitles[0])
         histograms[i].GetYaxis().SetTitle(options.axisTitles[1])
         if skip: continue
         histograms[i].Draw("COLZ")
+############# INSERTED RED LINES
+        line = TLine()
+        line.SetLineColor(2)
+        line.SetLineWidth(3)
+        line.DrawLine(175, 0, 175, 1.0)
+        line.DrawLine(0, 0.3, 500, 0.3)
+#############
+
 #        histograms[i].Draw("TEXT")
         if options.pause:
             raw_input("Make any last minute adjustments to " + 

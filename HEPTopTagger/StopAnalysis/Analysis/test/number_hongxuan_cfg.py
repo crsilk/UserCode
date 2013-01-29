@@ -45,7 +45,7 @@ options.register ('saveSourceVariable',
 options.parseArguments()
 
 #-- Message Logger ------------------------------------------------------------
-process.MessageLogger.cerr.FwkReport.reportEvery = 1
+process.MessageLogger.cerr.FwkReport.reportEvery = 100000
 
  
 #-- Input Source --------------------------------------------------------------
@@ -91,8 +91,8 @@ process.load("StopAnalysis.ObjectProducers.HEPTopTagger_cfi")
 process.load("StopAnalysis.ObjectProducers.METSignificanceProducer_Standard_cfi")
 process.load("StopAnalysis.ObjectProducers.MTMT2Producer_Standard_cfi")
 process.load("StopAnalysis.ObjectProducers.TripletSelector_Standard_cfi")
+process.load("StopAnalysis.ObjectProducers.StopType3TopTagger_cff")
 
-process.load("SandBox.Stop.StopType3TopTagger_cff")
 process.load("SandBox.Stop.StopObjects_cff")
 
 ####Load the modules for apply the cuts
@@ -116,7 +116,9 @@ process.load('StopAnalysis.EventFilters.RA2Cuts_cff')
 process.load('StopAnalysis.EventFilters.jetIDFailureFilter_cfi')
 process.load("SandBox.Stop.StopSelection_cff")
 
-
+process.load("SandBox.Stop.sakLooseMuonSelector_cfi")
+process.load("SandBox.Stop.sakLooseElectronSelector_cfi")
+process.load("StopAnalysis.Analysis.EventPrinter_cfi")
 
 process.source = cms.Source(
     "PoolSource",
@@ -200,8 +202,8 @@ process.produce = cms.Path(
     process.EEBadScFilter *
     #        RA2_eeNoiseFilter *
     process.jetIDFailureFilter *
-    process.isolatedMuonVeto *
-    process.isolatedElectronVeto *
+    process.sakLooseMuonSelector * 
+    process.sakLooseElectronSelector * 
     process.deltaPhiJetsAndMET * 
 #        process.isolatedTrackVeto *
     process.PFchs2JetsPt70eta2p5Cut *
@@ -210,7 +212,8 @@ process.produce = cms.Path(
     process.deltaPhiJetsAndMETCut *
     process.stopCountBJets *  
     process.type3topTagger *
-    process.METCut175 
+    process.METCut175 *
+    process.eventPrinter 
 
         )
         

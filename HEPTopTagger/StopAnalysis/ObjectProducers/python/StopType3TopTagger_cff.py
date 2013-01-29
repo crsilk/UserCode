@@ -1,4 +1,4 @@
-from UserCode.TopTagger.topTagger_cfi import *
+from StopAnalysis.ObjectProducers.topTagger_cfi import *
 
 type3topTagger = topTagger.clone()
 type3topTagger.taggingMode = cms.untracked.bool(True)

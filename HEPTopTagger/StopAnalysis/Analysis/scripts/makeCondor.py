@@ -1,71 +1,78 @@
 import subprocess, sys, os, pickle
 from FWCore.ParameterSet.VarParsing import VarParsing
 from optparse import OptionParser
-def createCondorSh(CMSSW_BASE, SCRAM_ARCH, cfgFile, filesPerJob, totalFiles, configParserCommands, fileTag, outputDirectory):
-	string = (
-		'#!/bin/bash\n' +
-		'date\n' +
-		'\n' +
-		'source /uscmst1/prod/sw/cms/shrc prod\n' +
-		'CMSSW=' + CMSSW_BASE  + '\n' +
-		'SCRAM_ARCH=' + SCRAM_ARCH + '\n' +
-		'\n' +
-		'workerspace=$PWD\n' +
-		'cd $CMSSW/src\n' +
-		'eval `scramv1 runtime -sh`\n' +
-		'cd $workerspace\n' +
-		'\n' +
-		'python cfgHandler.py ' + cfgFile  + ' -j $1 ' + ' -p ' + str(filesPerJob) + ' -n ' + str(totalFiles) +' -c "' + configParserCommands + '" -t ' + fileTag + '\n' +
-		'\n' +
-		'\n' +
-		'setenv X509_USER_PROXY /uscms/home/csilkw2/x509up_u44258\n' +
-		'cp  *root  ' + outputDirectory + '\n' +
-		'if [ $? ==0]; then\n' +
-		'echo "Copy successful"\n' + 
-		'else\n' + 
-		'echo "Copy failed, sent to scratch area"\n' +
-		'cp  *root /uscmst1b_scratch/lpc1/3DayLifetime/crsilk/temp/\n' +
-		'fi\n' +
-		'rm *.py\n' +
-		'rm *.root\n' +
-		'\n' +
-		'date\n' +
-		'pwd\n' +
-		'#---------------------------------------------------------------------------------\n'
-		)
+def createCondorSh(CMSSW_BASE, SCRAM_ARCH, cfgFile, filesPerJob, totalFiles, configParserCommands, fileTag, outputDirectory, commandString):
+    copyLine = 'cp  $rootFile ' + outputDirectory + '\n'
+    if outputDirectory.find('pnfs') > -1:
+        copyLine = '/opt/d-cache/srm/bin/srmcp "file:///$workerspace/$rootFile" "srm://cmssrm.fnal.gov:8443/' + outputDirectory.replace('/pnfs/cms/WAX/' ,'') + '$rootFile"\n' 
+    string = (
+            '#!/bin/bash\n' +
+            '# ' + commandString + '\n' + 
+            'date\n' +
+            '\n' +
+            'source /uscmst1/prod/sw/cms/shrc prod\n' +
+            'CMSSW=' + CMSSW_BASE  + '\n' +
+            'export SCRAM_ARCH=' + SCRAM_ARCH + '\n' +
+            '\n' +
+            'workerspace=$PWD\n' +
+            'cd $CMSSW/src\n' +
+            'eval `scramv1 runtime -sh`\n' +
+            'cd $workerspace\n' +
+            '\n' +
+            'python cfgHandler.py ' + cfgFile  + ' -j $1 ' + ' -p ' + str(filesPerJob) + ' -n ' + str(totalFiles) +' -c "' + configParserCommands + '" -t ' + fileTag + '\n' +
+            '\n' +
+            '\n' +
+            'export X509_USER_PROXY=/uscms/home/csilkw2/x509up_u44258\n' +
+            'for rootFile in *root\n' +
+            'do\n' + 
+            copyLine +
+            'if [ $? == 0 ]; then\n' +
+            'echo "Copy successful"\n' +
+#            'else\n' +
+#            'echo "Copy failed, sent to scratch area"\n' +
+#            'cp  $rootFile /uscmst1b_scratch/lpc1/3DayLifetime/crsilk/temp/\n' +
+            'fi\n' +
+            'done\n' + 
+            'rm *.py\n' +
+            'rm *.root\n' +
+            '\n' +
+            'date\n' +
+            'pwd\n' +
+            '#---------------------------------------------------------------------------------\n'
+            )
 
-	outputFile = open('condor_' + fileTag + '.sh', 'w')
-	outputFile.write(string)
-	outputFile.close()
-	
+    outputFile = open('condor_' + fileTag + '.sh', 'w')
+    outputFile.write(string)
+    outputFile.close()
+
 def createCondorSubmit(fileTag, logFileDir, nJobs,cfgFile, cfgHandler):
-	string = (
-		'universe=vanilla\n' +
-		'Executable=condor_' + fileTag + '.sh\n' +
-		'output = ' + logFileDir  + fileTag + '_$(Process).out\n' +
-		'error = ' + logFileDir + fileTag + '_$(Process).err\n' +
-		'log = ' + logFileDir + fileTag + '_$(Process).log\n' +
-		'Requirements = Memory >= 199 && OpSys == "LINUX" && (Arch != "DUMMY")\n' +
-		'Should_Transfer_Files = YES\n' +
-		'Transfer_Input_Files = ' + cfgFile + ', ' + cfgHandler + '\n' +
-		'Arguments = $(Process)\n' +
-		'WhenTOTransferOutput  = ON_EXIT\n' +
-		'environment =  \n' +
-		'Notification = error\n' +
-		'Queue ' + str(nJobs) + '\n' 
-		)
+    string = (
+            'universe=vanilla\n' +
+            'Executable=condor_' + fileTag + '.sh\n' +
+            'output = ' + logFileDir  + fileTag + '_$(Process).out\n' +
+            'error = ' + logFileDir + fileTag + '_$(Process).err\n' +
+            'log = ' + logFileDir + fileTag + '_$(Process).log\n' +
+            'Requirements = Memory >= 199 && OpSys == "LINUX" && (Arch != "DUMMY")\n' +
+            'Should_Transfer_Files = YES\n' +
+            'Transfer_Input_Files = ' + cfgFile + ', ' + cfgHandler + '\n' +
+            'Arguments = $(Process)\n' +
+            'WhenTOTransferOutput  = ON_EXIT\n' +
+            'environment =  \n' +
+            'Notification = error\n' +
+            'Queue ' + str(nJobs) + '\n'
+            )
 
-	outputFile = open('condor_' + fileTag + '.submit', 'w')
-	outputFile.write(string)
-	outputFile.close()
+    outputFile = open('condor_' + fileTag + '.submit', 'w')
+    outputFile.write(string)
+    outputFile.close()
 def grabSourceFiles(cfgFile, configParserCommands, outFileName):
-	subprocess.call('python ' + cfgFileName + ' saveSourceVariable=' + outFileName + ' ' + configParserCommands, shell=True)
+    subprocess.call('python ' + cfgFileName + ' saveSourceVariable=' + outFileName + ' ' + configParserCommands, shell=True)
 
-	outFile = open(outFileName, 'r')
-	sourceFiles = pickle.load(outFile)
-	outFile.close()
-	subprocess.call('rm ' + outFileName, shell=True)
-	return sourceFiles
+    outFile = open(outFileName, 'r')
+    sourceFiles = pickle.load(outFile)
+    outFile.close()
+    subprocess.call('rm ' + outFileName, shell=True)
+    return sourceFiles
 parser = OptionParser()
 parser.add_option("-n", "--nJobs", dest = "nJobs", default = 1, help = 'Number of jobs to split up into' , type = 'int', metavar = "INT")
 parser.add_option("-c", "--configParserCommands", dest = "configParserCommands", help='Any additional config parser commands to go along with the file', default = "", metavar= "STRING")
@@ -75,31 +82,45 @@ parser.add_option("-o", "--outputDir", dest = "outputDir", help='Output director
 (options, args) = parser.parse_args()
 cfgFileName = args[0]
 
+commandString = cfgFileName 
+if options.nJobs != 1:
+    commandString = commandString  + " -n " + str(options.nJobs) 
+if options.configParserCommands != "":
+    commandString  = commandString + ' -c "' + options.configParserCommands + '"'
+if options.fileTag != "":
+    commandString = commandString + ' -t ' + options.fileTag 
+if options.outputDir != "":
+     commandString = commandString + ' -o ' + options.outputDir
+
+
+
+
+
 if options.fileTag == "":
-	options.fileTag = args[0].replace('_cfg.py' , '')
+    options.fileTag = args[0].replace('_cfg.py' , '')
 
 echoPWDCommand =  subprocess.Popen("echo $PWD", stdout=subprocess.PIPE,
-								   shell=True)
+                                                                   shell=True)
 PWD = echoPWDCommand.stdout.read().replace('\n', '')
 if options.outputDir == "":
-	options.outputDir = PWD + '/output'
+    options.outputDir = PWD + '/output'
 echoCMSSWCommand =  subprocess.Popen("echo $CMSSW_BASE",
-									 stdout=subprocess.PIPE, shell=True)
+                                                                         stdout=subprocess.PIPE, shell=True)
 CMSSW_BASE = echoCMSSWCommand.stdout.read().replace('\n', '')
 
 if CMSSW_BASE =='':
-	sys.stderr.write("** Please run cmsenv before running makeCondor **\n")
-	sys.exit(1)
+    sys.stderr.write("** Please run cmsenv before running makeCondor **\n")
+    sys.exit(1)
 
 
 echoSCRAMARCHCommand = subprocess.Popen("echo $SCRAM_ARCH", stdout=subprocess.PIPE,
-									shell=True)
+                                                                        shell=True)
 SCRAM_ARCH = echoSCRAMARCHCommand.stdout.read().replace('/n', '')
 
 if not os.path.exists(PWD + "/logfiles"):
-	subprocess.call("mkdir logfiles", shell=True)
+    subprocess.call("mkdir logfiles", shell=True)
 if not os.path.exists(PWD + "/output"):
-	subprocess.call("mkdir output", shell=True)
+    subprocess.call("mkdir output", shell=True)
 
 outFileName = options.fileTag + '_' + cfgFileName.replace('_cfg', '').replace('.py','.out')
 
@@ -109,7 +130,7 @@ jobArray = []
 
 filesPerJob = int(totalFiles/options.nJobs)
 if filesPerJob*options.nJobs < totalFiles:
-	options.nJobs = options.nJobs + 1
+    options.nJobs = options.nJobs + 1
 
-createCondorSh(CMSSW_BASE, SCRAM_ARCH, cfgFileName, filesPerJob, totalFiles, options.configParserCommands, options.fileTag,options.outputDir)
+createCondorSh(CMSSW_BASE, SCRAM_ARCH, cfgFileName, filesPerJob, totalFiles, options.configParserCommands, options.fileTag,options.outputDir, commandString)
 createCondorSubmit(options.fileTag, PWD + "/logfiles/", options.nJobs,cfgFileName, CMSSW_BASE + '/src/StopAnalysis/Analysis/scripts/cfgHandler.py')

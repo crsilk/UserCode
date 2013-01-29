@@ -12,6 +12,7 @@
   <use   name="DataFormats/Math"/>
   <use   name="PhysicsTools/UtilAlgos"/>
   <use   name="EGamma/EGammaAnalysisTools"/>
-  <use name="recipeAUX/OxbridgeMT2"/>
+  <use   name="recipeAUX/OxbridgeMT2"/>
+  <use   name="PhysicsTools/Utilities"/>
   <use   name="root"/>
 </library>

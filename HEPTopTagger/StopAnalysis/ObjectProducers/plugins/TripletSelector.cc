@@ -417,6 +417,8 @@ void TripletSelector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
             selectedBJets->push_back(BasicJet((*bJets)[bJetInRIndices[selectedIndex][i]].p4(), (*bJets)[bJetInRIndices[selectedIndex][i]].vertex(), (*bJets)[bJetInRIndices[selectedIndex][i]].getJetConstituents()));
             selectedBJetsIndex->push_back(bJetInRIndices[selectedIndex][i]);
          }
+
+
          selectedTripletIndex->push_back((*indices)[selectedIndex][0]);
          selectedTripletIndex->push_back((*indices)[selectedIndex][1]);
          selectedTripletIndex->push_back((*indices)[selectedIndex][2]);

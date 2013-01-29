@@ -13,7 +13,7 @@
 //
 // Original Author:  giulio dujany
 //         Created:  Thu Sep 11 09:30:00 CDT 2012
-// $Id: CountEventsAfterCuts.cc,v 1.2 2012/10/31 14:34:23 crsilk Exp $
+// $Id: CountEventsAfterCuts.cc,v 1.3 2012/11/14 14:27:04 crsilk Exp $
 //
 //
 
@@ -77,6 +77,7 @@ private:
       unsigned countsSize_;
 
       bool runOnSignal_;
+      bool mc_;
       vector<vector<double> > allModelPoints_;
       vector<double> signalTotalCount_;
       vector<vector<double> > signalCounts_;
@@ -105,6 +106,11 @@ CountEventsAfterCuts::CountEventsAfterCuts(const edm::ParameterSet& iConfig)
 
    else
       runOnSignal_ = false;
+   if(iConfig.exists("mc"))
+      mc_ = iConfig.getParameter<bool>("mc");
+
+   else
+      mc_ = true;
       
 
    eventNumber_ = 0;
@@ -138,28 +144,6 @@ void CountEventsAfterCuts::analyze(const edm::Event& iEvent, const edm::EventSet
    Handle<GenEventInfoProduct>    genEvent;
    iEvent.getByLabel(genEventSrc_,  genEvent);
 
-///TEMP
-
-   InputTag TopSrc("selectedTopBJetPair", "Top");
-   Handle<View<Candidate> > Tops;
-   iEvent.getByLabel(TopSrc, Tops);
-   
-
-   InputTag BJetSrc("selectedTopBJetPair", "BJet");
-   Handle<View<Candidate> > BJets;
-   iEvent.getByLabel(BJetSrc, BJets);
-
-   InputTag mttSrc("MTTop");
-   Handle<vector<double> > mtts;
-   iEvent.getByLabel(mttSrc, mtts);
-
-
-   InputTag mtbSrc("MTBJet");
-   Handle<vector<double> > mtbs;
-   iEvent.getByLabel(mtbSrc, mtbs);
-
-
-///TEMP
    Handle<vector<double> > modelPoints;
    unsigned eventIndex = 0;
 
@@ -167,8 +151,12 @@ void CountEventsAfterCuts::analyze(const edm::Event& iEvent, const edm::EventSet
    TriggerNames  triggerNames = iEvent.triggerNames(*trigger);
    bool cutNameFound;
    bool triggerNameFound;
-   double weight = genEvent->weight();
-
+   double weight;
+   if(mc_)
+      weight = genEvent->weight();
+   else
+      weight = 1.0;
+   
    eventNumber_++;
 
 
@@ -273,13 +261,6 @@ void CountEventsAfterCuts::analyze(const edm::Event& iEvent, const edm::EventSet
             {
                return;
             }
-               //TEMP
-               if(cutNames_[i] == "triangleCutMTTopAndMTBJet_path" )
-               {
-                  cout << setprecision(5) << "TopBFLAG: " << (*Tops)[0].pt()<< " " << (*BJets)[0].pt() << " "<< (*mtts)[0] <<" " << (*mtbs)[0] <<  endl;
-               }
-//TEMP
-
          }
       }
 
@@ -310,17 +291,19 @@ CountEventsAfterCuts::endJob()
    cout<<"Total Count: "<<totalCount_<<endl;
    cout<<"Cut      Number that passed this cut "<<endl;
    for(unsigned i = 0; i < triggerNames_.size(); i++)
-      cout<<triggerNames_[i]<<"\t";
+      cout<<triggerNames_[i]<<"\t"<<counts_[i]<<"\n";
    for(unsigned i = 0; i < cutNames_.size(); i++)
    {
       if (cutDecisions_[i])
          cout<<cutNames_[i]<<"\t";
       else
          cout<<"~"<<cutNames_[i]<<"\t";
+      cout<<counts_[i]<<"\n";
+
    }
    cout<<endl;
-   for(unsigned i = 0; i < counts_.size(); i++)
-      cout<<counts_[i]<<"\t";
+//   for(unsigned i = 0; i < counts_.size(); i++)
+//      cout<<counts_[i]<<"\t";
    cout<<endl;
 
    if(runOnSignal_)

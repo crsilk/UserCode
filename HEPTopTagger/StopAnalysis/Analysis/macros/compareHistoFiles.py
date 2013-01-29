@@ -132,12 +132,14 @@ if __name__== "__main__":
 
             if j + 1 < 3:
                 histograms[j][i].SetLineColor(j + 1)
+                histograms[j][i].SetMarkerColor(j + 1)
             else:
-				histograms[j][i].SetLineColor(j + 2)
+                histograms[j][i].SetLineColor(j + 2)
+                histograms[j][i].SetMarkerColor(j + 2)
             histograms[j][i].SetLineWidth(1)
             histograms[j][i].SetMarkerStyle(22)
             histograms[j][i].SetTitle(histograms[j][i].GetTitle() +
-									  options.appendTitle)
+                                      options.appendTitle)
 		
             
             if i == 0:

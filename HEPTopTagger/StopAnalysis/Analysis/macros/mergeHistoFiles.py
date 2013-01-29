@@ -69,9 +69,9 @@ if __name__=="__main__":
 		    weights.append(float(weight))
 
 
-    if len(args) < 2:
-        sys.stderr.write("Must give at least two files to be merged\n")
-        sys.exit(0)
+#    if len(args) < 2:
+#        sys.stderr.write("Must give at least two files to be merged\n")
+#        sys.exit(0)
 
     inputFileNames = args
     outputFile = TFile(options.outputFileName, "RECREATE")
