@@ -68,8 +68,6 @@ for file in files:
 
 
 ####Load the modules of all the new collections
-process.load("StopAnalysis.ObjectProducers.HEPTopTagSelector_StandardSelection_cfi")
-process.load("StopAnalysis.ObjectProducers.HEPTopTagSelector_AntiTagSelection_cfi")
 process.load("StopAnalysis.ObjectProducers.BJetSelector_StandardSelection_cfi")
 process.load("StopAnalysis.ObjectProducers.TopBJetPairSelector_StandardSelection_cfi")
 process.load("StopAnalysis.ObjectProducers.MTProducer_TopAndMET_cfi")
@@ -87,7 +85,6 @@ process.load("StopAnalysis.ObjectProducers.ModelPointProducer_StandardConfigurat
 process.load("StopAnalysis.ObjectProducers.CandidateSelector_MET_cfi")
 process.load("StopAnalysis.ObjectProducers.MatchedFatJetSelector_BJet_cfi")
 process.load("StopAnalysis.ObjectProducers.LostLeptonSelector_StandardSelection_cfi")
-process.load("StopAnalysis.ObjectProducers.HEPTopTagger_cfi")
 process.load("StopAnalysis.ObjectProducers.METSignificanceProducer_Standard_cfi")
 process.load("StopAnalysis.ObjectProducers.MTMT2Producer_Standard_cfi")
 process.load("StopAnalysis.ObjectProducers.TripletSelector_Standard_cfi")
@@ -97,8 +94,7 @@ process.load("SandBox.Stop.StopObjects_cff")
 
 ####Load the modules for apply the cuts
 process.load("StopAnalysis.EventFilters.PATCandViewCountFilter_requireTopBJetPair_cfi")
-process.load("StopAnalysis.EventFilters.PATCandViewCountFilter_requireHEPAntiTag_cfi")
-process.load("StopAnalysis.EventFilters.PATCandViewCountFilter_requireHEPTopTag_cfi")
+
 process.load("StopAnalysis.EventFilters.PATCandViewCountFilter_requireBJet_cfi")
 process.load("StopAnalysis.EventFilters.preCuts_cff")
 process.load("StopAnalysis.EventFilters.DoublesFilter_DeltaPhiJetsAndMETCut_cfi")
